@@ -18,7 +18,7 @@ public class GradientShaderEditor : ShaderGUI
 
 		foreach (MaterialProperty property in properties)
 		{
-			if (property.flags.HasFlag(MaterialProperty.PropFlags.HideInInspector)) continue;
+			if (property.propertyFlags.HasFlag(UnityEngine.Rendering.ShaderPropertyFlags.HideInInspector)) continue;
 			if (GradientUtility.IsGradient(property))
 			{
 				gradientGUIDrawers.TryGetValue(property.name, out GradientGUIDrawer drawer);

@@ -86,7 +86,7 @@ public class GradientGUIDrawer : MaterialPropertyDrawer
 		{
 			bool IncludesKey(string value, string key) => value.ToLower().Contains(key);
 			bool IsGradient(MaterialProperty property) =>
-				property.type == MaterialProperty.PropType.Texture
+				property.propertyType == UnityEngine.Rendering.ShaderPropertyType.Texture
 				&& IncludesKey(property.name, "gradienttexture");
 
 			IEnumerable<Texture> GetTextures(Material target)

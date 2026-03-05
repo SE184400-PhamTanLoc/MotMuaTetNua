@@ -11,7 +11,7 @@ namespace GPFS.Editor
     {
         public static bool IncludesKey(string value, string key) => value.Contains(key, StringComparison.OrdinalIgnoreCase);
         public static bool IsGradient(MaterialProperty property)
-            => property.type == MaterialProperty.PropType.Texture
+            => property.propertyType == UnityEngine.Rendering.ShaderPropertyType.Texture
             && IncludesKey(property.name, Settings.GradientTextureKeyword);
 
         public static IEnumerable<Texture> GetTextures(Material target)
