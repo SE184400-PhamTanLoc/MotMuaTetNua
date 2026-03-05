@@ -59,19 +59,32 @@
     <Analyzer Include="E:\Unity\Hub\Editor\2022.3.62f3\Editor\Data\Tools\Unity.SourceGenerators\Unity.Properties.SourceGenerator.dll" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\Scripts\Day29\Core\MemoryManager.cs" />
+    <Compile Include="Assets\Scripts\Day29\Core\PhaseManager.cs" />
+    <Compile Include="Assets\Scripts\Day29\Tasks\PhotoArrangementTask.cs" />
+    <Compile Include="Assets\Scripts\Day29\Core\InteractionSystem.cs" />
     <Compile Include="Assets\RiceFieldGenerator.cs" />
     <Compile Include="Assets\StarterAssets\Mobile\Scripts\VirtualInputs\UIVirtualTouchZone.cs" />
+    <Compile Include="Assets\Scripts\Day29\Core\TaskManager.cs" />
+    <Compile Include="Assets\Scripts\Day29\Tasks\DinnerPrepTask.cs" />
+    <Compile Include="Assets\Scripts\Day29\Persistence\Day29Data.cs" />
     <Compile Include="Assets\StarterAssets\Mobile\Scripts\VirtualInputs\UIVirtualButton.cs" />
     <Compile Include="Assets\nTools\PrefabPainter\Scripts\PrefabPainterSettings.cs" />
     <Compile Include="Assets\StarterAssets\Mobile\Scripts\VirtualInputs\UIVirtualJoystick.cs" />
+    <Compile Include="Assets\Scripts\Day29\Core\AudioManager.cs" />
     <Compile Include="Assets\PlantRiceOnField.cs" />
+    <Compile Include="Assets\Scripts\Day29\Feedback\MemoryVisualFeedback.cs" />
     <Compile Include="Assets\StarterAssets\FirstPersonController\Scripts\BasicRigidBodyPush.cs" />
     <Compile Include="Assets\StarterAssets\Mobile\Scripts\CanvasInputs\UICanvasControllerInput.cs" />
+    <Compile Include="Assets\Scripts\Day29\Tasks\AltarCleaningTask.cs" />
+    <Compile Include="Assets\Scripts\Day29\Persistence\SaveSystem.cs" />
     <Compile Include="Assets\nTools\PrefabPainter\Scripts\PrefabPainterSceneSettings.cs" />
     <Compile Include="Assets\Polytope Studio\Lowpoly_Demos\Environment_Free\Helpers\MouseLook.cs" />
     <Compile Include="Assets\Stylized Trees Pack\Shared\Scripts\WindController.cs" />
     <Compile Include="Assets\StarterAssets\Mobile\Scripts\Utilities\MobileDisableAutoSwitchControls.cs" />
+    <Compile Include="Assets\Scripts\Day29\Tasks\BanhTetFireTask.cs" />
     <Compile Include="Assets\Polytope Studio\Lowpoly_Demos\Environment_Free\Helpers\PlayerMovement.cs" />
+    <Compile Include="Assets\Scripts\Day29\Tasks\SisterDialogueTask.cs" />
     <Compile Include="Assets\StarterAssets\FirstPersonController\Scripts\FirstPersonController.cs" />
     <Compile Include="Assets\StarterAssets\InputSystem\StarterAssetsInputs.cs" />
   </ItemGroup>
