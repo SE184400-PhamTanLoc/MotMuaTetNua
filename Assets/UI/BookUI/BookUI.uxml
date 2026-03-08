@@ -1,0 +1,10 @@
+<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <!-- Gán stylesheet BookUI.uss trong Inspector (UIDocument - Style Sheets) -->
+    <ui:VisualElement name="BookRoot" class="book-root">
+        <ui:VisualElement name="PageContainer" class="book-page-container">
+            <ui:VisualElement name="Page1" class="book-page" style="display: flex;"/>
+            <ui:VisualElement name="Page2" class="book-page" style="display: none;"/>
+            <ui:VisualElement name="Page3" class="book-page" style="display: none;"/>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

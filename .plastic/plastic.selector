@@ -1,0 +1,4 @@
+repository "PRUpro/PRU_1MoreTet@18968364548530@cloud"
+  path "/"
+    br "/main"
+    co "/main"

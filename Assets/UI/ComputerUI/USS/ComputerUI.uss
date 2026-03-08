@@ -1,0 +1,840 @@
+/* Computer UI Stylesheet */
+
+.computer-ui-root {
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.95);
+}
+
+/* Desktop Panel */
+.desktop-panel {
+    width: 100%;
+    height: 100%;
+    background-color: #2a2a2a;
+    position: absolute;
+    top: 0;
+    left: 0;
+    /* Làm reference frame cho absolute positioning của NotificationPanel */
+}
+
+/* Notification Panel - Góc trên bên phải (con của DesktopPanel, absolute positioning) */
+.notification-panel {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 400px;
+    height: 100px;
+    background-color: #4a90e2;
+    border-radius: 8px;
+    padding: 15px;
+    align-items: center;
+    justify-content: center;
+    /* UI Toolkit runtime không hỗ trợ z-index; dùng thứ tự trong hierarchy để overlay */
+    /* Không tham gia vào layout flow của DesktopPanel */
+    /* Vị trí sẽ được animate bằng C# code */
+    
+    /* USS Transition cho opacity (fade in/out) */
+    opacity: 0;
+    transition-property: opacity;
+    transition-duration: 0.3s;
+    transition-timing-function: ease-out;
+}
+
+/* Lưu ý: UI Toolkit không hỗ trợ selector dạng :not([style*="..."]) */
+
+.notification-text {
+    font-size: 24px;
+    -unity-font-style: normal;
+    -unity-text-align: middle-center;
+    white-space: normal;
+}
+
+/* Message App Panel */
+.message-app-panel {
+    width: 100%;
+    height: 100%;
+    background-color: white;
+    position: absolute;
+    top: 0;
+    left: 0;
+    flex-direction: column;
+}
+
+.app-header {
+    width: 100%;
+    height: 60px;
+    background-color: #f0f0f0;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    border-bottom-width: 1px;
+    border-bottom-color: #ccc;
+    flex-shrink: 0;
+}
+
+.app-title {
+    font-size: 20px;
+    color: #333;
+    -unity-font-style: bold;
+}
+
+.close-button {
+    width: 40px;
+    height: 40px;
+    background-color: #ff4444;
+    color: white;
+    border-radius: 4px;
+    font-size: 18px;
+}
+
+.close-button:hover {
+    background-color: #ff6666;
+}
+
+/* Message App Body - Layout 2 cột */
+.message-app-body {
+    width: 100%;
+    flex-grow: 1;
+    flex-direction: row;
+    overflow: hidden;
+}
+
+/* Bên trái: Danh sách chat */
+.chat-list-container {
+    width: 300px;
+    height: 100%;
+    background-color: #f5f5f5;
+    border-right-width: 1px;
+    border-right-color: #ddd;
+    flex-direction: column;
+    flex-shrink: 0;
+    /* UI Toolkit runtime không hỗ trợ overflow-y; nếu cần scroll, nên dùng ScrollView */
+    overflow: scroll;
+}
+
+.chat-list-item {
+    width: 100%;
+    min-height: 60px;
+    padding: 15px 20px;
+    background-color: transparent;
+    border-bottom-width: 1px;
+    border-bottom-color: #e0e0e0;
+    cursor: link;
+    flex-direction: row;
+    align-items: center;
+    transition-property: background-color;
+    transition-duration: 0.2s;
+    transition-timing-function: ease-out;
+}
+
+.chat-list-item:hover {
+    background-color: #e8e8e8;
+}
+
+.chat-list-item-selected {
+    background-color: #4a90e2;
+}
+
+.chat-list-item-selected:hover {
+    background-color: #3a7bc8;
+}
+
+.chat-list-item-name {
+    font-size: 18px;
+    color: #333;
+    -unity-font-style: normal;
+}
+
+.chat-list-item-selected .chat-list-item-name {
+    color: white;
+    -unity-font-style: bold;
+}
+
+/* Bên phải: Nội dung chat */
+.chat-content-container {
+    flex-grow: 1;
+    height: 100%;
+    background-color: white;
+    flex-direction: column;
+    padding: 20px;
+}
+
+.chat-content-placeholder {
+    font-size: 18px;
+    color: #999;
+    -unity-text-align: middle-center;
+    width: 100%;
+    height: 100%;
+    flex-grow: 1;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Work App Panel */
+.work-app-panel {
+    width: 100%;
+    height: 100%;
+    background-color: white;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.work-app-view-root {
+    width: 100%;
+    height: 100%;
+    flex-direction: column;
+    background-color: #1a1a1b;
+}
+
+.work-app-header {
+    height: 64px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding-left: 20px;
+    padding-right: 20px;
+    background-color: #242526;
+    border-bottom-width: 1px;
+    border-bottom-color: #303030;
+    flex-shrink: 0;
+}
+
+.work-app-title {
+    font-size: 30px;
+    color: white;
+    -unity-font-style: bold;
+}
+
+.work-progress {
+    font-size: 22px;
+    color: #cfcfcf;
+}
+
+.work-app-body {
+    flex-grow: 1;
+    padding: 24px;
+    flex-direction: column;
+}
+
+.work-step-title {
+    font-size: 26px;
+    color: white;
+    margin-bottom: 12px;
+    -unity-font-style: bold;
+}
+
+.work-question {
+    font-size: 22px;
+    color: white;
+    margin-bottom: 16px;
+    white-space: normal;
+}
+
+.work-options {
+    flex-direction: column;
+}
+
+.work-option-button {
+    height: 54px;
+    background-color: #2f2f2f;
+    color: white;
+    font-size: 20px;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
+    border-bottom-left-radius: 10px;
+    margin-bottom: 10px;
+}
+
+.work-option-button:hover {
+    background-color: #3a3a3a;
+}
+
+.work-option-selected {
+    background-color: #4a7cff;
+}
+
+.work-status {
+    font-size: 18px;
+    color: #ffcc66;
+    margin-top: 10px;
+    white-space: normal;
+}
+
+.work-hint {
+    font-size: 18px;
+    color: #cfcfcf;
+    margin-bottom: 10px;
+    white-space: normal;
+}
+
+.work-arrange-list {
+    margin-top: 10px;
+    flex-direction: column;
+}
+
+.work-drop-slots {
+    flex-direction: row;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    align-items: stretch;
+}
+
+.work-drop-slot {
+    flex-grow: 1;
+    flex-basis: 0;
+    min-width: 0;
+    flex-direction: column;
+    background-color: rgba(0, 0, 0, 0.03);
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
+    border-bottom-left-radius: 10px;
+    padding: 14px;
+    margin-right: 10px;
+    border-left-width: 1px;
+    border-right-width: 1px;
+    border-top-width: 1px;
+    border-bottom-width: 1px;
+    border-left-color: rgba(0, 0, 0, 0.12);
+    border-right-color: rgba(0, 0, 0, 0.12);
+    border-top-color: rgba(0, 0, 0, 0.12);
+    border-bottom-color: rgba(0, 0, 0, 0.12);
+    height: 280px;
+}
+
+/* UI Toolkit không hỗ trợ :last-child; bỏ margin-right: 0 cho slot cuối bằng class .work-drop-slot-last nếu cần */
+
+.work-drop-slot-title {
+    font-size: 24px;
+    color: #333;
+    margin-bottom: 8px;
+    -unity-font-style: bold;
+}
+
+.work-drop-slot-box {
+    flex-grow: 1;
+    min-width: 0;
+    min-height: 180px;
+    overflow: hidden;
+    background-color: rgba(255, 255, 255, 0.9);
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
+    border-bottom-left-radius: 10px;
+    align-items: stretch;
+    justify-content: flex-start;
+    padding: 12px;
+    border-left-width: 1px;
+    border-right-width: 1px;
+    border-top-width: 1px;
+    border-bottom-width: 1px;
+    border-left-color: rgba(0, 0, 0, 0.10);
+    border-right-color: rgba(0, 0, 0, 0.10);
+    border-top-color: rgba(0, 0, 0, 0.10);
+    border-bottom-color: rgba(0, 0, 0, 0.10);
+}
+
+.work-drop-slot-hover .work-drop-slot-box {
+    border-left-color: rgba(74, 124, 255, 0.9);
+    border-right-color: rgba(74, 124, 255, 0.9);
+    border-top-color: rgba(74, 124, 255, 0.9);
+    border-bottom-color: rgba(74, 124, 255, 0.9);
+}
+
+.work-answer-pool {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: stretch;
+}
+
+.work-pool-slot {
+    width: 31%;
+    height: 260px;
+    flex-shrink: 0;
+    flex-grow: 0;
+    flex-direction: column;
+    /* "ô chứa" nhưng không hiển thị */
+    background-color: rgba(0, 0, 0, 0.0);
+    border-left-width: 0;
+    border-right-width: 0;
+    border-top-width: 0;
+    border-bottom-width: 0;
+    padding: 0;
+    margin-right: 0;
+    overflow: hidden;
+}
+
+.work-answer-card {
+    flex-grow: 0;
+    flex-shrink: 0;
+    flex-basis: auto;
+    min-width: 0;
+    flex-direction: column;
+    overflow: hidden;
+    height: 140px;
+    background-color: white;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
+    border-bottom-left-radius: 10px;
+    padding: 14px;
+    margin-right: 10px;
+    border-left-width: 1px;
+    border-right-width: 1px;
+    border-top-width: 1px;
+    border-bottom-width: 1px;
+    border-left-color: rgba(0, 0, 0, 0.12);
+    border-right-color: rgba(0, 0, 0, 0.12);
+    border-top-color: rgba(0, 0, 0, 0.12);
+    border-bottom-color: rgba(0, 0, 0, 0.12);
+    cursor: link;
+}
+
+.work-pool-slot .work-answer-card {
+    width: 100%;
+    height: 100%;
+    margin-right: 0;
+}
+
+.work-drop-slot-box .work-answer-card {
+    width: 100%;
+    height: 100%;
+    margin-right: 0;
+}
+
+/* UI Toolkit không hỗ trợ :last-child; bỏ margin-right: 0 cho card cuối bằng class nếu cần */
+
+.work-answer-text {
+    color: #222;
+    font-size: 24px;
+    white-space: normal;
+    max-width: 100%;
+    flex-grow: 1;
+}
+
+.work-answer-ghost {
+    opacity: 0.9;
+    background-color: #f3f6ff;
+    border-left-color: rgba(74, 124, 255, 0.9);
+    border-right-color: rgba(74, 124, 255, 0.9);
+    border-top-color: rgba(74, 124, 255, 0.9);
+    border-bottom-color: rgba(74, 124, 255, 0.9);
+}
+
+.work-arrange-row {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #2f2f2f;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+    border-bottom-right-radius: 12px;
+    border-bottom-left-radius: 12px;
+    padding: 14px;
+    margin-bottom: 10px;
+    cursor: link;
+}
+
+.work-arrange-text {
+    flex-grow: 1;
+    color: white;
+    font-size: 20px;
+    white-space: normal;
+    margin-right: 10px;
+}
+
+.work-arrange-placeholder {
+    background-color: rgba(255, 255, 255, 0.08);
+    border-left-width: 2px;
+    border-left-color: #4a7cff;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+    border-bottom-right-radius: 12px;
+    border-bottom-left-radius: 12px;
+    margin-bottom: 10px;
+}
+
+.work-arrange-ghost {
+    opacity: 0.9;
+    background-color: #3a3a3a;
+    border-left-width: 2px;
+    border-left-color: #4a7cff;
+}
+
+.work-mini-buttons {
+    flex-direction: row;
+    flex-shrink: 0;
+}
+
+.work-mini-button {
+    width: 44px;
+    height: 44px;
+    background-color: #3a3a3a;
+    color: white;
+    font-size: 20px;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
+    border-bottom-left-radius: 10px;
+    margin-left: 8px;
+}
+
+.work-mini-button:hover {
+    background-color: #4a4a4a;
+}
+
+.work-app-footer {
+    height: 80px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
+    padding-left: 20px;
+    padding-right: 20px;
+    background-color: #242526;
+    border-top-width: 1px;
+    border-top-color: #303030;
+    flex-shrink: 0;
+}
+
+.work-primary-button {
+    width: 180px;
+    height: 50px;
+    background-color: #4a7cff;
+    color: white;
+    font-size: 18px;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
+    border-bottom-left-radius: 10px;
+    margin-right: 12px;
+}
+
+.work-primary-button:disabled {
+    background-color: #555555;
+    color: #aaaaaa;
+}
+
+.work-close-button {
+    width: 120px;
+    height: 50px;
+    background-color: #ff4444;
+    color: white;
+    font-size: 18px;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
+    border-bottom-left-radius: 10px;
+    margin-left: 12px;
+}
+
+.work-close-button:hover {
+    background-color: #ff6666;
+}
+
+.work-app-content {
+    width: 100%;
+    height: 100%;
+    padding: 40px;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}
+
+.work-text {
+    font-size: 20px;
+    color: #333;
+    margin-bottom: 30px;
+    -unity-text-align: middle-center;
+}
+
+.complete-button {
+    width: 250px;
+    height: 50px;
+    background-color: #4CAF50;
+    color: white;
+    font-size: 18px;
+    border-radius: 4px;
+}
+
+.complete-button:hover {
+    background-color: #45a049;
+}
+
+.complete-button:disabled {
+    background-color: #cccccc;
+    color: #666666;
+}
+
+/* Close Computer Button */
+.close-computer-button {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    width: 150px;
+    height: 50px;
+    background-color: #ff4444;
+    color: white;
+    font-size: 16px;
+    border-radius: 4px;
+}
+
+.close-computer-button:hover {
+    background-color: #ff6666;
+}
+
+.close-computer-button:disabled {
+    background-color: #cccccc;
+    color: #666666;
+}
+
+/* Desktop App Icons */
+#MessageAppIcon,
+#WorkAppIcon {
+    cursor: link;
+}
+
+/* Taskbar */
+/*
+NOTE (phương án A):
+- Các rule taskbar dưới đây từng override mạnh layout của DesktopView khi DesktopView
+  được nhúng vào ComputerUI + runtime (trong khi DesktopView.uxml đã có inline style).
+- Để đảm bảo "giống hệt DesktopView trong UI Builder", ta tạm thời tắt các rule này
+  để DesktopView dùng đúng inline styles của chính nó.
+*/
+
+/*
+.taskbar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 60px;
+    background-color: rgba(30, 30, 30, 0.95);
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0;
+    border-top-width: 1px;
+    border-top-color: rgba(255, 255, 255, 0.1);
+}
+
+.start-button {
+    width: 80px;
+    height: 50px;
+    background-color: rgba(60, 60, 60, 0.8);
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+    border-bottom-left-radius: 4px;
+    border-bottom-right-radius: 4px;
+    align-items: center;
+    justify-content: center;
+    margin-left: 0;
+    margin-right: 0;
+}
+
+.start-button-label {
+    color: white;
+    font-size: 18px;
+    -unity-text-align: middle-center;
+}
+
+.taskbar-icons-container {
+    flex-grow: 1;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 0;
+    padding-left: 20px;
+}
+
+.system-tray {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 0;
+    padding-right: 0;
+    margin-right: 0;
+}
+
+.clock-label {
+    color: white;
+    font-size: 16px;
+    -unity-text-align: middle-center;
+    padding: 5px 10px;
+    padding-right: 0;
+    background-color: rgba(40, 40, 40, 0.6);
+    border-radius: 4px;
+    margin-right: 0;
+}
+*/
+
+/* Nút Start = hình tròn rỗng (chỉ viền, không nền); đỏ khi có thể tắt */
+.start-button {
+    width: 52px;
+    height: 52px;
+    min-width: 52px;
+    min-height: 52px;
+    border-radius: 50%;
+    background-color: transparent;
+    border-left-width: 2px;
+    border-right-width: 2px;
+    border-top-width: 2px;
+    border-bottom-width: 2px;
+    border-left-color: rgba(180, 180, 180, 0.9);
+    border-right-color: rgba(180, 180, 180, 0.9);
+    border-top-color: rgba(180, 180, 180, 0.9);
+    border-bottom-color: rgba(180, 180, 180, 0.9);
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    margin-left: 12px;
+}
+
+.start-button.start-button-can-close {
+    border-left-color: rgba(230, 51, 51, 0.95);
+    border-right-color: rgba(230, 51, 51, 0.95);
+    border-top-color: rgba(230, 51, 51, 0.95);
+    border-bottom-color: rgba(230, 51, 51, 0.95);
+}
+
+.start-button-label {
+    font-size: 0;
+    width: 0;
+    height: 0;
+    overflow: hidden;
+}
+
+/* Taskbar App Icons */
+.taskbar-app-icon {
+    cursor: link;
+    align-items: center;
+    justify-content: center;
+    flex-direction: row;
+    width: auto;
+    height: 60px;
+    background-color: rgba(48, 48, 48, 0.8);
+    margin-right: 5px;
+    padding: 0 15px;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+    border-bottom-left-radius: 4px;
+    border-bottom-right-radius: 4px;
+}
+
+.taskbar-icon-label {
+    font-size: 30px;
+    color: white;
+    -unity-text-align: middle-center;
+    white-space: nowrap;
+}
+.work-drop-slot {
+    background-color: #f9fafc;
+    border: 2px dashed #4c7dff;
+    border-radius: 8px;
+    padding: 14px;
+    margin-bottom: 8px;
+}
+
+.work-drop-slot-title {
+    font-size: 24px;
+    font-weight: bold;
+    color: #4c7dff;
+    margin-bottom: 8px;
+}
+
+.work-drop-slot-box {
+    min-height: 180px;
+    background-color: #ffffff;
+    border-radius: 6px;
+    padding: 12px;
+}
+.work-drop-slot-hover {
+    background-color: #eef3ff;
+}
+.work-answer-card {
+    background-color: #ffffff;
+    border: 1px solid #dddddd;
+    border-radius: 8px;
+    padding: 14px;
+    width: 30%;
+}
+
+.work-answer-card:hover {
+    background-color: #eef3ff;
+}
+.work-answer-text {
+    font-size: 24px;
+    color: #222222;
+}
+.work-answer-ghost {
+    opacity: 0.7;
+}
+/* ===== WorkApp LIGHT MODE OVERRIDE ===== */
+
+.work-app-view-root {
+    background-color: #f4f6f8;
+}
+
+.work-app-body {
+    background-color: #f4f6f8;
+}
+.work-app-header {
+    background-color: #ffffff;
+    border-bottom-color: #dddddd;
+}
+
+.work-app-title {
+    color: #222222;
+}
+
+.work-progress {
+    color: #666666;
+}
+.work-step-title {
+    color: #222222;
+}
+
+.work-question {
+    color: #222222;
+}
+.work-option-button {
+    background-color: #ffffff;
+    color: #222222;
+    border: 1px solid #dddddd;
+}
+
+.work-option-button:hover {
+    background-color: #eef3ff;
+}
+
+.work-option-selected {
+    background-color: #dbe7ff;
+    border-color: #4c7dff;
+}
+.work-status {
+    color: #cc6600;
+}
+
+.work-hint {
+    color: #666666;
+}
+.work-app-footer {
+    background-color: #ffffff;
+    border-top-color: #dddddd;
+}
+
+.work-primary-button {
+    background-color: #4a7cff;
+}
+
+.work-primary-button:disabled {
+    background-color: #cccccc;
+    color: #888888;
+}
+
+.work-close-button {
+    background-color: #ff4444;
+}

@@ -1,0 +1,14 @@
+<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <ui:VisualElement name="Root" style="flex-grow: 1; width: 100%; height: 100%;">
+        <ui:VisualElement name="TopBar" style="flex-grow: 1; height: 40px; flex-direction: row; justify-content: flex-end; align-items: center; min-height: auto; max-height: none; flex-shrink: 1;">
+            <ui:Button text="Button" name="X"/>
+        </ui:VisualElement>
+        <ui:VisualElement name="DesktopScreen" style="flex-grow: 1; background-image: url(&quot;project://database/Assets/Books/Textures/books.png?fileID=2800000&amp;guid=f3c99298fbcc03e4ba8ecf8651058e16&amp;type=3#books&quot;); width: 100%; height: 100%; flex-direction: row; flex-wrap: wrap; align-items: flex-start;">
+            <ui:Button text="Button" name="ChatAppButton" style="background-image: url(&quot;project://database/Assets/HQ%20Laptop/Textures/e.tga?fileID=2800000&amp;guid=6e3b20038b92b78429c2d54e7f481b34&amp;type=3#e&quot;); height: 80px; width: 120px;"/>
+            <ui:Button text="Button" name="WorkAppButton" style="background-image: url(&quot;project://database/Assets/HQ%20Laptop/Textures/e.tga?fileID=2800000&amp;guid=6e3b20038b92b78429c2d54e7f481b34&amp;type=3#e&quot;); height: 80px; width: 120px;"/>
+        </ui:VisualElement>
+        <ui:VisualElement name="NotificationScreen" style="flex-grow: 1; position: absolute; left: auto; top: auto; width: 320px; height: 120px; -unity-text-align: middle-left; right: 20px; bottom: 20px; align-items: center; justify-content: center;">
+            <ui:Label text="Có tin nhắn mới&#10;[SPACE]" name="NotificationText" style="bottom: auto; right: auto; align-items: stretch; -unity-text-align: middle-center; flex-wrap: wrap; font-size: 40px; background-color: rgb(160, 160, 160);"/>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

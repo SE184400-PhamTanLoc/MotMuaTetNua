@@ -1,0 +1,18 @@
+<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <ui:Template name="DesktopView" src="project://database/Assets/UI/ComputerUI/UXML/DesktopView.uxml?fileID=9197481963319205126&amp;guid=ee81e69c01292fa41bec26b15eac4e11&amp;type=3#DesktopView"/>
+    <ui:Template name="MessageAppView" src="project://database/Assets/UI/ComputerUI/UXML/MessageAppView.uxml?fileID=9197481963319205126&amp;guid=57a09a8a367d6ab44bf88726dbcc086d&amp;type=3#MessageAppView"/>
+    <ui:Template name="WorkAppView" src="project://database/Assets/UI/ComputerUI/UXML/WorkAppView.uxml?fileID=9197481963319205126&amp;guid=1740525ed05721c409a2b7306dd9c2e3&amp;type=3#WorkAppView"/>
+    <Style src="project://database/Assets/UI/ComputerUI/USS/ComputerUI.uss?fileID=7433441132597879392&amp;guid=47154671972eb2c4eaf42f63d940c852&amp;type=3#ComputerUI"/>
+    <ui:VisualElement name="ComputerUIRoot" class="computer-ui-root" style="width: 100%; height: 100%;">
+        <ui:VisualElement name="DesktopPanel" enabled="true" class="desktop-panel" style="height: 100%; position: absolute; width: 100%; top: 0; left: 0; background-size: 1px 1px; flex-grow: 1; display: flex; right: 0; bottom: 0;">
+            <ui:Instance template="DesktopView" name="TemplateContainer" style="width: 100%; height: 100%; position: absolute; top: 0; left: 0; right: 0; bottom: 0; flex-grow: 1;"/>
+        </ui:VisualElement>
+        <ui:VisualElement name="MessageAppPanel" display="none" enabled="true" class="message-app-panel" style="height: 100%; width: 100%; position: absolute; flex-grow: 1; overflow: visible; display: none; left: 0; right: 0; bottom: 0;">
+            <ui:Instance template="MessageAppView" style="width: 100%; height: 100%;"/>
+        </ui:VisualElement>
+        <ui:VisualElement name="WorkAppPanel" display="none" enabled="true" class="work-app-panel" style="height: 100%; position: absolute; width: 100%; flex-grow: 1; display: none; right: 0; bottom: 0;">
+            <ui:Instance template="WorkAppView" style="width: 100%; height: 100%;"/>
+        </ui:VisualElement>
+        <ui:Button name="CloseComputerButton" text="Đóng máy tính" display="none" class="close-computer-button" style="position: absolute; top: 0; left: auto; right: 0; bottom: auto;"/>
+    </ui:VisualElement>
+</ui:UXML>

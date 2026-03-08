@@ -1,0 +1,39 @@
+<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI/ComputerUI/USS/ChatStyles.uss?fileID=7433441132597879392&amp;guid=9cac84bab701b1a48b196c07debe1363&amp;type=3#ChatStyles"/>
+    <ui:VisualElement name="MessageAppViewRoot" class="message-app-view-root" style="width: 100%; height: 100%; flex-grow: 1; background-color: rgb(42, 42, 42); color: rgb(0, 0, 0);">
+        <ui:VisualElement name="MessageAppHeader" class="app-header" style="flex-direction: row; justify-content: space-between; height: 56px; flex-shrink: 0; margin-bottom: 21px; align-items: center; padding-top: 8px; padding-right: 8px; padding-bottom: 8px; padding-left: 8px; color: rgb(255, 255, 255); border-bottom-width: 0.5px; border-bottom-color: rgb(88, 88, 88);">
+            <ui:Label text="Tin nhắn" class="app-title" style="font-size: 30px;"/>
+            <ui:Button name="CloseMessageButton" text="X" class="close-button" style="color: rgb(0, 0, 0);"/>
+        </ui:VisualElement>
+        <ui:VisualElement name="MessageAppBody" class="message-app-body" style="flex-direction: row; align-items: auto; justify-content: flex-start; flex-grow: 1; flex-shrink: 1; align-content: auto; width: 100%; height: auto; border-right-width: 1px; border-right-color: rgb(51, 51, 51); background-color: rgb(36, 37, 38);">
+            <ui:VisualElement name="ChatListContainer" class="chat-list-container" style="width: 500px; justify-content: flex-start; align-items: flex-start; align-content: center; flex-direction: column; flex-wrap: nowrap; align-self: flex-start; flex-shrink: 0; background-color: rgb(26, 26, 27); height: 100%; margin-right: 0; margin-top: 0; padding-top: 12px; padding-left: 12px;">
+                <ui:VisualElement name="ChatListItem_Mom" class="chat-list-item chat-list-item-selected" style="flex-direction: row; align-items: center; height: 15%; padding-top: 20px; padding-right: 20px; padding-bottom: 20px; padding-left: 20px; margin-bottom: 17px; width: 100%; border-bottom-width: 1px; border-bottom-color: rgb(91, 91, 91); border-top-left-radius: 10px; border-top-right-radius: 10px; border-bottom-right-radius: 10px; border-bottom-left-radius: 10px;">
+                    <ui:VisualElement name="Avatar" style="flex-grow: 0; background-size: 40% 40%; border-top-left-radius: 40px; border-top-right-radius: 40px; border-bottom-right-radius: 40px; border-bottom-left-radius: 40px; background-color: rgb(0, 0, 0); width: 80px; height: 80px; flex-shrink: 0; margin-right: 35px;"/>
+                    <ui:VisualElement name="Info" style="flex-grow: 1; margin-left: 8px; flex-direction: column; color: rgb(255, 255, 255);">
+                        <ui:Label text="Mẹ" style="-unity-font-style: bold; align-self: flex-start; font-size: 35px;"/>
+                        <ui:Label text="tin nhắn cuối cùng" style="font-size: 30px;"/>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="ChatListItem_Boss" class="chat-list-item" style="flex-direction: row; align-items: center; height: 15%; padding-top: 27px; padding-right: 20px; padding-bottom: 27px; padding-left: 20px; margin-bottom: 10px; width: 100%; border-bottom-width: 1px; border-bottom-color: rgb(91, 91, 91); border-top-left-radius: 10px; border-top-right-radius: 10px; border-bottom-right-radius: 10px; border-bottom-left-radius: 10px; border-top-width: 1px; border-top-color: rgb(91, 91, 91);">
+                    <ui:VisualElement name="Avatar" style="flex-grow: 0; background-size: 40% 40%; border-top-left-radius: 40px; border-top-right-radius: 40px; border-bottom-right-radius: 40px; border-bottom-left-radius: 40px; background-color: rgb(0, 0, 0); width: 80px; height: 80px; flex-shrink: 0; margin-right: 35px;"/>
+                    <ui:VisualElement name="Info" style="flex-grow: 1; margin-left: 8px; flex-direction: column; color: rgb(255, 255, 255);">
+                        <ui:Label text="Sếp" style="-unity-font-style: bold; align-self: flex-start; font-size: 35px;"/>
+                        <ui:Label text="tin nhắn cuối cùng" style="font-size: 30px;"/>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:VisualElement name="ChatContentContainer" class="chat-content-container" style="flex-grow: 1; width: auto; height: 100%; align-items: stretch; flex-shrink: 0; background-color: rgb(26, 26, 27); padding-top: 10px; padding-right: 10px; padding-bottom: 10px; padding-left: 10px; border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0;">
+                <ui:VisualElement name="ChatHeader" style="flex-grow: 0; height: 56px; flex-shrink: 0; width: 100%; flex-direction: row; justify-content: space-between; align-items: center; padding-top: 8px; padding-right: 8px; padding-bottom: 8px; padding-left: 8px; background-color: rgb(36, 37, 38); border-bottom-color: rgb(10, 10, 10); border-bottom-width: 1px; border-left-color: rgb(48, 48, 48); border-right-color: rgb(48, 48, 48); border-top-color: rgb(48, 48, 48); color: rgb(255, 255, 255); border-top-left-radius: 20px; border-top-right-radius: 20px;"/>
+                <ui:VisualElement name="MessageList" style="flex-grow: 1; flex-shrink: 0; padding-top: 8px; padding-right: 8px; padding-bottom: 8px; padding-left: 8px; flex-direction: column; background-color: rgb(36, 37, 38); border-left-width: 18px; border-bottom-right-radius: 20px; border-bottom-left-radius: 20px; margin-bottom: 6px; border-bottom-color: rgb(61, 61, 61); border-bottom-width: -4px;">
+                    <ui:VisualElement name="MessageBubbleTemplate" style="max-width: 100%; width: auto; padding: 8px; margin-bottom: 6px; border-top-left-radius: 12px; border-top-right-radius: 12px; border-bottom-right-radius: 12px; border-bottom-left-radius: 12px; display: none;">
+                        <ui:Label name="MessageText" style="white-space: normal; word-wrap: true;"/>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="MessageInputBar" style="flex-grow: 0; height: 11%; flex-shrink: 0; width: 100%; flex-direction: row;">
+                    <ui:TextField name="MessageInputField" label="" placeholder-text="Aa" style="flex-grow: 1; border-top-left-radius: 20px; border-top-right-radius: 20px; border-bottom-right-radius: 20px; border-bottom-left-radius: 20px; width: 40%; font-size: 40px;"/>
+                    <ui:Button name="SendButton" text="Send" style="border-top-left-radius: 12px; border-top-right-radius: 12px; border-bottom-right-radius: 12px; border-bottom-left-radius: 12px; width: 10%; background-color: rgb(59, 71, 170); color: rgb(255, 255, 255); font-size: 40px;"/>
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

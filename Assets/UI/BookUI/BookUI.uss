@@ -1,0 +1,37 @@
+/* Book UI - 3 trang, lật 1 chiều */
+
+.book-root {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.85);
+    align-items: center;
+    justify-content: center;
+}
+
+.book-page-container {
+    width: 80%;
+    height: 85%;
+    max-width: 900px;
+    max-height: 700px;
+    align-items: center;
+    justify-content: center;
+}
+
+.book-page {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-color: rgba(40, 35, 30, 1);
+}
