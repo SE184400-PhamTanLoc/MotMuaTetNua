@@ -23,6 +23,12 @@ public class DialogueManager : MonoBehaviour
     public Button tiepTucButton;
     public Image npcAvatarImage;
 
+    [Header("=== BARGAIN UI ===")]
+    public GameObject bargainPanel;
+    public TMP_InputField priceInputField;
+    public Button confirmBargainButton;
+    public Button cancelBargainButton;
+
     [Header("=== CÀI ĐẶT ===")]
     public float tocDoHienChu = 0.025f;
     public bool hienUngDanhChu = true;
@@ -31,6 +37,7 @@ public class DialogueManager : MonoBehaviour
     private int _nodeHienTai = 0;
     private bool _dangHienChu = false;
     private bool _dangHoiThoai = false;
+    private bool _vuaBatDauMoi = false; // Cờ để biết vừa có cuộc hội thoại mới đè lên
     private Coroutine _coroutineHienChu;
     private Action _onDialogueEnd;
 
@@ -108,7 +115,8 @@ public class DialogueManager : MonoBehaviour
     // === PUBLIC API ===
     public void BatDauHoiThoai(List<DialogueNode> danhSachNode, Action onEnd = null)
     {
-        if (_dangHoiThoai) return;
+        // Cho phép bắt đầu hội thoại mới kể cả khi đang có cái cũ
+        _vuaBatDauMoi = true; 
 
         _danhSachNode = danhSachNode;
         _nodeHienTai = 0;
@@ -118,6 +126,45 @@ public class DialogueManager : MonoBehaviour
         dialoguePanel.SetActive(true);
         KhoaDieuKhien(true);
         HienThiNode(_nodeHienTai);
+    }
+
+    public void HienNhapGiaTra(int giaGoc, Action<int> onConfirm, Action onCancel)
+    {
+        if (bargainPanel == null) return;
+
+        _vuaBatDauMoi = true; // Ngăn không cho hội thoại kết thúc ở listener của nút bấm
+        bargainPanel.SetActive(true);
+        if (priceInputField != null)
+        {
+            priceInputField.text = "";
+            priceInputField.ActivateInputField();
+            
+            // Hỗ trợ nhấn Enter để xác nhận nhanh
+            priceInputField.onSubmit.RemoveAllListeners();
+            priceInputField.onSubmit.AddListener((val) => {
+                if (int.TryParse(val, out int price)) {
+                    bargainPanel.SetActive(false);
+                    onConfirm?.Invoke(price / 1000); // Quy đổi về đơn vị nghìn (VD: 80000 -> 80)
+                }
+            });
+        }
+
+        confirmBargainButton.onClick.RemoveAllListeners();
+        confirmBargainButton.onClick.AddListener(() =>
+        {
+            if (int.TryParse(priceInputField.text, out int price))
+            {
+                bargainPanel.SetActive(false);
+                onConfirm?.Invoke(price / 1000); // Quy đổi về đơn vị nghìn
+            }
+        });
+
+        cancelBargainButton.onClick.RemoveAllListeners();
+        cancelBargainButton.onClick.AddListener(() =>
+        {
+            bargainPanel.SetActive(false);
+            onCancel?.Invoke();
+        });
     }
 
     public bool DangHoiThoai => _dangHoiThoai;
@@ -232,7 +279,11 @@ public class DialogueManager : MonoBehaviour
 
             nut.onClick.AddListener(() =>
             {
+                _vuaBatDauMoi = false;
                 action?.Invoke();
+
+                // Nếu trong action đã bắt đầu một cuộc hội thoại mới (nested), thoát listener cũ ngay
+                if (_vuaBatDauMoi) return;
 
                 if (nextNode >= 0)
                     HienThiNode(nextNode);

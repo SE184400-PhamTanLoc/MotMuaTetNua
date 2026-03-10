@@ -13,8 +13,11 @@ public class CursorStateController : MonoBehaviour
             return;
         }
 
-        // 2. Kiểm tra Dialogue
-        if (DialogueManager.Instance != null && DialogueManager.Instance.DangHoiThoai)
+        // 2. Kiểm tra Dialogue hoặc Bảng trả giá
+        bool dangHoiThoai = DialogueManager.Instance != null && DialogueManager.Instance.DangHoiThoai;
+        bool dangTraGia = DialogueManager.Instance != null && DialogueManager.Instance.bargainPanel != null && DialogueManager.Instance.bargainPanel.activeSelf;
+
+        if (dangHoiThoai || dangTraGia)
         {
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
@@ -33,6 +36,14 @@ public class CursorStateController : MonoBehaviour
         // 2.6 Kiểm tra Giếng Nguyện Ước
         GiengNguyenUoc gieng = UnityEngine.Object.FindFirstObjectByType<GiengNguyenUoc>();
         if (gieng != null && gieng.panelUocNguyen != null && gieng.panelUocNguyen.activeSelf)
+        {
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+            return;
+        }
+
+        // 2.7 Kiểm tra Minigame Hứng quả
+        if (AutoSetup.IsMinigameActive)
         {
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;

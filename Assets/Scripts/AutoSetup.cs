@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using TMPro;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.UI;
+using System.Collections.Generic;
 
 /// <summary>
 /// AUTO SETUP - TỰ CHẠY KHI BẤM PLAY, KHÔNG CẦN GẮN VÀO GAMEOBJECT NÀO!
@@ -16,11 +17,14 @@ public class AutoSetup : MonoBehaviour
     private static int GIA_MAI_LON = 500;
 
     // === MÀU SẮC UI ===
-    private static Color mauNenPanel = new Color(0.1f, 0.05f, 0.02f, 0.92f);
-    private static Color mauChuChinh = new Color(1f, 0.95f, 0.85f, 1f);
-    private static Color mauVang = new Color(1f, 0.84f, 0f, 1f);
+    private static Color mauNenPanel = new Color(0.08f, 0, 0, 0.85f); // Deep Red
+    private static Color mauChuChinh = new Color(1.0f, 1.0f, 0.9f, 1f); // Off-white
+    private static Color mauVang = new Color(1.0f, 0.84f, 0.0f, 1f); // Gold
     private static Color mauNutBinhThuong = new Color(0.6f, 0.15f, 0.1f, 1f);
     private static Color mauNutHover = new Color(0.8f, 0.25f, 0.15f, 1f);
+    
+    private static Color mauDoTuoi = new Color(0.8f, 0.1f, 0.1f, 1f);
+    private static Color mauNenGiay = new Color(0.95f, 0.9f, 0.8f, 1f); // Parchment
 
     // === PRIVATE REFERENCES ===
     private static Canvas _canvas;
@@ -42,6 +46,19 @@ public class AutoSetup : MonoBehaviour
     private static GameObject _batDauPanel;
     private static TextMeshProUGUI _batDauText;
 
+    private static GameObject _bargainPanel;
+    private static TMP_InputField _priceInputField;
+    private static Button _confirmBargainButton;
+    private static Button _cancelBargainButton;
+
+    private static GameObject _fruitFallingPanel;
+    public static bool IsMinigameActive => _fruitFallingPanel != null && _fruitFallingPanel.activeSelf;
+    
+    private static RenderTexture[] _fruitTextures = new RenderTexture[4];
+    private static GameObject[] _fruitPreviewModels = new GameObject[4];
+    private static Camera _previewCamera;
+    private static GameObject _minigameRunner;
+
     /// <summary>
     /// TỰ ĐỘNG CHẠY KHI NHẤN PLAY - Không cần gắn script vào đâu cả!
     /// </summary>
@@ -52,11 +69,11 @@ public class AutoSetup : MonoBehaviour
         Debug.Log("<color=yellow>[AutoSetup] 🏮 Bắt đầu tự động setup game Chợ Tết...</color>");
         Debug.Log("<color=yellow>===================================</color>");
 
-        // Tạo 1 GameObject để chạy MonoBehaviour (cho Coroutine nếu cần)
+        // Tạo 1 GameObject để chạy MonoBehaviour
         GameObject setupObj = new GameObject("_AutoSetup_Runner");
         DontDestroyOnLoad(setupObj);
 
-        // Chạy từng bước với try-catch để bước này lỗi không làm các bước sau chết theo
+        // Chạy từng bước
         try { SetupGameManager(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi Manager: " + e.Message); }
         try { TaoCanvas(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi Canvas: " + e.Message); }
         try { TaoDialogueUI(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi DialogueUI: " + e.Message); }
@@ -64,25 +81,30 @@ public class AutoSetup : MonoBehaviour
         try { TaoGoiYTuongTac(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi Gợi ý: " + e.Message); }
         try { TaoCrosshair(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi Crosshair: " + e.Message); }
         try { TaoLuaChonButtonPrefab(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi Prefab: " + e.Message); }
+        try { TaoBargainUI(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi BargainUI: " + e.Message); }
         try { SetupDialogueManager(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi DialogueManager: " + e.Message); }
         try { SetupCoGaiBanMai(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi NPC: " + e.Message); }
         try { SetupPlayer(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi Player: " + e.Message); }
         try { SetupGameHUD(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi GameHUD: " + e.Message); }
-        // Bỏ qua tạo điểm đặt mai vì người chơi muốn hoàn thành luôn sau khi lấy
-        // try { SetupDiemTraMai(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi Điểm trả: " + e.Message); }
         try { SetupDiemLayMai(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi Điểm lấy mai: " + e.Message); }
-        // try { TaoBaoLiXi(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi Lì xì: " + e.Message); }
         try { SetupBauCua(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi Bầu Cua: " + e.Message); }
         try { SetupGiengNguyenUoc(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi Giếng: " + e.Message); }
+        try { InitializeFruitPreviewStage(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi FruitPreviewStage: " + e.Message); }
+        try { TaoFruitFallingUI(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi FruitFallingUI: " + e.Message); }
 
-        // Đảm bảo có CursorStateController để khóa chuột
+        // Cursor controller
         if (UnityEngine.Object.FindFirstObjectByType<CursorStateController>() == null)
         {
             setupObj.AddComponent<CursorStateController>();
-            Debug.Log("[AutoSetup] ✅ Thêm CursorStateController vào Runner");
         }
 
-        // Đảm bảo GameFlow cho phép di chuyển (vì mặc định là Intro sẽ khóa movement)
+        // Quest automatic setup
+        if (UnityEngine.Object.FindFirstObjectByType<QuestAutoSetup>() == null)
+        {
+            setupObj.AddComponent<QuestAutoSetup>();
+        }
+
+        // GameFlow logic
         if (GameFlow.Instance != null && GameFlow.Instance.IsState(GameState.Intro))
         {
             GameFlow.Instance.ChangeState(GameState.State1_FreeOnlyChair);
@@ -90,7 +112,6 @@ public class AutoSetup : MonoBehaviour
 
         Debug.Log("<color=green>===================================</color>");
         Debug.Log("<color=green>[AutoSetup] ✅ SETUP HOÀN TẤT!</color>");
-        Debug.Log("<color=green>[AutoSetup] 🎮 Đi tìm cô gái bán mai và nhấn E để nói chuyện!</color>");
         Debug.Log("<color=green>===================================</color>");
     }
 
@@ -214,57 +235,93 @@ public class AutoSetup : MonoBehaviour
 
     private static void TaoHUD()
     {
-        // === Tiền ===
+        // === Tiền (Góc trên phải) ===
         GameObject tienBg = TaoPanel("TienBg", _canvas.transform);
+        tienBg.GetComponent<Image>().color = mauDoTuoi;
         RectTransform tienBgRect = tienBg.GetComponent<RectTransform>();
-        tienBgRect.anchorMin = new Vector2(0.72f, 0.935f);
-        tienBgRect.anchorMax = new Vector2(0.99f, 0.985f);
+        tienBgRect.anchorMin = new Vector2(0.75f, 0.94f);
+        tienBgRect.anchorMax = new Vector2(0.99f, 0.99f);
         tienBgRect.offsetMin = Vector2.zero;
         tienBgRect.offsetMax = Vector2.zero;
-        tienBg.GetComponent<Image>().color = new Color(0, 0, 0, 0.6f);
 
-        _tienText = TaoText("TienText", tienBg.transform, "Tiền: 1,000,000đ", 38, TextAlignmentOptions.Right);
+        // Viền vàng cho tiền
+        GameObject tienBorder = TaoPanel("TienBorder", tienBg.transform);
+        tienBorder.GetComponent<Image>().color = mauVang;
+        RectTransform tbRect = tienBorder.GetComponent<RectTransform>();
+        tbRect.anchorMin = Vector2.zero;
+        tbRect.anchorMax = new Vector2(1, 0.05f); // Chỉ ở cạnh dưới
+        tbRect.offsetMin = Vector2.zero;
+        tbRect.offsetMax = Vector2.zero;
+
+        _tienText = TaoText("TienText", tienBg.transform, "Tiền: 1,000,000đ", 32, TextAlignmentOptions.Right);
         _tienText.fontStyle = FontStyles.Bold;
         _tienText.color = mauVang;
         RectTransform tienInnerRect = _tienText.GetComponent<RectTransform>();
         tienInnerRect.anchorMin = Vector2.zero;
         tienInnerRect.anchorMax = Vector2.one;
-        tienInnerRect.offsetMin = new Vector2(8, 0);
-        tienInnerRect.offsetMax = new Vector2(-8, 0);
+        tienInnerRect.offsetMin = new Vector2(0, 0);
+        tienInnerRect.offsetMax = new Vector2(-15, 0);
 
-        // === Nhiệm vụ ===
+        // === Nhiệm vụ (Góc trên trái) ===
         _nhiemVuPanel = TaoPanel("NhiemVuPanel", _canvas.transform);
+        _nhiemVuPanel.GetComponent<Image>().color = mauNenGiay;
         RectTransform nvRect = _nhiemVuPanel.GetComponent<RectTransform>();
-        nvRect.anchorMin = new Vector2(0.01f, 0.90f);
-        nvRect.anchorMax = new Vector2(0.35f, 0.985f);
+        nvRect.anchorMin = new Vector2(0.01f, 0.72f); // Cắt sát đến chữ Xoài (từ 0.65 lên 0.72)
+        nvRect.anchorMax = new Vector2(0.25f, 0.985f);
         nvRect.offsetMin = Vector2.zero;
         nvRect.offsetMax = Vector2.zero;
-        _nhiemVuPanel.GetComponent<Image>().color = new Color(0, 0, 0, 0.6f);
 
-        TextMeshProUGUI nvTitle = TaoText("NhiemVuTitle", _nhiemVuPanel.transform, "NHIỆM VỤ", 18, TextAlignmentOptions.TopLeft);
+        // Thanh Header cho Nhiệm vụ
+        GameObject nvHeader = TaoPanel("NhiemVuHeader", _nhiemVuPanel.transform);
+        nvHeader.GetComponent<Image>().color = mauDoTuoi;
+        RectTransform nvhRect = nvHeader.GetComponent<RectTransform>();
+        nvhRect.anchorMin = new Vector2(0, 0.82f); // Chỉnh lại header cho khung siêu nhỏ
+        nvhRect.anchorMax = new Vector2(1, 1);
+        nvhRect.offsetMin = Vector2.zero;
+        nvhRect.offsetMax = Vector2.zero;
+
+        TextMeshProUGUI nvTitle = TaoText("NhiemVuTitle", nvHeader.transform, "NHIỆM VỤ", 18, TextAlignmentOptions.Center);
         nvTitle.fontStyle = FontStyles.Bold;
         nvTitle.color = mauVang;
         RectTransform nvTitleRect = nvTitle.GetComponent<RectTransform>();
-        nvTitleRect.anchorMin = new Vector2(0.03f, 0.55f);
-        nvTitleRect.anchorMax = new Vector2(0.97f, 0.95f);
+        nvTitleRect.anchorMin = Vector2.zero;
+        nvTitleRect.anchorMax = Vector2.one;
         nvTitleRect.offsetMin = Vector2.zero;
         nvTitleRect.offsetMax = Vector2.zero;
 
-        _nhiemVuText = TaoText("NhiemVuText", _nhiemVuPanel.transform, "- Mua mai về cho mẹ", 24, TextAlignmentOptions.TopLeft);
-        _nhiemVuText.color = mauChuChinh;
+        _nhiemVuText = TaoText("NhiemVuText", _nhiemVuPanel.transform, "", 20, TextAlignmentOptions.TopLeft);
+        _nhiemVuText.color = Color.black;
+        _nhiemVuText.lineSpacing = -5;
         RectTransform nvTextRect = _nhiemVuText.GetComponent<RectTransform>();
-        nvTextRect.anchorMin = new Vector2(0.03f, 0.05f);
-        nvTextRect.anchorMax = new Vector2(0.97f, 0.55f);
+        nvTextRect.anchorMin = new Vector2(0.05f, 0.02f);
+        nvTextRect.anchorMax = new Vector2(0.95f, 0.82f); // Hạ thấp trần nội dung xuống để tránh bị đè (từ 0.88 xuống 0.82)
         nvTextRect.offsetMin = Vector2.zero;
         nvTextRect.offsetMax = Vector2.zero;
 
+        // Vẽ thêm 2 cái nút trang trí ở đầu Scroll
+        GameObject decorLeft = TaoPanel("DecorL", _nhiemVuPanel.transform);
+        decorLeft.GetComponent<Image>().color = mauDoTuoi;
+        RectTransform dlRect = decorLeft.GetComponent<RectTransform>();
+        dlRect.anchorMin = new Vector2(-0.02f, 0.78f);
+        dlRect.anchorMax = new Vector2(0.02f, 1.02f);
+        dlRect.offsetMin = Vector2.zero;
+        dlRect.offsetMax = Vector2.zero;
+
+        GameObject decorRight = TaoPanel("DecorR", _nhiemVuPanel.transform);
+        decorRight.GetComponent<Image>().color = mauDoTuoi;
+        RectTransform drRect = decorRight.GetComponent<RectTransform>();
+        drRect.anchorMin = new Vector2(0.98f, 0.78f);
+        drRect.anchorMax = new Vector2(1.02f, 1.02f);
+        drRect.offsetMin = Vector2.zero;
+        drRect.offsetMax = Vector2.zero;
+
         // === Thông báo ===
         _thongBaoPanel = TaoPanel("ThongBaoPanel", _canvas.transform);
-        RectTransform tbRect = _thongBaoPanel.GetComponent<RectTransform>();
-        tbRect.anchorMin = new Vector2(0.25f, 0.82f);
-        tbRect.anchorMax = new Vector2(0.75f, 0.89f);
-        tbRect.offsetMin = Vector2.zero;
-        tbRect.offsetMax = Vector2.zero;
+        RectTransform tbpRect = _thongBaoPanel.GetComponent<RectTransform>();
+        tbpRect.anchorMin = new Vector2(0.25f, 0.82f);
+        tbpRect.anchorMax = new Vector2(0.75f, 0.89f);
+        tbpRect.offsetMin = Vector2.zero;
+        tbpRect.offsetMax = Vector2.zero;
         _thongBaoPanel.GetComponent<Image>().color = new Color(0.1f, 0.5f, 0.1f, 0.85f);
         _thongBaoPanel.AddComponent<CanvasGroup>();
 
@@ -295,32 +352,424 @@ public class AutoSetup : MonoBehaviour
         htTextRect.offsetMax = Vector2.zero;
         _hoanThanhPanel.SetActive(false);
 
-        // === Bắt đầu (Intro Mission) ===
+        // === Bắt đầu (Cáo Thị Intro) ===
         _batDauPanel = TaoPanel("BatDauPanel", _canvas.transform);
+        _batDauPanel.GetComponent<Image>().color = mauNenGiay;
         RectTransform bdRect = _batDauPanel.GetComponent<RectTransform>();
-        bdRect.anchorMin = new Vector2(0.2f, 0.2f);
+        bdRect.anchorMin = new Vector2(0.2f, 0.2f); // Mở rộng intro panel
         bdRect.anchorMax = new Vector2(0.8f, 0.8f);
         bdRect.offsetMin = Vector2.zero;
         bdRect.offsetMax = Vector2.zero;
-        _batDauPanel.GetComponent<Image>().color = new Color(0.08f, 0.03f, 0.01f, 0.95f);
 
-        _batDauText = TaoText("BatDauText", _batDauPanel.transform, "", 24, TextAlignmentOptions.Center);
-        _batDauText.color = mauChuChinh;
+        // Khung viền Cáo Thị
+        GameObject borderOut = TaoPanel("BorderOut", _batDauPanel.transform);
+        borderOut.GetComponent<Image>().color = mauDoTuoi;
+        RectTransform boRect = borderOut.GetComponent<RectTransform>();
+        boRect.anchorMin = Vector2.zero;
+        boRect.anchorMax = Vector2.one;
+        boRect.offsetMin = new Vector2(-10, -10);
+        boRect.offsetMax = new Vector2(10, 10);
+        borderOut.transform.SetAsFirstSibling();
+
+        GameObject borderIn = TaoPanel("BorderIn", _batDauPanel.transform);
+        borderIn.GetComponent<Image>().color = mauVang;
+        RectTransform biRect = borderIn.GetComponent<RectTransform>();
+        biRect.anchorMin = Vector2.zero;
+        biRect.anchorMax = Vector2.one;
+        biRect.offsetMin = new Vector2(5, 5);
+        biRect.offsetMax = new Vector2(-5, -5);
+        borderIn.transform.SetSiblingIndex(1);
+
+        // Title Cáo Thị
+        TextMeshProUGUI bdTitle = TaoText("BatDauTitle", _batDauPanel.transform, "CÁO THỊ NGÀY TẾT", 44, TextAlignmentOptions.Center);
+        bdTitle.color = mauDoTuoi;
+        bdTitle.fontStyle = FontStyles.Bold;
+        RectTransform bdtRect = bdTitle.GetComponent<RectTransform>();
+        bdtRect.anchorMin = new Vector2(0, 0.8f);
+        bdtRect.anchorMax = new Vector2(1, 0.95f);
+        bdtRect.offsetMin = Vector2.zero;
+        bdtRect.offsetMax = Vector2.zero;
+
+        _batDauText = TaoText("BatDauText", _batDauPanel.transform, "", 32, TextAlignmentOptions.Center);
+        _batDauText.color = Color.black;
+        _batDauText.lineSpacing = 15; // Tăng khoảng cách dòng
         RectTransform bdTextRect = _batDauText.GetComponent<RectTransform>();
-        bdTextRect.anchorMin = new Vector2(0.05f, 0.15f);
-        bdTextRect.anchorMax = new Vector2(0.95f, 0.95f);
+        bdTextRect.anchorMin = new Vector2(0.08f, 0.25f);
+        bdTextRect.anchorMax = new Vector2(0.92f, 0.78f);
         bdTextRect.offsetMin = Vector2.zero;
         bdTextRect.offsetMax = Vector2.zero;
 
-        // Nút Đóng intro
+        // Nút Đóng (Seal style)
         GameObject dongBtnObj = TaoNut("DongIntroButton", _batDauPanel.transform, "BẮT ĐẦU NGAY (Space)");
+        dongBtnObj.GetComponent<Image>().color = mauDoTuoi;
+        TextMeshProUGUI btnText = dongBtnObj.GetComponentInChildren<TextMeshProUGUI>();
+        if (btnText != null) btnText.color = mauVang;
+
         RectTransform dongBtnRect = dongBtnObj.GetComponent<RectTransform>();
-        dongBtnRect.anchorMin = new Vector2(0.35f, 0.05f);
-        dongBtnRect.anchorMax = new Vector2(0.65f, 0.15f);
+        dongBtnRect.anchorMin = new Vector2(0.3f, 0.08f);
+        dongBtnRect.anchorMax = new Vector2(0.7f, 0.18f);
         dongBtnRect.offsetMin = Vector2.zero;
         dongBtnRect.offsetMax = Vector2.zero;
         
         _batDauPanel.SetActive(false);
+    }
+
+    private static void TaoFruitFallingUI()
+    {
+        _fruitFallingPanel = TaoPanel("FruitFallingPanel", _canvas.transform);
+        RectTransform rect = _fruitFallingPanel.GetComponent<RectTransform>();
+        rect.anchorMin = Vector2.zero;
+        rect.anchorMax = Vector2.one;
+        rect.offsetMin = Vector2.zero;
+        rect.offsetMax = Vector2.zero;
+        _fruitFallingPanel.GetComponent<Image>().color = new Color(0,0,0,0.7f);
+
+        // Title
+        TextMeshProUGUI title = TaoText("Title", _fruitFallingPanel.transform, "HỨNG QUẢ NGŨ QUẢ", 40, TextAlignmentOptions.Center);
+        title.color = mauVang;
+        RectTransform tRect = title.GetComponent<RectTransform>();
+        tRect.anchorMin = new Vector2(0, 0.9f);
+        tRect.anchorMax = new Vector2(1, 1f);
+        
+        // Instruction
+        TextMeshProUGUI ins = TaoText("Instruction", _fruitFallingPanel.transform, "Click vào 4 quả khác nhau để nhặt.\n<color=red>NHẶT TRÙNG QUẢ = THUA!</color>", 24, TextAlignmentOptions.Center);
+        ins.color = Color.white;
+        RectTransform iRect = ins.GetComponent<RectTransform>();
+        iRect.anchorMin = new Vector2(0, 0.82f);
+        iRect.anchorMax = new Vector2(1, 0.9f);
+
+        // Score / Collection Info
+        GameObject scoreObj = TaoPanel("CollectionInfo", _fruitFallingPanel.transform);
+        scoreObj.GetComponent<Image>().color = new Color(1,1,1,0.1f);
+        RectTransform sRect = scoreObj.GetComponent<RectTransform>();
+        sRect.anchorMin = new Vector2(0.3f, 0.05f);
+        sRect.anchorMax = new Vector2(0.7f, 0.15f);
+        
+        _fruitFallingPanel.SetActive(false);
+    }
+
+    public static void InitializeFruitPreviewStage()
+    {
+        // Tạo stage ở xa để không bị cam chính thấy
+        GameObject stage = new GameObject("FruitPreviewStage");
+        stage.transform.position = new Vector3(999, 999, 999);
+        DontDestroyOnLoad(stage);
+
+        // Camera
+        GameObject camObj = new GameObject("PreviewCamera");
+        camObj.transform.SetParent(stage.transform);
+        camObj.transform.localPosition = new Vector3(0, 0, -2);
+        _previewCamera = camObj.AddComponent<Camera>();
+        _previewCamera.clearFlags = CameraClearFlags.SolidColor;
+        _previewCamera.backgroundColor = new Color(0, 0, 0, 0); // Transparent
+        _previewCamera.orthographic = true;
+        _previewCamera.orthographicSize = 0.5f;
+        _previewCamera.enabled = false; // QUAN TRỌNG: Tắt để không đè màn hình chính
+
+        // Light
+        GameObject lightObj = new GameObject("PreviewLight");
+        lightObj.transform.SetParent(stage.transform);
+        Light light = lightObj.AddComponent<Light>();
+        light.type = LightType.Directional;
+        lightObj.transform.localRotation = Quaternion.Euler(30, -30, 0);
+
+        // Chuẩn bị các quả
+        string[] paths = { "fruits/mang_cau", "fruits/dua", "fruits/du_du", "fruits/xoai" };
+        for (int i = 0; i < 4; i++)
+        {
+            _fruitTextures[i] = new RenderTexture(256, 256, 16);
+            _fruitTextures[i].Create();
+
+            GameObject prefab = Resources.Load<GameObject>(paths[i]);
+            if (prefab != null)
+            {
+                _fruitPreviewModels[i] = Instantiate(prefab, stage.transform);
+                _fruitPreviewModels[i].transform.localPosition = Vector3.right * (i * 2);
+                _fruitPreviewModels[i].SetActive(false); // Ẩn mặc định
+            }
+            else
+            {
+                Debug.LogWarning("[AutoSetup] Không tìm thấy prefab tại Resources/" + paths[i]);
+            }
+        }
+    }
+
+    public static void StartFruitMinigame()
+    {
+        if (_fruitFallingPanel != null)
+        {
+            _fruitFallingPanel.SetActive(true);
+            if (_minigameRunner == null)
+            {
+                _minigameRunner = new GameObject("FruitMinigameRunner");
+                _minigameRunner.transform.SetParent(_fruitFallingPanel.transform);
+                var runner = _minigameRunner.AddComponent<FruitFallingRunner>();
+                runner.Setup(_fruitFallingPanel, _fruitTextures, _fruitPreviewModels, _previewCamera);
+            }
+            else
+            {
+                _minigameRunner.GetComponent<FruitFallingRunner>().RestartGame();
+            }
+        }
+    }
+
+    public static void StopFruitMinigame()
+    {
+        if (_fruitFallingPanel != null)
+            _fruitFallingPanel.SetActive(false);
+        
+        foreach (var m in _fruitPreviewModels) if (m != null) m.SetActive(false);
+    }
+
+    // --- MINIGAME COMPONENTS ---
+
+    public class FruitFallingRunner : MonoBehaviour
+    {
+        private GameObject _panel;
+        private RenderTexture[] _textures;
+        private GameObject[] _models;
+        private Camera _cam;
+        
+        private List<string> _collected = new List<string>();
+        private float _spawnTimer = 0f;
+        private float _spawnInterval = 1.2f;
+        private bool _isGameOver = false;
+
+        private GameObject _msgBox;
+        private TextMeshProUGUI _collectionText;
+
+        public void Setup(GameObject panel, RenderTexture[] textures, GameObject[] models, Camera cam)
+        {
+            if (panel == null) {
+                Debug.LogError("[FruitFallingRunner] Setup failed: panel is null!");
+                return;
+            }
+            _panel = panel; _textures = textures; _models = models; _cam = cam;
+            
+            // Text hiển thị kết quả - Chỉ tìm hoặc tạo nếu thực sự cần
+            if (_collectionText == null)
+            {
+                Transform infoT = _panel.transform.Find("CollectionInfo");
+                if (infoT != null)
+                {
+                    _collectionText = infoT.GetComponent<TextMeshProUGUI>();
+                    if (_collectionText == null) _collectionText = infoT.gameObject.AddComponent<TextMeshProUGUI>();
+                }
+                
+                if (_collectionText == null)
+                {
+                    _collectionText = TaoText("CollectionInfo", _panel.transform, "", 24, TextAlignmentOptions.Center);
+                    RectTransform rt = _collectionText.GetComponent<RectTransform>();
+                    rt.anchorMin = new Vector2(0.1f, 0.05f);
+                    rt.anchorMax = new Vector2(0.9f, 0.15f);
+                    rt.offsetMin = Vector2.zero;
+                    rt.offsetMax = Vector2.zero;
+                }
+            }
+            
+            if (_collectionText != null)
+            {
+                _collectionText.alignment = TextAlignmentOptions.Center;
+                _collectionText.fontSize = 24;
+                _collectionText.color = Color.yellow;
+                _collectionText.raycastTarget = false;
+            }
+            else
+            {
+                Debug.LogError("[FruitFallingRunner] Failed to create or find _collectionText!");
+            }
+            
+            RestartGame();
+        }
+
+        public void RestartGame()
+        {
+            _collected.Clear();
+            _isGameOver = false;
+            _spawnTimer = 0;
+            _spawnInterval = 1.2f;
+            UpdateTimeText();
+
+            // Clear old fruits
+            foreach (Transform child in transform) {
+                if (child.name.StartsWith("FallingFruit")) Destroy(child.gameObject);
+            }
+            
+            if (_msgBox != null) _msgBox.SetActive(false);
+            
+            // Đảm bảo models render sẵn
+            if (_cam != null && _models != null && _textures != null) {
+                for (int i = 0; i < 4; i++) {
+                    if (i < _models.Length && _models[i] != null && i < _textures.Length && _textures[i] != null) {
+                        _models[i].SetActive(true);
+                        _cam.enabled = true;
+                        _cam.targetTexture = _textures[i];
+                        _cam.transform.position = _models[i].transform.position + Vector3.forward * -2;
+                        _cam.Render();
+                        _cam.targetTexture = null;
+                        _cam.enabled = false;
+                        _models[i].SetActive(false);
+                    }
+                }
+            }
+        }
+
+        void Update()
+        {
+            if (_isGameOver) return;
+
+            _spawnTimer += Time.deltaTime;
+            if (_spawnTimer >= _spawnInterval)
+            {
+                _spawnTimer = 0;
+                SpawnFruit();
+                _spawnInterval = Mathf.Max(0.5f, _spawnInterval * 0.98f); // Nhanh dần
+            }
+        }
+
+        void SpawnFruit()
+        {
+            int index = Random.Range(0, 4);
+            string[] names = { "Mãng cầu", "Dừa", "Đu đủ", "Xoài" };
+            
+            GameObject fruit = new GameObject("FallingFruit_" + names[index], typeof(RectTransform), typeof(RawImage), typeof(Button));
+            fruit.transform.SetParent(this.transform, false);
+            
+            RectTransform rect = fruit.GetComponent<RectTransform>();
+            float startX = Random.Range(100f, Screen.width - 100f);
+            rect.position = new Vector3(startX, Screen.height + 50f, 0);
+            rect.sizeDelta = new Vector2(200, 200);
+
+            RawImage img = fruit.GetComponent<RawImage>();
+            img.texture = _textures[index];
+
+            float speed = Random.Range(200f, 400f);
+            fruit.AddComponent<FallingObject>().speed = speed;
+
+            string fruitName = names[index];
+            fruit.GetComponent<Button>().onClick.AddListener(() => OnItemClicked(fruitName, fruit));
+        }
+
+        void OnItemClicked(string name, GameObject obj)
+        {
+            if (_isGameOver) return;
+
+            if (_collected.Contains(name))
+            {
+                GameOver(false);
+                Destroy(obj);
+            }
+            else
+            {
+                _collected.Add(name);
+                UpdateTimeText();
+                Destroy(obj);
+
+                if (_collected.Count >= 4)
+                {
+                    GameOver(true);
+                }
+            }
+        }
+
+        void UpdateTimeText()
+        {
+            if (_collectionText != null)
+                _collectionText.text = "Đã nhặt: " + string.Join(", ", _collected) + " (" + _collected.Count + "/4)";
+        }
+
+        void GameOver(bool win)
+        {
+            _isGameOver = true;
+            // Clear remaining fruits
+            foreach (Transform child in transform) {
+                if (child.name.StartsWith("FallingFruit")) Destroy(child.gameObject);
+            }
+
+            if (win) {
+                ShowMessage("CHIẾN THẮNG!", "Đã mua thành công mâm ngũ quả!", "NHẬN QUẢ", () => {
+                    GameManager.Instance.MuaNguyenLieu("Mãng cầu", 0, false);
+                    GameManager.Instance.MuaNguyenLieu("Dừa", 0, false);
+                    GameManager.Instance.MuaNguyenLieu("Đu đủ", 0, false);
+                    GameManager.Instance.MuaNguyenLieu("Xoài", 0, false);
+                    GameManager.Instance.TruTien(100);
+                    GameManager.Instance.OnThongBao?.Invoke("Đã mua thành công mâm ngũ quả!"); // Hiện 1 dòng cuối cùng
+                    _panel.SetActive(false);
+                    StopFruitMinigame();
+                });
+            } else {
+                ShowMessage("THUA RỒI!", "Nhặt trùng quả rồi cậu ơi! Chị Lan không chịu đâu.", "THỬ LẠI", () => {
+                    RestartGame();
+                }, "THÔI", () => {
+                    _panel.SetActive(false);
+                    StopFruitMinigame();
+                });
+            }
+        }
+
+        void ShowMessage(string title, string content, string btnText, UnityEngine.Events.UnityAction onConfirm, string btn2Text = "", UnityEngine.Events.UnityAction onConfirm2 = null)
+        {
+            if (_msgBox == null)
+            {
+                _msgBox = TaoPanel("MessageBox", _panel.transform);
+                _msgBox.GetComponent<Image>().color = new Color(0,0,0,0.95f);
+                RectTransform mRect = _msgBox.GetComponent<RectTransform>();
+                mRect.anchorMin = new Vector2(0.2f, 0.25f);
+                mRect.anchorMax = new Vector2(0.8f, 0.75f);
+                mRect.offsetMin = Vector2.zero;
+                mRect.offsetMax = Vector2.zero;
+            }
+            
+            _msgBox.SetActive(true);
+            foreach (Transform child in _msgBox.transform) Destroy(child.gameObject);
+
+            var tObj = TaoText("Title", _msgBox.transform, title, 36, TextAlignmentOptions.Center);
+            tObj.color = Color.yellow;
+            RectTransform tRect = tObj.GetComponent<RectTransform>();
+            tRect.sizeDelta = new Vector2(600, 80);
+            tRect.anchoredPosition = new Vector2(0, 100);
+
+            var cObj = TaoText("Content", _msgBox.transform, content, 24, TextAlignmentOptions.Center);
+            RectTransform cRect = cObj.GetComponent<RectTransform>();
+            cRect.sizeDelta = new Vector2(600, 150);
+            cRect.anchoredPosition = new Vector2(0, 0);
+
+            if (string.IsNullOrEmpty(btn2Text))
+            {
+                var btn = TaoNut("ConfirmBtn", _msgBox.transform, btnText, 24);
+                btn.GetComponent<RectTransform>().anchoredPosition = new Vector2(0, -120);
+                btn.GetComponent<Button>().onClick.AddListener(onConfirm);
+            }
+            else
+            {
+                var btn1 = TaoNut("ConfirmBtn1", _msgBox.transform, btnText, 24);
+                btn1.GetComponent<RectTransform>().anchoredPosition = new Vector2(-120, -120);
+                btn1.GetComponent<Button>().onClick.AddListener(onConfirm);
+
+                var btn2 = TaoNut("ConfirmBtn2", _msgBox.transform, btn2Text, 24);
+                btn2.GetComponent<RectTransform>().anchoredPosition = new Vector2(120, -120);
+                btn2.GetComponent<Button>().onClick.AddListener(onConfirm2);
+            }
+        }
+    }
+
+    public class FallingObject : MonoBehaviour
+    {
+        public float speed = 300f;
+        void Update()
+        {
+            transform.Translate(Vector3.down * speed * Time.deltaTime);
+            if (transform.position.y < -150) Destroy(gameObject);
+        }
+    }
+
+    // Helper class để xoay quả
+    public class FruitSpinner : MonoBehaviour
+    {
+        void Update()
+        {
+            transform.Rotate(Vector3.up, 30 * Time.deltaTime);
+        }
     }
 
     private static void TaoGoiYTuongTac()
@@ -369,6 +818,73 @@ public class AutoSetup : MonoBehaviour
         Debug.Log("[AutoSetup] ✅ Tạo Button Template");
     }
 
+    private static void TaoBargainUI()
+    {
+        _bargainPanel = TaoPanel("BargainPanel", _canvas.transform);
+        _bargainPanel.GetComponent<Image>().color = new Color(0, 0, 0, 0.85f);
+        RectTransform bpRect = _bargainPanel.GetComponent<RectTransform>();
+        bpRect.anchorMin = new Vector2(0.35f, 0.4f);
+        bpRect.anchorMax = new Vector2(0.65f, 0.65f);
+        bpRect.offsetMin = Vector2.zero;
+        bpRect.offsetMax = Vector2.zero;
+
+        TaoText("BargainTitle", _bargainPanel.transform, "NHẬP GIÁ (Ví dụ: 80000 = 80,000đ)", 24, TextAlignmentOptions.Center).color = mauVang;
+
+        // Input Field
+        GameObject inputObj = new GameObject("PriceInputField");
+        inputObj.transform.SetParent(_bargainPanel.transform, false);
+        RectTransform inputRect = inputObj.AddComponent<RectTransform>();
+        inputRect.anchorMin = new Vector2(0.1f, 0.45f);
+        inputRect.anchorMax = new Vector2(0.9f, 0.65f);
+        inputRect.offsetMin = Vector2.zero;
+        inputRect.offsetMax = Vector2.zero;
+        inputObj.AddComponent<Image>().color = Color.white;
+
+        _priceInputField = inputObj.AddComponent<TMP_InputField>();
+        GameObject textArea = new GameObject("TextArea");
+        textArea.transform.SetParent(inputObj.transform, false);
+        RectTransform areaRect = textArea.AddComponent<RectTransform>();
+        areaRect.anchorMin = Vector2.zero;
+        areaRect.anchorMax = Vector2.one;
+        areaRect.offsetMin = new Vector2(10, 5);
+        areaRect.offsetMax = new Vector2(-10, -5);
+        textArea.AddComponent<RectMask2D>();
+
+        GameObject textObj = new GameObject("Text");
+        textObj.transform.SetParent(textArea.transform, false);
+        TextMeshProUGUI text = textObj.AddComponent<TextMeshProUGUI>();
+        text.color = Color.black;
+        text.fontSize = 32;
+        text.alignment = TextAlignmentOptions.Center;
+        RectTransform tRect = textObj.GetComponent<RectTransform>();
+        tRect.anchorMin = Vector2.zero;
+        tRect.anchorMax = Vector2.one;
+        tRect.offsetMin = Vector2.zero;
+        tRect.offsetMax = Vector2.zero;
+
+        _priceInputField.textComponent = text;
+        _priceInputField.contentType = TMP_InputField.ContentType.IntegerNumber;
+
+        // Buttons
+        GameObject confirmObj = TaoNut("ConfirmBargain", _bargainPanel.transform, "XÁC NHẬN", 24);
+        _confirmBargainButton = confirmObj.GetComponent<Button>();
+        RectTransform confRect = confirmObj.GetComponent<RectTransform>();
+        confRect.anchorMin = new Vector2(0.1f, 0.15f);
+        confRect.anchorMax = new Vector2(0.45f, 0.35f);
+        confRect.offsetMin = Vector2.zero;
+        confRect.offsetMax = Vector2.zero;
+
+        GameObject cancelObj = TaoNut("CancelBargain", _bargainPanel.transform, "HỦY", 24);
+        _cancelBargainButton = cancelObj.GetComponent<Button>();
+        RectTransform cancRect = cancelObj.GetComponent<RectTransform>();
+        cancRect.anchorMin = new Vector2(0.55f, 0.15f);
+        cancRect.anchorMax = new Vector2(0.9f, 0.35f);
+        cancRect.offsetMin = Vector2.zero;
+        cancRect.offsetMax = Vector2.zero;
+
+        _bargainPanel.SetActive(false);
+    }
+
     // =========================================
     // BƯỚC 3: DIALOGUE MANAGER
     // =========================================
@@ -383,6 +899,12 @@ public class AutoSetup : MonoBehaviour
         dm.tiepTucButton = _tiepTucButton;
         dm.tocDoHienChu = 0.025f;
         dm.hienUngDanhChu = true;
+
+        dm.bargainPanel = _bargainPanel;
+        dm.priceInputField = _priceInputField;
+        dm.confirmBargainButton = _confirmBargainButton;
+        dm.cancelBargainButton = _cancelBargainButton;
+
         Debug.Log("[AutoSetup] ✅ Setup DialogueManager");
     }
 
@@ -1213,4 +1735,5 @@ public class AutoSetup : MonoBehaviour
         }
         return null;
     }
+
 }

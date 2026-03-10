@@ -86,6 +86,7 @@ public class PlayerInteraction : MonoBehaviour
         }
     }
 
+
     private void AnGoiY()
     {
         if (goiYTuongTacUI != null)
