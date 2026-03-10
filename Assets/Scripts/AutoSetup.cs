@@ -801,8 +801,19 @@ public class AutoSetup : MonoBehaviour
         {
             box = bcObj.AddComponent<BoxCollider>();
         }
-        box.size = new Vector3(1.5f, 2f, 1.5f);
-        box.center = new Vector3(0, 1f, 0);
+        // Tính toán lại center dựa trên renderers để tránh bị lòi ra ngoài
+        Renderer[] renderers = bcObj.GetComponentsInChildren<Renderer>();
+        if (renderers.Length > 0)
+        {
+            Bounds bounds = renderers[0].bounds;
+            foreach (var r in renderers) bounds.Encapsulate(r.bounds);
+            box.center = bcObj.transform.InverseTransformPoint(bounds.center);
+        }
+        else
+        {
+            box.center = new Vector3(0, 1f, 0);
+        }
+        box.size = new Vector3(0.5f, 2f, 0.5f);
 
         // Chuyển collider con thành trigger
         Collider[] childCols = bcObj.GetComponentsInChildren<Collider>();
@@ -1029,13 +1040,30 @@ public class AutoSetup : MonoBehaviour
             giengScript = giengObj.AddComponent<GiengNguyenUoc>();
         }
 
-        Collider col = giengObj.GetComponent<Collider>();
-        if (col == null) 
+        BoxCollider boxCol = giengObj.GetComponent<BoxCollider>();
+        if (boxCol == null) 
         {
-            BoxCollider boxCol = giengObj.AddComponent<BoxCollider>();
-            boxCol.size = new Vector3(4f, 2f, 4f);
+            // Nếu có collider loại khác (như MeshCollider), tắt nó đi để dùng BoxCollider cho gọn
+            Collider existingCol = giengObj.GetComponent<Collider>();
+            if (existingCol != null) existingCol.enabled = false;
+            
+            boxCol = giengObj.AddComponent<BoxCollider>();
+        }
+
+        // Luôn tính toán lại center và size cho giếng
+        Renderer[] giengRends = giengObj.GetComponentsInChildren<Renderer>();
+        if (giengRends.Length > 0)
+        {
+            Bounds bounds = giengRends[0].bounds;
+            foreach (var r in giengRends) bounds.Encapsulate(r.bounds);
+            boxCol.center = giengObj.transform.InverseTransformPoint(bounds.center);
+        }
+        else
+        {
             boxCol.center = new Vector3(0, 1f, 0);
         }
+        boxCol.size = new Vector3(1.0f, 2f, 1.0f);
+        boxCol.isTrigger = false; // Đảm bảo là vật thể đặc để không đi xuyên qua
 
         SetLayerRecursive(giengObj, 6);
 
