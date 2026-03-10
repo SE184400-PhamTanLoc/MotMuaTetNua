@@ -8,6 +8,7 @@ public abstract class NPCBase : MonoBehaviour
 {
     [Header("=== THÔNG TIN NPC ===")]
     public string tenNPC = "NPC";
+    public string hanhDongTuongTac = "nói chuyện";
     public bool coTheTuongTac = true;
 
     [Header("=== QUAY VỀ PHÍA PLAYER ===")]

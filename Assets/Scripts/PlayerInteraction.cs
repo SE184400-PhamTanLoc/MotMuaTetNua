@@ -81,8 +81,8 @@ public class PlayerInteraction : MonoBehaviour
         {
             goiYTuongTacUI.SetActive(true);
             var tmp = goiYTuongTacUI.GetComponentInChildren<TMPro.TextMeshProUGUI>();
-            if (tmp != null)
-                tmp.text = $"Nhấn <color=#FFD700><b>E</b></color> để nói chuyện với {tenNPC}";
+            if (tmp != null && _npcHienTai != null)
+                tmp.text = $"Nhấn <color=#FFD700><b>E</b></color> để {_npcHienTai.hanhDongTuongTac} với {tenNPC}";
         }
     }
 

@@ -146,8 +146,8 @@ public class AutoSetup : MonoBehaviour
         // === Dialogue Panel ===
         _dialoguePanel = TaoPanel("DialoguePanel", _canvas.transform);
         RectTransform dpRect = _dialoguePanel.GetComponent<RectTransform>();
-        dpRect.anchorMin = new Vector2(0.1f, 0.02f);
-        dpRect.anchorMax = new Vector2(0.9f, 0.38f);
+        dpRect.anchorMin = new Vector2(0.05f, 0.02f);
+        dpRect.anchorMax = new Vector2(0.95f, 0.65f); // Tăng lên 65% màn hình để chứa được nhiều chữ hơn
         dpRect.offsetMin = Vector2.zero;
         dpRect.offsetMax = Vector2.zero;
 
@@ -161,7 +161,7 @@ public class AutoSetup : MonoBehaviour
         tenPanelRect.offsetMax = Vector2.zero;
         tenPanel.GetComponent<Image>().color = new Color(0.7f, 0.15f, 0.08f, 0.95f);
 
-        _tenNguoiNoiText = TaoText("TenNguoiNoi", tenPanel.transform, "???", 32, TextAlignmentOptions.Center);
+        _tenNguoiNoiText = TaoText("TenNguoiNoi", tenPanel.transform, "???", 36, TextAlignmentOptions.Center);
         _tenNguoiNoiText.fontStyle = FontStyles.Bold;
         _tenNguoiNoiText.color = mauVang;
         RectTransform tenRect = _tenNguoiNoiText.GetComponent<RectTransform>();
@@ -171,13 +171,13 @@ public class AutoSetup : MonoBehaviour
         tenRect.offsetMax = new Vector2(-10, -2);
 
         // === Nội dung ===
-        _noiDungText = TaoText("NoiDung", _dialoguePanel.transform, "", 32, TextAlignmentOptions.TopLeft);
+        _noiDungText = TaoText("NoiDung", _dialoguePanel.transform, "", 36, TextAlignmentOptions.TopLeft); // Giảm nhẹ xuống 36 để cân đối không gian
         _noiDungText.color = mauChuChinh;
         _noiDungText.enableWordWrapping = true;
         _noiDungText.richText = true;
         RectTransform ndRect = _noiDungText.GetComponent<RectTransform>();
-        ndRect.anchorMin = new Vector2(0.03f, 0.30f);
-        ndRect.anchorMax = new Vector2(0.97f, 0.92f);
+        ndRect.anchorMin = new Vector2(0.04f, 0.35f); // Dành phần dưới cho lựa chọn
+        ndRect.anchorMax = new Vector2(0.96f, 0.94f);
         ndRect.offsetMin = Vector2.zero;
         ndRect.offsetMax = Vector2.zero;
 
@@ -185,14 +185,14 @@ public class AutoSetup : MonoBehaviour
         _luaChonPanel = new GameObject("LuaChonPanel");
         _luaChonPanel.transform.SetParent(_dialoguePanel.transform, false);
         RectTransform lcRect = _luaChonPanel.AddComponent<RectTransform>();
-        lcRect.anchorMin = new Vector2(0.03f, 0.02f);
-        lcRect.anchorMax = new Vector2(0.97f, 0.30f);
+        lcRect.anchorMin = new Vector2(0.04f, 0.02f);
+        lcRect.anchorMax = new Vector2(0.96f, 0.33f); // Dành 31% chiều cao panel cho các nút
         lcRect.offsetMin = Vector2.zero;
         lcRect.offsetMax = Vector2.zero;
 
         VerticalLayoutGroup vlg = _luaChonPanel.AddComponent<VerticalLayoutGroup>();
-        vlg.spacing = 5;
-        vlg.childAlignment = TextAnchor.MiddleCenter;
+        vlg.spacing = 10; // Tăng khoảng cách giữa các nút
+        vlg.childAlignment = TextAnchor.LowerCenter;
         vlg.childControlHeight = true;
         vlg.childControlWidth = true;
         vlg.childForceExpandHeight = false;
@@ -200,7 +200,7 @@ public class AutoSetup : MonoBehaviour
         vlg.padding = new RectOffset(5, 5, 3, 3);
 
         // === Nút Tiếp Tục ===
-        GameObject tiepTucObj = TaoNut("TiepTucButton", _dialoguePanel.transform, "Tiếp tục ▶ (Space)");
+        GameObject tiepTucObj = TaoNut("TiepTucButton", _dialoguePanel.transform, "Tiếp tục (Space)", 32);
         _tiepTucButton = tiepTucObj.GetComponent<Button>();
         RectTransform ttRect = tiepTucObj.GetComponent<RectTransform>();
         ttRect.anchorMin = new Vector2(0.60f, 0.03f);
@@ -223,7 +223,7 @@ public class AutoSetup : MonoBehaviour
         tienBgRect.offsetMax = Vector2.zero;
         tienBg.GetComponent<Image>().color = new Color(0, 0, 0, 0.6f);
 
-        _tienText = TaoText("TienText", tienBg.transform, "💰 1,000,000đ", 38, TextAlignmentOptions.Right);
+        _tienText = TaoText("TienText", tienBg.transform, "Tiền: 1,000,000đ", 38, TextAlignmentOptions.Right);
         _tienText.fontStyle = FontStyles.Bold;
         _tienText.color = mauVang;
         RectTransform tienInnerRect = _tienText.GetComponent<RectTransform>();
@@ -241,7 +241,7 @@ public class AutoSetup : MonoBehaviour
         nvRect.offsetMax = Vector2.zero;
         _nhiemVuPanel.GetComponent<Image>().color = new Color(0, 0, 0, 0.6f);
 
-        TextMeshProUGUI nvTitle = TaoText("NhiemVuTitle", _nhiemVuPanel.transform, "📋 NHIỆM VỤ", 18, TextAlignmentOptions.TopLeft);
+        TextMeshProUGUI nvTitle = TaoText("NhiemVuTitle", _nhiemVuPanel.transform, "NHIỆM VỤ", 18, TextAlignmentOptions.TopLeft);
         nvTitle.fontStyle = FontStyles.Bold;
         nvTitle.color = mauVang;
         RectTransform nvTitleRect = nvTitle.GetComponent<RectTransform>();
@@ -250,7 +250,7 @@ public class AutoSetup : MonoBehaviour
         nvTitleRect.offsetMin = Vector2.zero;
         nvTitleRect.offsetMax = Vector2.zero;
 
-        _nhiemVuText = TaoText("NhiemVuText", _nhiemVuPanel.transform, "🧧 Mua mai về cho mẹ", 24, TextAlignmentOptions.TopLeft);
+        _nhiemVuText = TaoText("NhiemVuText", _nhiemVuPanel.transform, "- Mua mai về cho mẹ", 24, TextAlignmentOptions.TopLeft);
         _nhiemVuText.color = mauChuChinh;
         RectTransform nvTextRect = _nhiemVuText.GetComponent<RectTransform>();
         nvTextRect.anchorMin = new Vector2(0.03f, 0.05f);
@@ -361,9 +361,9 @@ public class AutoSetup : MonoBehaviour
 
     private static void TaoLuaChonButtonPrefab()
     {
-        _luaChonButtonPrefab = TaoNut("LuaChonTemplate", _canvas.transform, "Lựa chọn");
+        _luaChonButtonPrefab = TaoNut("LuaChonTemplate", _canvas.transform, "Lựa chọn", 32); // Tăng cỡ chữ nút lựa chọn
         LayoutElement le = _luaChonButtonPrefab.AddComponent<LayoutElement>();
-        le.preferredHeight = 45;
+        le.preferredHeight = 60; // Tăng chiều cao nút
         le.flexibleWidth = 1;
         _luaChonButtonPrefab.SetActive(false);
         Debug.Log("[AutoSetup] ✅ Tạo Button Template");
