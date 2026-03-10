@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using TMPro;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.UI;
+using UnityEngine.SceneManagement;
 
 /// <summary>
 /// AUTO SETUP - TỰ CHẠY KHI BẤM PLAY, KHÔNG CẦN GẮN VÀO GAMEOBJECT NÀO!
@@ -48,15 +49,25 @@ public class AutoSetup : MonoBehaviour
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void TuDongSetup()
     {
+        // Lấy tên scene hiện tại
+        string sceneName = SceneManager.GetActiveScene().name;
+
+        // Nếu không phải scene Day28 thì bỏ qua
+        if (sceneName != "Day_28_Scene")
+        {
+            Debug.Log("[AutoSetup] Skip setup vì không phải scene_day_28");
+            return;
+        }
+
         Debug.Log("<color=yellow>===================================</color>");
         Debug.Log("<color=yellow>[AutoSetup] 🏮 Bắt đầu tự động setup game Chợ Tết...</color>");
         Debug.Log("<color=yellow>===================================</color>");
 
-        // Tạo 1 GameObject để chạy MonoBehaviour (cho Coroutine nếu cần)
+        Debug.Log("[AutoSetup] Bắt đầu setup scene Day28...");
+
         GameObject setupObj = new GameObject("_AutoSetup_Runner");
         DontDestroyOnLoad(setupObj);
 
-        // Chạy từng bước với try-catch để bước này lỗi không làm các bước sau chết theo
         try { SetupGameManager(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi Manager: " + e.Message); }
         try { TaoCanvas(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi Canvas: " + e.Message); }
         try { TaoDialogueUI(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi DialogueUI: " + e.Message); }
@@ -68,21 +79,16 @@ public class AutoSetup : MonoBehaviour
         try { SetupCoGaiBanMai(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi NPC: " + e.Message); }
         try { SetupPlayer(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi Player: " + e.Message); }
         try { SetupGameHUD(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi GameHUD: " + e.Message); }
-        // Bỏ qua tạo điểm đặt mai vì người chơi muốn hoàn thành luôn sau khi lấy
-        // try { SetupDiemTraMai(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi Điểm trả: " + e.Message); }
         try { SetupDiemLayMai(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi Điểm lấy mai: " + e.Message); }
-        // try { TaoBaoLiXi(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi Lì xì: " + e.Message); }
         try { SetupBauCua(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi Bầu Cua: " + e.Message); }
         try { SetupGiengNguyenUoc(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi Giếng: " + e.Message); }
 
-        // Đảm bảo có CursorStateController để khóa chuột
         if (UnityEngine.Object.FindFirstObjectByType<CursorStateController>() == null)
         {
             setupObj.AddComponent<CursorStateController>();
             Debug.Log("[AutoSetup] ✅ Thêm CursorStateController vào Runner");
         }
 
-        // Đảm bảo GameFlow cho phép di chuyển (vì mặc định là Intro sẽ khóa movement)
         if (GameFlow.Instance != null && GameFlow.Instance.IsState(GameState.Intro))
         {
             GameFlow.Instance.ChangeState(GameState.State1_FreeOnlyChair);
@@ -93,7 +99,6 @@ public class AutoSetup : MonoBehaviour
         Debug.Log("<color=green>[AutoSetup] 🎮 Đi tìm cô gái bán mai và nhấn E để nói chuyện!</color>");
         Debug.Log("<color=green>===================================</color>");
     }
-
     // =========================================
     // BƯỚC 1: GAME MANAGER
     // =========================================
