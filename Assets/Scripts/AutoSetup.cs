@@ -791,7 +791,7 @@ public class AutoSetup : MonoBehaviour
         bcPanelRect.offsetMax = Vector2.zero;
 
         // TIÊU ĐỀ
-        TextMeshProUGUI txtTieuDe = TaoText("TieuDe", bcPanel.transform, "SÒNG BẦU CUA - TẾT", 40, TextAlignmentOptions.Center);
+        TextMeshProUGUI txtTieuDe = TaoText("TieuDe", bcPanel.transform, "SÒNG BẦU CUA - TẾT", 50, TextAlignmentOptions.Center);
         txtTieuDe.color = mauVang;
         txtTieuDe.fontStyle = FontStyles.Bold;
         RectTransform tdRect = txtTieuDe.GetComponent<RectTransform>();
@@ -821,7 +821,7 @@ public class AutoSetup : MonoBehaviour
             GameObject xxBg = TaoPanel($"XucXac_{i}", xxContainer.transform);
             xxBg.GetComponent<Image>().color = new Color(0.9f, 0.9f, 0.8f, 1f);
             
-            TextMeshProUGUI xxText = TaoText($"Text_{i}", xxBg.transform, "?", 35, TextAlignmentOptions.Center);
+            TextMeshProUGUI xxText = TaoText($"Text_{i}", xxBg.transform, "?", 45, TextAlignmentOptions.Center);
             xxText.color = Color.black;
             xxText.fontStyle = FontStyles.Bold;
             RectTransform tRect = xxText.GetComponent<RectTransform>();
@@ -834,7 +834,7 @@ public class AutoSetup : MonoBehaviour
         }
 
         // KẾT QUẢ
-        bc.textKetQua = TaoText("TextKetQua", bcPanel.transform, "Bơm tiền vào con mình thích rồi Lắc nhé!", 24, TextAlignmentOptions.Center);
+        bc.textKetQua = TaoText("TextKetQua", bcPanel.transform, "Bơm tiền vào con mình thích rồi Lắc nhé!", 30, TextAlignmentOptions.Center);
         bc.textKetQua.color = Color.white;
         RectTransform kqRect = bc.textKetQua.GetComponent<RectTransform>();
         kqRect.anchorMin = new Vector2(0.1f, 0.6f);
@@ -852,7 +852,7 @@ public class AutoSetup : MonoBehaviour
         banRect.offsetMax = Vector2.zero;
 
         GridLayoutGroup grid = banCuoc.AddComponent<GridLayoutGroup>();
-        grid.cellSize = new Vector2(250, 150);
+        grid.cellSize = new Vector2(300, 180);
         grid.spacing = new Vector2(15, 15);
         grid.startCorner = GridLayoutGroup.Corner.UpperLeft;
         grid.startAxis = GridLayoutGroup.Axis.Horizontal;
@@ -867,7 +867,7 @@ public class AutoSetup : MonoBehaviour
             GameObject oBg = TaoPanel($"OCuoc_{tenConVat[i]}", banCuoc.transform);
             oBg.GetComponent<Image>().color = new Color(0.15f, 0.35f, 0.15f, 1f);
 
-            TextMeshProUGUI tenText = TaoText("TenCon", oBg.transform, tenConVat[i], 28, TextAlignmentOptions.Center);
+            TextMeshProUGUI tenText = TaoText("TenCon", oBg.transform, tenConVat[i], 36, TextAlignmentOptions.Center);
             tenText.fontStyle = FontStyles.Bold;
             tenText.color = mauVang;
             RectTransform tenCRect = tenText.GetComponent<RectTransform>();
@@ -876,7 +876,7 @@ public class AutoSetup : MonoBehaviour
             tenCRect.offsetMin = Vector2.zero;
             tenCRect.offsetMax = Vector2.zero;
 
-            TextMeshProUGUI cuocText = TaoText("SoTien", oBg.transform, "0đ", 22, TextAlignmentOptions.Center);
+            TextMeshProUGUI cuocText = TaoText("SoTien", oBg.transform, "0đ", 28, TextAlignmentOptions.Center);
             cuocText.color = Color.white;
             RectTransform cuocRect = cuocText.GetComponent<RectTransform>();
             cuocRect.anchorMin = new Vector2(0, 0.3f);
@@ -899,10 +899,10 @@ public class AutoSetup : MonoBehaviour
             nutLayout.childControlWidth = true;
             nutLayout.childControlHeight = true;
 
-            GameObject btn10k = TaoNut("Btn10k", nutContainer.transform, "+10k", 16);
+            GameObject btn10k = TaoNut("Btn10k", nutContainer.transform, "+10k", 22);
             btn10k.GetComponent<Image>().color = new Color(0.3f, 0.5f, 0.3f, 1f);
             
-            GameObject btn50k = TaoNut("Btn50k", nutContainer.transform, "+50k", 16);
+            GameObject btn50k = TaoNut("Btn50k", nutContainer.transform, "+50k", 22);
             btn50k.GetComponent<Image>().color = new Color(0.5f, 0.3f, 0.1f, 1f);
 
             int idx = i;
@@ -917,7 +917,7 @@ public class AutoSetup : MonoBehaviour
         }
 
         // NÚT LẮC
-        GameObject btnLacObj = TaoNut("BtnLac", bcPanel.transform, "LẮC!", 28);
+        GameObject btnLacObj = TaoNut("BtnLac", bcPanel.transform, "LẮC!", 36);
         btnLacObj.GetComponent<Image>().color = new Color(0.8f, 0.2f, 0.1f, 1f);
         bc.btnLac = btnLacObj.GetComponent<Button>();
         bc.btnLac.onClick.AddListener(() => bc.LacXucXac());
@@ -928,7 +928,7 @@ public class AutoSetup : MonoBehaviour
         lacRect.offsetMax = Vector2.zero;
         
         // NÚT ĐẶT LẠI (HOÀN TIỀN)
-        GameObject btnHuyObj = TaoNut("BtnHuy", bcPanel.transform, "ĐẶT LẠI", 20);
+        GameObject btnHuyObj = TaoNut("BtnHuy", bcPanel.transform, "ĐẶT LẠI", 24);
         btnHuyObj.GetComponent<Image>().color = new Color(0.4f, 0.4f, 0.4f, 1f);
         bc.btnDatLai = btnHuyObj.GetComponent<Button>();
         bc.btnDatLai.onClick.AddListener(() => bc.DatLaiCuoc());
@@ -939,7 +939,7 @@ public class AutoSetup : MonoBehaviour
         huyRect.offsetMax = Vector2.zero;
 
         // NÚT THOÁT
-        GameObject btnThoatObj = TaoNut("BtnThoat", bcPanel.transform, "THOÁT", 20);
+        GameObject btnThoatObj = TaoNut("BtnThoat", bcPanel.transform, "THOÁT", 24);
         btnThoatObj.GetComponent<Image>().color = new Color(0.6f, 0.2f, 0.2f, 1f);
         bc.btnThoat = btnThoatObj.GetComponent<Button>();
         bc.btnThoat.onClick.AddListener(() => bc.DongSoba());
@@ -950,7 +950,7 @@ public class AutoSetup : MonoBehaviour
         thoatRect.offsetMax = Vector2.zero;
 
         // TEXT TỔNG TIỀN
-        bc.textTongTien = TaoText("TextTienHienTai", bcPanel.transform, "Tiền trong túi: ?", 22, TextAlignmentOptions.Right);
+        bc.textTongTien = TaoText("TextTienHienTai", bcPanel.transform, "Tiền trong túi: ?", 28, TextAlignmentOptions.Right);
         bc.textTongTien.color = mauVang;
         RectTransform tienRect = bc.textTongTien.GetComponent<RectTransform>();
         tienRect.anchorMin = new Vector2(0.7f, 0.9f);
