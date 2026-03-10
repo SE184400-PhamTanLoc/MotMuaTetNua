@@ -71,7 +71,7 @@ public class AutoSetup : MonoBehaviour
         // Bỏ qua tạo điểm đặt mai vì người chơi muốn hoàn thành luôn sau khi lấy
         // try { SetupDiemTraMai(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi Điểm trả: " + e.Message); }
         try { SetupDiemLayMai(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi Điểm lấy mai: " + e.Message); }
-        try { TaoBaoLiXi(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi Lì xì: " + e.Message); }
+        // try { TaoBaoLiXi(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi Lì xì: " + e.Message); }
         try { SetupBauCua(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi Bầu Cua: " + e.Message); }
         try { SetupGiengNguyenUoc(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi Giếng: " + e.Message); }
 
@@ -656,53 +656,6 @@ public class AutoSetup : MonoBehaviour
         Debug.Log("[AutoSetup] ✅ Setup Điểm trả mai");
     }
 
-    // =========================================
-    // BƯỚC 8: BAO LÌ XÌ
-    // =========================================
-    private static void TaoBaoLiXi()
-    {
-        Vector3 center = Vector3.zero;
-        var player = FindObjectOfType<StarterAssets.FirstPersonController>();
-        if (player != null) center = player.transform.position;
-
-        int soBaoLiXi = 8;
-        for (int i = 0; i < soBaoLiXi; i++)
-        {
-            float angle = i * (360f / soBaoLiXi) * Mathf.Deg2Rad;
-            float radius = Random.Range(8f, 25f);
-            Vector3 pos = center + new Vector3(Mathf.Cos(angle) * radius, 1.5f, Mathf.Sin(angle) * radius);
-
-            RaycastHit hit;
-            if (Physics.Raycast(pos + Vector3.up * 20f, Vector3.down, out hit, 50f))
-            {
-                pos.y = hit.point.y + 1.5f;
-            }
-
-            GameObject liXiObj = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            liXiObj.name = $"BaoLiXi_{i + 1}";
-            liXiObj.transform.position = pos;
-            liXiObj.transform.localScale = new Vector3(0.4f, 0.55f, 0.08f);
-
-            Renderer rend = liXiObj.GetComponent<Renderer>();
-            Material mat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
-            if (mat.shader.name == "Hidden/InternalErrorShader")
-                mat = new Material(Shader.Find("Standard"));
-            mat.color = new Color(0.85f, 0.1f, 0.05f);
-            rend.material = mat;
-
-            Collider col = liXiObj.GetComponent<Collider>();
-            if (col != null) col.isTrigger = true;
-
-            SphereCollider sphere = liXiObj.AddComponent<SphereCollider>();
-            sphere.isTrigger = true;
-            sphere.radius = 3f;
-
-            BaoLiXi baoLiXi = liXiObj.AddComponent<BaoLiXi>();
-            baoLiXi.soTien = Random.Range(30, 100);
-        }
-
-        Debug.Log($"[AutoSetup] ✅ Tạo {soBaoLiXi} bao lì xì");
-    }
     // =========================================
     // BƯỚC 9: ĐIỂM LẤY MAI
     // =========================================

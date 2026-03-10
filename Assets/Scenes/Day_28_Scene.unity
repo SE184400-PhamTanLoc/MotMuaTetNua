@@ -279,7 +279,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -7091441805879785097, guid: e9804a646d58bf247898a85641ceced0, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 273
+      value: 274.55
       objectReference: {fileID: 0}
     - target: {fileID: -7091441805879785097, guid: e9804a646d58bf247898a85641ceced0, type: 3}
       propertyPath: m_LocalPosition.y
@@ -1782,7 +1782,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -7657222376383468785, guid: 33b2a689268d84b4081bb37d278781de, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 269.48
+      value: 270.35
       objectReference: {fileID: 0}
     - target: {fileID: -7657222376383468785, guid: 33b2a689268d84b4081bb37d278781de, type: 3}
       propertyPath: m_LocalPosition.y
@@ -1790,7 +1790,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -7657222376383468785, guid: 33b2a689268d84b4081bb37d278781de, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 605.12
+      value: 605.39
       objectReference: {fileID: 0}
     - target: {fileID: -7657222376383468785, guid: 33b2a689268d84b4081bb37d278781de, type: 3}
       propertyPath: m_LocalRotation.w
@@ -2058,7 +2058,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -7091441805879785097, guid: 2163fb67875cc3e478ee9d290c807118, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 267.54
+      value: 267.05
       objectReference: {fileID: 0}
     - target: {fileID: -7091441805879785097, guid: 2163fb67875cc3e478ee9d290c807118, type: 3}
       propertyPath: m_LocalPosition.y
@@ -2813,7 +2813,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -7657222376383468785, guid: a1adbc6a755274a469a049649fd3af11, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 608.9
+      value: 608.51
       objectReference: {fileID: 0}
     - target: {fileID: -7657222376383468785, guid: a1adbc6a755274a469a049649fd3af11, type: 3}
       propertyPath: m_LocalRotation.w
