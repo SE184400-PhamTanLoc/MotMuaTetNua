@@ -34,6 +34,13 @@ public class MouseLook : MonoBehaviour
             return;
         }
 
+        // Không xoay camera khi đang hiện chuột (hội thoại, nhiệm vụ, minigame...)
+        if (Cursor.lockState != CursorLockMode.Locked)
+        {
+            smoothedMouseDelta = Vector2.zero;
+            return;
+        }
+
         Vector2 mouseDelta = ReadSmoothedMouseDelta();
         float mouseX = mouseDelta.x;
         float mouseY = mouseDelta.y;
