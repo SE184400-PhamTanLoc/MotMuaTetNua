@@ -63,7 +63,11 @@ public class GameHUD : MonoBehaviour
         GameManager.Instance.OnMuaMaiThanhCong.AddListener(OnMuaMaiThanhCong);
         GameManager.Instance.OnNhiemVuHoanThanh.AddListener(OnHoanThanhNhiemVu);
         GameManager.Instance.OnLayMaiThanhCong.AddListener(CapNhatNhiemVu);
-
+        
+        // Cập nhật HUD mỗi khi tiền thay đổi hoặc có thông báo (thường đi kèm update nhiệm vụ)
+        GameManager.Instance.OnTienThayDoi.AddListener((t) => CapNhatNhiemVu());
+        GameManager.Instance.OnNhiemVuThayDoi.AddListener(() => CapNhatNhiemVu());
+        
         // Hiển thị ban đầu
         CapNhatTien(GameManager.Instance.SoTien);
         CapNhatNhiemVu();
@@ -79,8 +83,9 @@ public class GameHUD : MonoBehaviour
             {
                 batDauText.text = "[ NHIỆM VỤ NGÀY TẾT ]\n\n" +
                                  "Mẹ dặn bạn ra chợ Tết chọn mua một cây mai thật đẹp về chưng nhà cho có không khí.\n\n" +
-                                 "- <b>Nhiệm vụ:</b> Tìm cô gái bán mai và mua 1 cây (Nho/Lớn).\n" +
-                                 "- <b>Mẹo:</b> Nếu thiếu tiền, hãy tìm các bao lì xì may mắn quanh chợ.\n\n" +
+                                 "- <b>Nhiệm vụ 1:</b> Tìm cô gái bán mai và mua 1 cây (Nho/Lớn).\n" +
+                                 "- <b>Nhiệm vụ 2:</b> Mua đầy đủ nguyên liệu để gói bánh chưng.\n" +
+                                 "- <b>Nhiệm vụ 3:</b> Thu thập đủ 4 loại trái cây chưng mâm Ngũ Quả.\n\n" +
                                  "<size=22><i>(Nhấn Space hoặc nút bên dưới để bắt đầu)</i></size>";
             }
             
@@ -167,17 +172,21 @@ public class GameHUD : MonoBehaviour
     private void OnHoanThanhNhiemVu()
     {
         CapNhatNhiemVu();
-
-        if (hoanThanhPanel != null)
+        
+        // Chỉ hiện bảng chúc mừng khi ĐÃ XONG CẢ 2 nhiệm vụ
+        if (GameManager.Instance.daMangMaiVeMe && GameManager.Instance.DaThuThapDuNguyenLieu())
         {
-            hoanThanhPanel.SetActive(true);
-            if (hoanThanhText != null)
+            if (hoanThanhPanel != null)
             {
-                hoanThanhText.text = "[ NHIỆM VỤ HOÀN THÀNH! ]\n\n" +
-                                     $"Bạn đã mua {GameManager.Instance.LoaiMaiDaMua}\n" +
-                                     "và mang về cho mẹ chưng Tết!\n\n" +
-                                     "[ Chúc Mừng Năm Mới! ]\n\n" +
-                                     "<size=20><i>(Nhấn phím Space hoặc E để đóng)</i></size>";
+                hoanThanhPanel.SetActive(true);
+                if (hoanThanhText != null)
+                {
+                    hoanThanhText.text = "<color=#FFD700><b>[ CHÚC MỪNG NĂM MỚI! ]</b></color>\n\n" +
+                                         "Bạn đã sắm sửa đầy đủ cho ngày Tết rồi!\n" +
+                                         "Cây mai đã có, nguyên liệu gói bánh cũng xong.\n\n" +
+                                         "<b>Hãy mau trở về nhà chuẩn bị đón Tết cùng gia đình thôi!</b>\n\n" +
+                                         "<size=20><i>(Nhấn phím Space hoặc E để đóng)</i></size>";
+                }
             }
         }
     }
