@@ -15,6 +15,7 @@ public class GameManager : MonoBehaviour
     public bool daMuaMai = false;
     public bool daLayMai = false; // Cần lấy mai trước khi mang về
     public bool daMangMaiVeMe = false;
+    public bool daKetThucDiCho = false; // Cờ theo dõi xem đã hoàn thành việc đi chợ và trở về làng chưa
 
     [Header("=== NHIỆM VỤ 1: CHUẨN BỊ NGUYÊN LIỆU ===")]
     public bool coLaChuoi = false;
@@ -202,6 +203,12 @@ public class GameManager : MonoBehaviour
         return string.Format("{0:N0}đ", soTienDay);
     }
 
+    // Hàm tiện ích để kiểm tra xem đã xong HẾT nhiệm vụ ở chợ chưa
+    public bool DaXongHetNhiemVu()
+    {
+        return DaThuThapDuNguyenLieu() && DaThuThapDuNguQua() && daMangMaiVeMe;
+    }
+
     public string LayMoTaNhiemVu()
     {
         string currentTask = "";
@@ -250,7 +257,7 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        bool daXongHet = DaThuThapDuNguyenLieu() && DaThuThapDuNguQua() && daMangMaiVeMe;
+        bool daXongHet = DaXongHetNhiemVu();
         if (daXongHet)
             return "<color=green><b>- Bạn đã sẵn sàng đón Tết!</b></color>\n- Hãy trở về nhà thôi.";
 

@@ -1,9 +1,11 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.UI;
 using UnityEngine.SceneManagement;
+using System.Collections.Generic;
 
 /// <summary>
 /// AUTO SETUP - TỰ CHẠY KHI BẤM PLAY, KHÔNG CẦN GẮN VÀO GAMEOBJECT NÀO!
@@ -60,26 +62,74 @@ public class AutoSetup : MonoBehaviour
     private static GameObject _minigameRunner;
 
     /// <summary>
-    /// TỰ ĐỘNG CHẠY KHI NHẤN PLAY - Không cần gắn script vào đâu cả!
+    /// TỰ ĐỘNG CHẠY KHI NHẤN PLAY - Đã sửa để bắt sự kiện LoadScene
     /// </summary>
-    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+    private static void Init()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    private static void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        if (scene.name == "Day_28_Scene")
+        {
+            TuDongSetup();
+        }
+    }
+
     private static void TuDongSetup()
     {
-        // Lấy tên scene hiện tại
-        string sceneName = SceneManager.GetActiveScene().name;
-
-        // Nếu không phải scene Day28 thì bỏ qua
-        if (sceneName != "Day_28_Scene")
-        {
-            Debug.Log("[AutoSetup] Skip setup vì không phải scene_day_28");
-            return;
-        }
-
         Debug.Log("<color=yellow>===================================</color>");
         Debug.Log("<color=yellow>[AutoSetup] 🏮 Bắt đầu tự động setup game Chợ Tết...</color>");
         Debug.Log("<color=yellow>===================================</color>");
 
         Debug.Log("[AutoSetup] Bắt đầu setup scene Day28...");
+
+        // Dọn dẹp object cũ nếu người chơi quay lại chợ lần 2
+        var oldRunner = GameObject.Find("_AutoSetup_Runner");
+        if (oldRunner != null) Object.Destroy(oldRunner);
+        
+        var oldPreview = GameObject.Find("FruitPreviewStage");
+        if (oldPreview != null) Object.Destroy(oldPreview);
+
+        // Dọn dẹp Canvas & UI cũ (vì nó là DontDestroyOnLoad)
+        var oldCanvas = GameObject.Find("GameplayCanvas");
+        if (oldCanvas != null) Object.Destroy(oldCanvas);
+
+        // Dọn dẹp các điểm trả mai, lấy mai cũ
+        var oldDiemTra = GameObject.Find("DiemTraMai_NhaMe");
+        if (oldDiemTra != null) Object.Destroy(oldDiemTra);
+
+        // Reset static references
+        _canvas = null;
+        _dialoguePanel = null;
+        _tenNguoiNoiText = null;
+        _noiDungText = null;
+        _luaChonPanel = null;
+        _luaChonButtonPrefab = null;
+        _tiepTucButton = null;
+        _tienText = null;
+        _nhiemVuPanel = null;
+        _nhiemVuText = null;
+        _thongBaoPanel = null;
+        _thongBaoText = null;
+        _crosshairImage = null;
+        _goiYTuongTacUI = null;
+        _hoanThanhPanel = null;
+        _hoanThanhText = null;
+        _batDauPanel = null;
+        _batDauText = null;
+        _bargainPanel = null;
+        _priceInputField = null;
+        _confirmBargainButton = null;
+        _cancelBargainButton = null;
+        _fruitFallingPanel = null;
+        _fruitTextures = new RenderTexture[4];
+        _fruitPreviewModels = new GameObject[4];
+        _previewCamera = null;
+        _minigameRunner = null;
 
         GameObject setupObj = new GameObject("_AutoSetup_Runner");
         DontDestroyOnLoad(setupObj);
@@ -99,6 +149,9 @@ public class AutoSetup : MonoBehaviour
         try { SetupDiemLayMai(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi Điểm lấy mai: " + e.Message); }
         try { SetupBauCua(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi Bầu Cua: " + e.Message); }
         try { SetupGiengNguyenUoc(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi Giếng: " + e.Message); }
+        try { SetupXapGao(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi Xạp Gạo: " + e.Message); }
+        try { SetupXapThit(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi Xạp Thịt: " + e.Message); }
+        try { SetupXapTraiCay(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi Xạp Trái Cây: " + e.Message); }
         try { InitializeFruitPreviewStage(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi FruitPreviewStage: " + e.Message); }
         try { TaoFruitFallingUI(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi FruitFallingUI: " + e.Message); }
 
@@ -1184,29 +1237,59 @@ public class AutoSetup : MonoBehaviour
     // =========================================
     private static void SetupDiemLayMai()
     {
-        // Tìm chậu mai ngoài chợ  
-        GameObject maiObj = null;
-        string[] tenThuongCo = { "diem_lay_mai", "chau_mai", "DiemLayMai" };
-        foreach (var ten in tenThuongCo)
+        // 1. Tìm NPC để làm mốc tọa độ
+        GameObject npcObj = GameObject.Find("co_gai_ban_mai");
+        if (npcObj == null)
         {
-            maiObj = GameObject.Find(ten);
-            if (maiObj != null) break;
+            var scene = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
+            foreach (var rootObj in scene.GetRootGameObjects())
+            {
+                var found = TimTheoTenTrongCon(rootObj.transform, "co_gai");
+                if (found != null) { npcObj = found; break; }
+            }
         }
 
-        // Nếu không tìm thấy, tạo mới gần NPC
-        if (maiObj == null)
+        // 2. Tìm tất cả vật thể có tên liên quan đến Mai và chọn cái gần NPC nhất
+        GameObject maiObj = null;
+        float minDistance = float.MaxValue;
+        string[] keywords = { "diem_lay_mai", "chau_mai", "cay_mai", "nha_cay_mai" };
+        
+        // Chỉ tìm nếu có NPC để so sánh
+        if (npcObj != null)
         {
-            GameObject npcObj = GameObject.Find("co_gai_ban_mai");
-            if (npcObj == null)
+            // Quét tất cả các object trong scene (hơi nặng nhưng chính xác cho scene dynamic)
+            GameObject[] allObjs = UnityEngine.Object.FindObjectsByType<GameObject>(FindObjectsSortMode.None);
+            foreach (var obj in allObjs)
             {
-                var scene = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
-                foreach (var rootObj in scene.GetRootGameObjects())
+                foreach (var key in keywords)
                 {
-                    var found = TimTheoTenTrongCon(rootObj.transform, "co_gai");
-                    if (found != null) { npcObj = found; break; }
+                    if (obj.name.ToLower().Contains(key.ToLower()))
+                    {
+                        float dist = Vector3.Distance(obj.transform.position, npcObj.transform.position);
+                        if (dist < minDistance && dist > 0.1f) // tránh trùng chính nó
+                        {
+                            minDistance = dist;
+                            maiObj = obj;
+                        }
+                        break;
+                    }
                 }
             }
+        }
 
+        // 3. Nếu không tìm thấy bằng quét dạo, fallback tìm theo tên cụ thể
+        if (maiObj == null)
+        {
+            foreach (var ten in keywords)
+            {
+                maiObj = GameObject.Find(ten);
+                if (maiObj != null) break;
+            }
+        }
+
+        // 4. Tuyệt chiêu cuối: Nếu vẫn không có, tạo mới gần NPC
+        if (maiObj == null)
+        {
             Vector3 viTri = Vector3.zero;
             if (npcObj != null)
                 viTri = npcObj.transform.position + npcObj.transform.right * 3f;
@@ -1641,6 +1724,191 @@ public class AutoSetup : MonoBehaviour
         pnlNguyenUoc.SetActive(false);
 
         Debug.Log("[AutoSetup] ✅ Setup Giếng Nguyện Ước hoàn tất");
+    }
+
+    // =========================================
+    // XẠP GẠO (Bà Sáu - bán gạo nếp, đậu xanh, lá chuối)
+    // =========================================
+    private static void SetupXapGao()
+    {
+        GameObject xapObj = null;
+        string[] tenThuongCo = { "xap_gao", "sap_gao", "ba_sau", "gian_hang_gao", "GaoShop", "RiceShop" };
+        foreach (var ten in tenThuongCo)
+        {
+            xapObj = GameObject.Find(ten);
+            if (xapObj != null) break;
+        }
+
+        // Tìm bằng cách quét tất cả root objects
+        if (xapObj == null)
+        {
+            var scene = SceneManager.GetActiveScene();
+            foreach (var rootObj in scene.GetRootGameObjects())
+            {
+                if (rootObj.name.ToLower().Contains("gao") || rootObj.name.ToLower().Contains("rice"))
+                {
+                    xapObj = rootObj;
+                    break;
+                }
+                var found = TimTheoTenTrongCon(rootObj.transform, "gao");
+                if (found != null) { xapObj = found; break; }
+            }
+        }
+
+        if (xapObj == null)
+        {
+            Debug.Log("[AutoSetup] \u26a0\ufe0f Không tìm thấy đối tượng Xạp Gạo, bỏ qua.");
+            return;
+        }
+
+        XapGao xg = xapObj.GetComponent<XapGao>();
+        if (xg == null)
+            xg = xapObj.AddComponent<XapGao>();
+
+        xg.tenNPC = "Bà Sáu";
+        xg.quayVePhiaPlayer = false;
+
+        Rigidbody rb = xapObj.GetComponent<Rigidbody>();
+        if (rb == null) rb = xapObj.AddComponent<Rigidbody>();
+        rb.isKinematic = true;
+        rb.useGravity = false;
+        rb.constraints = RigidbodyConstraints.FreezeAll;
+
+        // Đảm bảo có Collider
+        Collider col = xapObj.GetComponent<Collider>();
+        if (col == null)
+        {
+            BoxCollider bc = xapObj.AddComponent<BoxCollider>();
+            bc.size = new Vector3(1.5f, 2.5f, 1.5f); // Thu nhỏ vùng tương tác
+            bc.center = new Vector3(0, 1.25f, 0);
+        }
+
+        SetLayerRecursive(xapObj, 6);
+        Debug.Log($"[AutoSetup] \u2705 Setup Xạp Gạo: {xapObj.name}");
+    }
+
+    // =========================================
+    // XẠP THỊT (Chú Tư - bán thịt heo)
+    // =========================================
+    private static void SetupXapThit()
+    {
+        GameObject xapObj = null;
+        string[] tenThuongCo = { "xap_thit", "sap_thit", "chu_tu", "gian_hang_thit", "MeatShop", "PorkShop" };
+        foreach (var ten in tenThuongCo)
+        {
+            xapObj = GameObject.Find(ten);
+            if (xapObj != null) break;
+        }
+
+        // Tìm bằng cách quét tất cả root objects
+        if (xapObj == null)
+        {
+            var scene = SceneManager.GetActiveScene();
+            foreach (var rootObj in scene.GetRootGameObjects())
+            {
+                if (rootObj.name.ToLower().Contains("thit") || rootObj.name.ToLower().Contains("meat") || rootObj.name.ToLower().Contains("pork"))
+                {
+                    xapObj = rootObj;
+                    break;
+                }
+                var found = TimTheoTenTrongCon(rootObj.transform, "thit");
+                if (found != null) { xapObj = found; break; }
+            }
+        }
+
+        if (xapObj == null)
+        {
+            Debug.Log("[AutoSetup] \u26a0\ufe0f Không tìm thấy đối tượng Xạp Thịt, bỏ qua.");
+            return;
+        }
+
+        XapThit xt = xapObj.GetComponent<XapThit>();
+        if (xt == null)
+            xt = xapObj.AddComponent<XapThit>();
+
+        xt.tenNPC = "Chú Tư";
+        xt.quayVePhiaPlayer = false;
+
+        Rigidbody rb = xapObj.GetComponent<Rigidbody>();
+        if (rb == null) rb = xapObj.AddComponent<Rigidbody>();
+        rb.isKinematic = true;
+        rb.useGravity = false;
+        rb.constraints = RigidbodyConstraints.FreezeAll;
+
+        // Đảm bảo có Collider
+        Collider col = xapObj.GetComponent<Collider>();
+        if (col == null)
+        {
+            BoxCollider bc = xapObj.AddComponent<BoxCollider>();
+            bc.size = new Vector3(1.5f, 2.5f, 1.5f); // Thu nhỏ vùng tương tác
+            bc.center = new Vector3(0, 1.25f, 0);
+        }
+
+        SetLayerRecursive(xapObj, 6);
+        Debug.Log($"[AutoSetup] \u2705 Setup Xạp Thịt: {xapObj.name}");
+    }
+
+    // =========================================
+    // XẠP TRÁI CÂY (Chị Lan - mâm Ngũ Quả)
+    // =========================================
+    private static void SetupXapTraiCay()
+    {
+        GameObject xapObj = null;
+        string[] tenThuongCo = { "xap_rau_cu", "xap_trai_cay", "sap_trai_cay", "chi_lan", "gian_hang_trai_cay", "FruitShop", "xap_traicay" };
+        foreach (var ten in tenThuongCo)
+        {
+            xapObj = GameObject.Find(ten);
+            if (xapObj != null) break;
+        }
+
+        // Tìm bằng cách quét tất cả root objects
+        if (xapObj == null)
+        {
+            var scene = SceneManager.GetActiveScene();
+            foreach (var rootObj in scene.GetRootGameObjects())
+            {
+                if (rootObj.name.ToLower().Contains("trai_cay") || rootObj.name.ToLower().Contains("traicay") || rootObj.name.ToLower().Contains("fruit"))
+                {
+                    xapObj = rootObj;
+                    break;
+                }
+                var found = TimTheoTenTrongCon(rootObj.transform, "trai_cay");
+                if (found == null) found = TimTheoTenTrongCon(rootObj.transform, "traicay");
+                if (found == null) found = TimTheoTenTrongCon(rootObj.transform, "fruit");
+                if (found != null) { xapObj = found; break; }
+            }
+        }
+
+        if (xapObj == null)
+        {
+            Debug.Log("[AutoSetup] \u26a0\ufe0f Không tìm thấy đối tượng Xạp Trái Cây, bỏ qua.");
+            return;
+        }
+
+        XapTraiCay xtc = xapObj.GetComponent<XapTraiCay>();
+        if (xtc == null)
+            xtc = xapObj.AddComponent<XapTraiCay>();
+
+        xtc.tenNPC = "Chị Lan";
+        xtc.quayVePhiaPlayer = false;
+
+        Rigidbody rb = xapObj.GetComponent<Rigidbody>();
+        if (rb == null) rb = xapObj.AddComponent<Rigidbody>();
+        rb.isKinematic = true;
+        rb.useGravity = false;
+        rb.constraints = RigidbodyConstraints.FreezeAll;
+
+        // Đảm bảo có Collider
+        Collider col = xapObj.GetComponent<Collider>();
+        if (col == null)
+        {
+            BoxCollider bc = xapObj.AddComponent<BoxCollider>();
+            bc.size = new Vector3(1.5f, 2.5f, 1.5f); // Thu nhỏ vùng tương tác
+            bc.center = new Vector3(0, 1.25f, 0);
+        }
+
+        SetLayerRecursive(xapObj, 6);
+        Debug.Log($"[AutoSetup] \u2705 Setup Xạp Trái Cây: {xapObj.name}");
     }
 
     // =========================================

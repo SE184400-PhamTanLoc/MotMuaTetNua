@@ -75,8 +75,11 @@ public class GameHUD : MonoBehaviour
         if (thongBaoPanel != null) thongBaoPanel.SetActive(false);
         if (hoanThanhPanel != null) hoanThanhPanel.SetActive(false);
 
-        // Hiển thị intro
-        if (batDauPanel != null)
+        // Chỉ hiển thị intro khi lần đầu vào chợ (chưa nhận nhiệm vụ nào)
+        bool lanDauVaoCho = GameManager.Instance == null || 
+                            (!GameManager.Instance.daMuaMai && !GameManager.Instance.DaThuThapDuNguyenLieu() && !GameManager.Instance.DaThuThapDuNguQua());
+        
+        if (batDauPanel != null && lanDauVaoCho)
         {
             batDauPanel.SetActive(true);
             if (batDauText != null)
@@ -93,6 +96,11 @@ public class GameHUD : MonoBehaviour
             if (btn != null) btn.onClick.AddListener(DongBatDauPanel);
 
             // Cursor được quản lý bởi CursorStateController
+        }
+        else if (batDauPanel != null)
+        {
+            // Đã vào chợ trước đó (quay lại từ Village), ẩn intro panel
+            batDauPanel.SetActive(false);
         }
 
         Debug.Log("[GameHUD] ✅ Kết nối events và hiện Intro thành công");

@@ -50,6 +50,16 @@ public class CursorStateController : MonoBehaviour
             return;
         }
 
+        // 2.8 Kiểm tra Panel Hoàn Thành
+        GameHUD hud2 = UnityEngine.Object.FindFirstObjectByType<GameHUD>();
+        if (hud2 == null) hud2 = hud; // fallback
+        if (hud2 != null && hud2.hoanThanhPanel != null && hud2.hoanThanhPanel.activeSelf)
+        {
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+            return;
+        }
+
         // Nếu không có GameFlow (ví dụ scene Day_28 không dùng GameFlow)
         // → Khóa cursor mặc định để FirstPersonController hoạt động
         if (GameFlow.Instance == null)

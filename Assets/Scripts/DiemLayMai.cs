@@ -23,6 +23,20 @@ public class DiemLayMai : MonoBehaviour
 
     private void Update()
     {
+        // Phổ biến hơn: Nếu player ở quá gần (phòng trường hợp trigger không bắt được lúc mới load scene)
+        if (!_playerTrongVung)
+        {
+            Collider[] cols = Physics.OverlapSphere(transform.position, 3f);
+            foreach (var col in cols)
+            {
+                if (col.CompareTag("Player") || col.GetComponent<CharacterController>() != null)
+                {
+                    _playerTrongVung = true;
+                    break;
+                }
+            }
+        }
+
         if (_playerTrongVung && GameManager.Instance != null && GameManager.Instance.daMuaMai && !GameManager.Instance.daLayMai)
         {
             // Hiển thị UI gợi ý
