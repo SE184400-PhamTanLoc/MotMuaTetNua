@@ -173,8 +173,10 @@ public class GameHUD : MonoBehaviour
     {
         CapNhatNhiemVu();
         
-        // Chỉ hiện bảng chúc mừng khi ĐÃ XONG CẢ 2 nhiệm vụ
-        if (GameManager.Instance.daMangMaiVeMe && GameManager.Instance.DaThuThapDuNguyenLieu())
+        // Chỉ hiện bảng chúc mừng khi ĐÃ XONG CẢ 3 nhiệm vụ
+        if (GameManager.Instance.daMangMaiVeMe && 
+            GameManager.Instance.DaThuThapDuNguyenLieu() && 
+            GameManager.Instance.DaThuThapDuNguQua())
         {
             if (hoanThanhPanel != null)
             {

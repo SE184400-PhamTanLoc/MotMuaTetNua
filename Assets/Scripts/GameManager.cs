@@ -168,6 +168,12 @@ public class GameManager : MonoBehaviour
             OnNhiemVuHoanThanh?.Invoke();
         }
 
+        if (DaThuThapDuNguQua())
+        {
+            OnThongBao?.Invoke("Đã đủ mâm Ngũ Quả! Mọi thứ đã sẵn sàng cho ngày Tết.");
+            OnNhiemVuHoanThanh?.Invoke();
+        }
+
         return true;
     }
 
