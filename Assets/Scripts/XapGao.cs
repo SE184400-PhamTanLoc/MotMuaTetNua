@@ -18,14 +18,15 @@ public class XapGao : NPCBase
         base.Start();
         quayVePhiaPlayer = false; // Không xoay xạp hàng
 
-        // Tự động thêm Collider nếu thiếu
-        if (GetComponent<Collider>() == null)
+        // Đảm bảo có BoxCollider và là Trigger
+        BoxCollider col = GetComponent<BoxCollider>();
+        if (col == null)
         {
-            var col = gameObject.AddComponent<BoxCollider>();
-            col.isTrigger = true; // Để player không bị chặn
-            col.size = new Vector3(1.5f, 2f, 1.5f); // Kích thước gọn hơn
-            col.center = new Vector3(0, 1f, 0);
+            col = gameObject.AddComponent<BoxCollider>();
         }
+        col.isTrigger = true; // Để player không bị chặn
+        col.size = new Vector3(1.1f, 2f, 1.1f); // Kích thước gọn hơn
+        col.center = new Vector3(0, 1f, 0);
 
         // Đảm bảo layer đúng để PlayerInteraction tìm thấy
         // Giả sử layer NPC là 7 hoặc dùng tên (thường trong project này là mặc định hoặc NPC)

@@ -1203,8 +1203,8 @@ public class AutoSetup : MonoBehaviour
 
         BoxCollider box = diemTraObj.AddComponent<BoxCollider>();
         box.isTrigger = true;
-        box.size = new Vector3(8, 5, 8);
-        box.center = new Vector3(0, 2.5f, 0);
+        box.size = new Vector3(4, 3, 4);
+        box.center = new Vector3(0, 1.5f, 0);
 
         DiemTraMai dtm = diemTraObj.AddComponent<DiemTraMai>();
 
@@ -1303,8 +1303,8 @@ public class AutoSetup : MonoBehaviour
         {
             box = maiObj.AddComponent<BoxCollider>();
             box.isTrigger = true;
-            box.size = new Vector3(4, 3, 4);
-            box.center = new Vector3(0, 1.5f, 0);
+            box.size = new Vector3(1.5f, 2, 1.5f);
+            box.center = new Vector3(0, 1f, 0);
         }
         else
         {
@@ -1774,14 +1774,18 @@ public class AutoSetup : MonoBehaviour
         rb.useGravity = false;
         rb.constraints = RigidbodyConstraints.FreezeAll;
 
-        // Đảm bảo có Collider
-        Collider col = xapObj.GetComponent<Collider>();
-        if (col == null)
+        // Đảm bảo có BoxCollider và là Trigger
+        BoxCollider bc = xapObj.GetComponent<BoxCollider>();
+        if (bc == null)
         {
-            BoxCollider bc = xapObj.AddComponent<BoxCollider>();
-            bc.size = new Vector3(1.5f, 2.5f, 1.5f); // Thu nhỏ vùng tương tác
-            bc.center = new Vector3(0, 1.25f, 0);
+            // Tắt các collider khác nếu có
+            Collider otherCol = xapObj.GetComponent<Collider>();
+            if (otherCol != null) otherCol.enabled = false;
+            bc = xapObj.AddComponent<BoxCollider>();
         }
+        bc.isTrigger = true;
+        bc.size = new Vector3(1.1f, 2f, 1.1f); 
+        bc.center = new Vector3(0, 1f, 0);
 
         SetLayerRecursive(xapObj, 6);
         Debug.Log($"[AutoSetup] \u2705 Setup Xạp Gạo: {xapObj.name}");
@@ -1835,14 +1839,18 @@ public class AutoSetup : MonoBehaviour
         rb.useGravity = false;
         rb.constraints = RigidbodyConstraints.FreezeAll;
 
-        // Đảm bảo có Collider
-        Collider col = xapObj.GetComponent<Collider>();
-        if (col == null)
+        // Đảm bảo có BoxCollider và là Trigger
+        BoxCollider bc = xapObj.GetComponent<BoxCollider>();
+        if (bc == null)
         {
-            BoxCollider bc = xapObj.AddComponent<BoxCollider>();
-            bc.size = new Vector3(1.5f, 2.5f, 1.5f); // Thu nhỏ vùng tương tác
-            bc.center = new Vector3(0, 1.25f, 0);
+            // Tắt các collider khác nếu có
+            Collider otherCol = xapObj.GetComponent<Collider>();
+            if (otherCol != null) otherCol.enabled = false;
+            bc = xapObj.AddComponent<BoxCollider>();
         }
+        bc.isTrigger = true;
+        bc.size = new Vector3(1.1f, 2f, 1.1f);
+        bc.center = new Vector3(0, 1f, 0);
 
         SetLayerRecursive(xapObj, 6);
         Debug.Log($"[AutoSetup] \u2705 Setup Xạp Thịt: {xapObj.name}");
@@ -1898,14 +1906,18 @@ public class AutoSetup : MonoBehaviour
         rb.useGravity = false;
         rb.constraints = RigidbodyConstraints.FreezeAll;
 
-        // Đảm bảo có Collider
-        Collider col = xapObj.GetComponent<Collider>();
-        if (col == null)
+        // Đảm bảo có BoxCollider và là Trigger
+        BoxCollider bc = xapObj.GetComponent<BoxCollider>();
+        if (bc == null)
         {
-            BoxCollider bc = xapObj.AddComponent<BoxCollider>();
-            bc.size = new Vector3(1.5f, 2.5f, 1.5f); // Thu nhỏ vùng tương tác
-            bc.center = new Vector3(0, 1.25f, 0);
+            // Tắt các collider khác nếu có
+            Collider otherCol = xapObj.GetComponent<Collider>();
+            if (otherCol != null) otherCol.enabled = false;
+            bc = xapObj.AddComponent<BoxCollider>();
         }
+        bc.isTrigger = true;
+        bc.size = new Vector3(1.1f, 2f, 1.1f);
+        bc.center = new Vector3(0, 1f, 0);
 
         SetLayerRecursive(xapObj, 6);
         Debug.Log($"[AutoSetup] \u2705 Setup Xạp Trái Cây: {xapObj.name}");

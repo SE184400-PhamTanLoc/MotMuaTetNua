@@ -14,14 +14,15 @@ public class XapThit : NPCBase
         base.Start();
         quayVePhiaPlayer = false;
 
-        // Tự động thêm Collider nếu thiếu
-        if (GetComponent<Collider>() == null)
+        // Đảm bảo có BoxCollider và là Trigger
+        BoxCollider col = GetComponent<BoxCollider>();
+        if (col == null)
         {
-            var col = gameObject.AddComponent<BoxCollider>();
-            col.isTrigger = true;
-            col.size = new Vector3(1.5f, 2f, 1.5f);
-            col.center = new Vector3(0, 1f, 0);
+            col = gameObject.AddComponent<BoxCollider>();
         }
+        col.isTrigger = true;
+        col.size = new Vector3(1.1f, 2f, 1.1f);
+        col.center = new Vector3(0, 1f, 0);
     }
 
     protected override void OnTuongTac()
