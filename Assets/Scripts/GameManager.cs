@@ -222,7 +222,7 @@ public class GameManager : MonoBehaviour
         if (isVillagePhase)
         {
             return "<color=#FFD700><b>[ NHIỆM VỤ LÀNG ]</b></color>\n" +
-                   "- <color=white>Vào Nhà Nhiệm Vụ để gói bánh Tét cùng Mẹ.</color>";
+                   "- <color=white>Vào nhà chính để gói bánh Tết cùng Mẹ.</color>";
         }
 
         string currentTask = "";

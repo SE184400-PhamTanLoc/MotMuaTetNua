@@ -1,9 +1,11 @@
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.InputSystem;
 
 public class GoiBanhTrigger : MonoBehaviour
 {
     private bool _playerInZone = false;
+    private bool _hasNotifiedThisEntry = false;
     private GameObject _goiYUI;
 
     public void Setup(GameObject ui)
@@ -15,11 +17,10 @@ public class GoiBanhTrigger : MonoBehaviour
     {
         if (_playerInZone && GameManager.Instance != null)
         {
-            if (_goiYUI != null && !_goiYUI.activeSelf)
+            if (GameManager.Instance != null && !_hasNotifiedThisEntry)
             {
-                _goiYUI.SetActive(true);
-                var tmp = _goiYUI.GetComponentInChildren<TMPro.TextMeshProUGUI>();
-                if (tmp != null) tmp.text = "Nhấn <color=#FFD700><b>E</b></color> để bắt đầu gói bánh Tét cùng Mẹ 🎋";
+                GameManager.Instance.HienThongBao("Nhấn <color=yellow><b>E</b></color> để bắt đầu gói bánh Tét cùng Mẹ");
+                _hasNotifiedThisEntry = true;
             }
 
             if (Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame)
@@ -45,9 +46,11 @@ public class GoiBanhTrigger : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+        Debug.Log($"[GoiBanhTrigger] 🚪 Object entered: {other.name} (Tag: {other.tag})");
         if (other.CompareTag("Player") || other.GetComponent<CharacterController>() != null || other.name.ToLower().Contains("player"))
         {
             _playerInZone = true;
+            Debug.Log("[GoiBanhTrigger] ✅ Player detected in zone!");
         }
     }
 
@@ -56,6 +59,8 @@ public class GoiBanhTrigger : MonoBehaviour
         if (other.CompareTag("Player") || other.GetComponent<CharacterController>() != null || other.name.ToLower().Contains("player"))
         {
             _playerInZone = false;
+            _hasNotifiedThisEntry = false; 
+            if (_goiYUI != null) _goiYUI.SetActive(false);
         }
     }
 }

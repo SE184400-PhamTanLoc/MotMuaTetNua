@@ -2025,6 +2025,7 @@ public class AutoSetup : MonoBehaviour
         
         // Gọi script gói bánh tự setup
         BanhTetMinigame.Create(_canvas, _goiYTuongTacUI);
+        CanhNoiBanhMinigame.Create(_canvas, _goiYTuongTacUI);
     }
 
     private static void SetLayerRecursive(GameObject obj, int layer)

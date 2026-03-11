@@ -191,39 +191,42 @@ public class BanhTetMinigame : MonoBehaviour
         btnThit.GetComponent<Button>().onClick.AddListener(() => game.OnIngredientClick(3));
         closeBtn.GetComponent<Button>().onClick.AddListener(game.CloseGame);
 
-        // 8. TÍCH HỢP TRỰC TIẾP VÀO NHÀ (Chỉ làm trên NhaTetLoai4 cho gọn)
-        string[] potentialHouses = { "NhaTetLoai4", "NhaTetLoai2", "NhaNhiemVu" };
-        GameObject targetHouse = GameObject.Find("NhaTetLoai4");
+        // 8. TÍCH HỢP TRỰC TIẾP VÀO NHÀ
+        string[] potentialHouses = { "NhaTetLoai4", "NhaTetLoai2", "NhanhTetLoai4", "NhaNhiemVu" };
+        GameObject targetHouse = null;
         
-        // Dọn dẹp tất cả các nhà để tránh bị "nhấn E" từ xa ở nhà cũ
+        foreach (string name in potentialHouses)
+        {
+            targetHouse = GameObject.Find(name);
+            if (targetHouse != null) break;
+        }
+        
+        // Dọn dẹp trigger cũ trên các nhà KHÔNG PHẢI targetHouse
         foreach (string name in potentialHouses)
         {
             GameObject h = GameObject.Find(name);
-            if (h != null)
+            if (h != null && h != targetHouse)
             {
                 GoiBanhTrigger oldT = h.GetComponent<GoiBanhTrigger>();
-                if (oldT != null) Destroy(oldT);
+                if (oldT != null) DestroyImmediate(oldT);
                 
-                // Xóa các BoxCollider là Trigger (để không xóa nhầm collider vật lý của nhà)
-                BoxCollider[] bcs = h.GetComponents<BoxCollider>();
-                foreach (var b in bcs) if (b.isTrigger) Destroy(b);
+                foreach (var b in h.GetComponents<BoxCollider>()) if (b.isTrigger) DestroyImmediate(b);
             }
         }
 
         if (targetHouse != null)
         {
             Debug.Log("[BanhTetMinigame] ✅ Tích hợp tương tác vào: " + targetHouse.name);
-            
-            // Thêm script xử lý tương tác
-            GoiBanhTrigger trigger = targetHouse.AddComponent<GoiBanhTrigger>();
+            GoiBanhTrigger trigger = targetHouse.GetComponent<GoiBanhTrigger>();
+            if (trigger == null) trigger = targetHouse.AddComponent<GoiBanhTrigger>();
             trigger.Setup(interactionUI);
 
-            // Thêm Collider vùng nhận diện SIÊU NHỎ
-            // Sử dụng lossyScale để đảm bảo kích thước thực tế chỉ tầm 2-3 mét trong game
-            BoxCollider bc = targetHouse.AddComponent<BoxCollider>();
+            BoxCollider bc = targetHouse.GetComponent<BoxCollider>();
+            if (bc == null || !bc.isTrigger) bc = targetHouse.AddComponent<BoxCollider>();
             bc.isTrigger = true;
             
-            Vector3 worldSize = new Vector3(2.5f, 2.5f, 2.5f); // Kích thước mong muốn trong world
+            // Tăng vùng nhận diện lên 5m x 4m x 5m để dễ bước vào
+            Vector3 worldSize = new Vector3(5f, 4f, 5f); 
             Vector3 parentScale = targetHouse.transform.lossyScale;
             
             bc.size = new Vector3(
@@ -231,13 +234,13 @@ public class BanhTetMinigame : MonoBehaviour
                 worldSize.y / Mathf.Max(parentScale.y, 0.001f),
                 worldSize.z / Mathf.Max(parentScale.z, 0.001f)
             );
-            bc.center = new Vector3(0, 1f / Mathf.Max(parentScale.y, 0.001f), 0); 
+            bc.center = new Vector3(0, 1.5f / Mathf.Max(parentScale.y, 0.001f), 0); 
             
-            Debug.Log($"[BanhTetMinigame] ✅ Đã gán trigger SIÊU NHỎ (đã bù scale) vào {targetHouse.name}.");
+            Debug.Log($"[BanhTetMinigame] ✅ Đã cấu hình trigger RỘNG (5m) vào {targetHouse.name}.");
         }
         else
         {
-            Debug.LogError("[BanhTetMinigame] ❌ Không tìm thấy NhaTetLoai4!");
+            Debug.LogError("[BanhTetMinigame] ❌ Không tìm thấy bất kỳ nhà nào trong danh sách potentialHouses!");
         }
     }
 
