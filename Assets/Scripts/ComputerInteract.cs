@@ -1,23 +1,11 @@
 using UnityEngine;
-using TMPro;
-using UnityEngine.UI;
 
 public class ComputerInteract : MonoBehaviour
 {
     public GameObject hoverText;
-    [Header("Hint Text")]
-    public string hoverHintMessage = "Nhấn E để mở máy tính";
-    [Tooltip("Bật nếu muốn code tự kéo hint theo anchor khi hover. Mặc định tắt để giữ nguyên vị trí bạn set trong scene.")]
-    public bool repositionHintOnHover = false;
-    [Tooltip("Điểm neo cho hint. Để trống sẽ dùng transform của object computer.")]
-    public Transform hoverHintAnchor;
-    [Tooltip("Offset vị trí hint so với điểm neo (world space).")]
-    public Vector3 hoverHintOffset = new Vector3(0f, 0.2f, 0f);
 
     private Outline outline;
     private bool isHovered;
-    private TMP_Text hoverTMP;
-    private Text hoverUGUI;
 
     void Awake()
     {
@@ -27,11 +15,7 @@ public class ComputerInteract : MonoBehaviour
             outline.enabled = false;
 
         if (hoverText != null)
-        {
-            hoverTMP = hoverText.GetComponentInChildren<TMP_Text>(true);
-            hoverUGUI = hoverText.GetComponentInChildren<Text>(true);
             hoverText.SetActive(false);
-        }
     }
 
     // Cho phép hover trong SittingAtDesk, ComputerFinished, AlbumFocus và AlbumInteractable
@@ -57,13 +41,7 @@ public class ComputerInteract : MonoBehaviour
             outline.enabled = true;
 
         if (hoverText != null)
-        {
-            if (hoverTMP != null) hoverTMP.text = hoverHintMessage;
-            else if (hoverUGUI != null) hoverUGUI.text = hoverHintMessage;
-            if (repositionHintOnHover)
-                RepositionHoverHint();
             hoverText.SetActive(true);
-        }
     }
 
     public void OnHoverExit()
@@ -112,12 +90,5 @@ public class ComputerInteract : MonoBehaviour
                 Debug.Log("Nghỉ ngơi tí đã");
             }
         }
-    }
-
-    private void RepositionHoverHint()
-    {
-        if (hoverText == null) return;
-        Transform anchor = hoverHintAnchor != null ? hoverHintAnchor : transform;
-        hoverText.transform.position = anchor.position + hoverHintOffset;
     }
 }

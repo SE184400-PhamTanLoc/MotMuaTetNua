@@ -16,14 +16,6 @@ public class ChatUIController : MonoBehaviour
     [Header("Style Sheets")]
     public StyleSheet chatStyles; // Kéo ChatStyles.uss vào đây trong Inspector
     
-    [Header("Audio")]
-    public AudioSource chatAudioSource;
-    public AudioClip firstIncomingMessageClip;
-    public AudioClip sendMessageClip;
-    public AudioClip bossMessageArrivedClip;
-    [Tooltip("Delay thêm sau khi tiếng gửi tin nhắn kết thúc rồi mới trigger tin của sếp.")]
-    public float bossMessageDelayAfterSend = 0.05f;
-    
     // UI Elements
     private VisualElement rootElement;
     private VisualElement messageList;
@@ -40,7 +32,6 @@ public class ChatUIController : MonoBehaviour
     // momReplied không cần thiết vì có thể check từ momMessagesData.Count > 1
     private bool bossChatClicked = false; // Track xem đã click vào chat sếp chưa (để bỏ highlight)
     private bool chatStarted = false; // Track xem đã bắt đầu chat chưa (để không reset khi mở lại)
-    private Coroutine bossMessageArrivalCoroutine;
     
     // Lưu messages của mỗi chat (lưu data, không lưu VisualElement)
     private System.Collections.Generic.List<System.Tuple<string, bool>> momMessagesData = new System.Collections.Generic.List<System.Tuple<string, bool>>();
@@ -50,11 +41,6 @@ public class ChatUIController : MonoBehaviour
     {
         // KHÔNG initialize ở đây vì MessageAppPanel có thể chưa visible
         // Sẽ initialize khi OnMessageAppOpened() được gọi
-        if (chatAudioSource == null)
-        {
-            chatAudioSource = GetComponent<AudioSource>();
-        }
-        EnsureSfxChannelVolume(chatAudioSource);
     }
     
     // Public method để gọi từ ComputerUIManager khi mở MessageApp
@@ -79,19 +65,10 @@ public class ChatUIController : MonoBehaviour
             }
         }
     }
-
-    // Chỉ cho phép thoát MessageApp khi đã hoàn thành toàn bộ luồng chat
-    public bool IsChatFlowDone()
-    {
-        return currentState == ChatState.Done;
-    }
     
     // Restore lại state khi mở lại app (không reset)
     void RestoreChatState()
     {
-        // Restore thứ tự chat item trước khi render lại (sếp lên đầu sau khi có tin nhắn)
-        UpdateChatPriorityOrder();
-
         // Update chat selection visual
         UpdateChatSelection();
         
@@ -232,14 +209,6 @@ public class ChatUIController : MonoBehaviour
         bossMessageShown = false;
         // momReplied không cần reset vì đã xóa
         bossChatClicked = false;
-        if (bossMessageArrivalCoroutine != null)
-        {
-            StopCoroutine(bossMessageArrivalCoroutine);
-            bossMessageArrivalCoroutine = null;
-        }
-
-        // Reset thứ tự mặc định khi bắt đầu luồng mới
-        UpdateChatPriorityOrder();
         
         // Clear saved messages
         momMessagesData.Clear();
@@ -260,10 +229,9 @@ public class ChatUIController : MonoBehaviour
         UpdateChatSelection();
         
         // Start với chat Mẹ
-        momMessagesData.Add(new System.Tuple<string, bool>("Mẹ: Khỏe không con, tết năm nay lại không về hả con ?", true));
-        VisualElement firstMessage = CreateMessageBubble("Mẹ: Khỏe không con, tết năm nay lại không về hả con ?", true);
+        momMessagesData.Add(new System.Tuple<string, bool>("Mẹ: Con ăn cơm chưa?", true));
+        VisualElement firstMessage = CreateMessageBubble("Mẹ: Con ăn cơm chưa?", true);
         ShowMessage(firstMessage);
-        PlayChatClip(firstIncomingMessageClip);
         currentState = ChatState.MomWaitingReply;
         
         // Enable Send button (đang chờ reply mẹ)
@@ -357,20 +325,24 @@ public class ChatUIController : MonoBehaviour
                 if (currentSelectedChat == "Mom")
                 {
                     // Player reply
-                    momMessagesData.Add(new System.Tuple<string, bool>("Dạ chắc năm nay lại không về được rồi mẹ", false));
-                    VisualElement replyMessage = CreateMessageBubble("Dạ chắc năm nay lại không về được rồi mẹ", false);
+                    momMessagesData.Add(new System.Tuple<string, bool>("Con ăn rồi ạ", false));
+                    VisualElement replyMessage = CreateMessageBubble("Con ăn rồi ạ", false);
                     ShowMessage(replyMessage);
-                    PlayChatClip(sendMessageClip);
                     // momReplied không cần set vì đã xóa
-
-                    // Chờ tiếng gửi kết thúc rồi mới trigger tin sếp đến
-                    currentState = ChatState.None;
-                    UpdateSendButtonState();
-                    if (bossMessageArrivalCoroutine != null)
+                    
+                    // Highlight Boss chat item (chỉ khi chưa click vào)
+                    if (chatListItemBoss != null && !bossChatClicked)
                     {
-                        StopCoroutine(bossMessageArrivalCoroutine);
+                        chatListItemBoss.AddToClassList("highlight");
                     }
-                    bossMessageArrivalCoroutine = StartCoroutine(TriggerBossMessageAfterSendSfx());
+                    
+                    // KHÔNG tự động switch sang Boss chat
+                    // Chỉ đánh dấu là sếp đã nhắn (người dùng phải click để xem)
+                    currentState = ChatState.BossWaitingReply;
+                    // Tin nhắn của sếp sẽ hiển thị khi người dùng click vào chat sếp
+                    
+                    // Disable Send button (đã reply mẹ xong)
+                    UpdateSendButtonState();
                 }
                 break;
                 
@@ -379,12 +351,10 @@ public class ChatUIController : MonoBehaviour
                 if (currentSelectedChat == "Boss")
                 {
                     // Player reply
-                    bossMessagesData.Add(new System.Tuple<string, bool>("Dạ em gửi liền ạ, đợi em 5 phút", false));
-                    VisualElement replyMessage = CreateMessageBubble("Dạ em gửi liền ạ, đợi em 5 phút", false);
+                    bossMessagesData.Add(new System.Tuple<string, bool>("Em gửi trong 5 phút nữa", false));
+                    VisualElement replyMessage = CreateMessageBubble("Em gửi trong 5 phút nữa", false);
                     ShowMessage(replyMessage);
-                    PlayChatClip(sendMessageClip);
                     currentState = ChatState.Done;
-                    UpdateChatPriorityOrder();
                     
                     // Disable Send button (đã reply sếp xong)
                     UpdateSendButtonState();
@@ -395,36 +365,6 @@ public class ChatUIController : MonoBehaviour
             case ChatState.Done:
                 // Chat finished, do nothing
                 break;
-        }
-    }
-
-    // Sắp xếp ưu tiên danh sách chat:
-    // - Trước khi sếp nhắn: Mẹ ở trên
-    // - Khi sếp đã nhắn (BossWaitingReply/Done): Sếp lên đầu
-    void UpdateChatPriorityOrder()
-    {
-        VisualElement container = null;
-        if (chatListItemMom != null) container = chatListItemMom.parent;
-        if (container == null && chatListItemBoss != null) container = chatListItemBoss.parent;
-        if (container == null) return;
-
-        bool shouldBossBeFirst = currentState == ChatState.BossWaitingReply || currentState == ChatState.Done;
-
-        if (shouldBossBeFirst && chatListItemBoss != null)
-        {
-            if (container.IndexOf(chatListItemBoss) != 0)
-            {
-                chatListItemBoss.RemoveFromHierarchy();
-                container.Insert(0, chatListItemBoss);
-            }
-        }
-        else if (!shouldBossBeFirst && chatListItemMom != null)
-        {
-            if (container.IndexOf(chatListItemMom) != 0)
-            {
-                chatListItemMom.RemoveFromHierarchy();
-                container.Insert(0, chatListItemMom);
-            }
         }
     }
     
@@ -448,8 +388,8 @@ public class ChatUIController : MonoBehaviour
         // Hiển thị tin nhắn của sếp nếu đã đến lúc và chưa hiển thị
         if (currentState == ChatState.BossWaitingReply && !bossMessageShown)
         {
-            bossMessagesData.Add(new System.Tuple<string, bool>("Sếp: Báo cáo xong chưa em, làm gấp giúp anh nha", true));
-            VisualElement bossFirstMessage = CreateMessageBubble("Sếp: Báo cáo xong chưa em, làm gấp giúp anh nha", true);
+            bossMessagesData.Add(new System.Tuple<string, bool>("Sếp: Báo cáo xong chưa?", true));
+            VisualElement bossFirstMessage = CreateMessageBubble("Sếp: Báo cáo xong chưa?", true);
             ShowMessage(bossFirstMessage);
             bossMessageShown = true;
             
@@ -583,79 +523,9 @@ public class ChatUIController : MonoBehaviour
     
     void OnDestroy()
     {
-        if (bossMessageArrivalCoroutine != null)
-        {
-            StopCoroutine(bossMessageArrivalCoroutine);
-            bossMessageArrivalCoroutine = null;
-        }
-
         if (sendButton != null)
         {
             sendButton.clicked -= OnSendButtonClicked;
         }
-    }
-    
-    private void PlayChatClip(AudioClip clip)
-    {
-        if (clip == null)
-        {
-            return;
-        }
-
-        EnsureSfxChannelVolume(chatAudioSource);
-
-        if (chatAudioSource != null)
-        {
-            chatAudioSource.PlayOneShot(clip);
-            return;
-        }
-
-        if (Camera.main != null)
-        {
-            AudioSource.PlayClipAtPoint(clip, Camera.main.transform.position);
-        }
-    }
-    
-    private System.Collections.IEnumerator TriggerBossMessageAfterSendSfx()
-    {
-        float waitTime = bossMessageDelayAfterSend;
-        if (sendMessageClip != null)
-        {
-            waitTime += sendMessageClip.length;
-        }
-
-        if (waitTime > 0f)
-        {
-            yield return new WaitForSeconds(waitTime);
-        }
-
-        currentState = ChatState.BossWaitingReply;
-        UpdateChatPriorityOrder();
-        PlayChatClip(bossMessageArrivedClip);
-
-        // Highlight Boss chat item (chỉ khi chưa click vào)
-        if (chatListItemBoss != null && !bossChatClicked)
-        {
-            chatListItemBoss.AddToClassList("highlight");
-        }
-
-        UpdateSendButtonState();
-        bossMessageArrivalCoroutine = null;
-    }
-
-    private void EnsureSfxChannelVolume(AudioSource source)
-    {
-        if (source == null) return;
-
-        AudioChannelVolume channelVolume = source.GetComponent<AudioChannelVolume>();
-        if (channelVolume == null)
-        {
-            channelVolume = source.gameObject.AddComponent<AudioChannelVolume>();
-        }
-
-        channelVolume.channel = AudioChannelType.Sfx;
-        channelVolume.useAudioSourceVolumeAsBaseOnAwake = false;
-        channelVolume.baseVolume = source.volume;
-        channelVolume.ApplyCurrentVolume();
     }
 }

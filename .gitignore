@@ -23,6 +23,3 @@ Assets/AddressableAssetsData/*/*.bin*
 # OS files
 .DS_Store
 Thumbs.db
-
-# Unity Version Control (Plastic SCM)
-.plastic/

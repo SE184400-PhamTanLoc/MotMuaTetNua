@@ -3,10 +3,7 @@
     <ui:VisualElement name="WorkAppViewRoot" class="work-app-view-root" style="background-color: rgb(191, 191, 191); padding-top: 16px; padding-right: 16px; padding-bottom: 16px; padding-left: 16px; height: 100%;">
         <ui:VisualElement name="WorkHeader" style="flex-grow: 0; height: 100px; background-color: rgb(255, 255, 255); border-bottom-width: 1px; border-bottom-color: rgb(221, 221, 221); flex-direction: row; align-items: center; justify-content: space-between; margin-left: 12px; margin-right: 12px; border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-right-radius: 5px; border-bottom-left-radius: 5px;">
             <ui:Label text="Bao Ơ Boi&#10;" name="WorkTitleLabel" style="font-size: 30px;"/>
-            <ui:VisualElement name="WorkHeaderRight" style="flex-direction: row; align-items: center; justify-content: flex-end;">
-                <ui:Label name="WorkProgressLabel" text="1/2" class="work-progress" style="color: rgb(55, 55, 55); height: auto; border-bottom-width: 1px; border-bottom-color: rgb(221, 221, 221); background-color: rgb(101, 169, 239); font-size: 30px; -unity-text-align: middle-center; margin-bottom: 8px; -unity-background-image-tint-color: rgb(255, 255, 255); border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; margin-right: 14px; width: 72px;"/>
-                <ui:Button name="CloseWorkButton" text="X" display="none" class="close-button" style="width: 52px; height: 52px; margin-right: 14px;"/>
-            </ui:VisualElement>
+            <ui:Label name="WorkProgressLabel" text="1/2" class="work-progress" style="color: rgb(55, 55, 55); height: auto; border-bottom-width: 1px; border-bottom-color: rgb(221, 221, 221); background-color: rgb(101, 169, 239); font-size: 30px; -unity-text-align: middle-center; margin-bottom: 8px; -unity-background-image-tint-color: rgb(255, 255, 255); border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; margin-right: 14px; width: 72px;"/>
         </ui:VisualElement>
         <ui:VisualElement name="WorkAppBody" enabled="true" class="work-app-body" style="height: 70%; display: flex; margin-top: 25px; margin-bottom: 15px;">
             <ui:VisualElement name="QuizPanel" class="work-quiz-panel" style="margin-top: 16px; height: 100%; display: none;">
@@ -29,6 +26,8 @@
         </ui:VisualElement>
         <ui:VisualElement name="WorkAppFooter" class="work-app-footer" style="flex-direction: row; justify-content: space-between; align-items: center; align-self: center; width: 100%; height: 15%;">
             <ui:Button name="WorkNextButton" text="Tiếp tục" class="work-primary-button" style="width: 30%; height: 60%; font-size: 50px; background-color: rgb(0, 140, 220); border-top-left-radius: 20px; border-top-right-radius: 20px; border-bottom-right-radius: 20px; border-bottom-left-radius: 20px;"/>
+            <ui:Button name="CompleteWorkButton" text="Hoàn thành công việc" class="complete-button" style="width: 30%; height: 60%; font-size: 30px; background-color: rgb(58, 212, 29); border-top-left-radius: 20px; border-top-right-radius: 20px; border-bottom-right-radius: 20px; border-bottom-left-radius: 20px;"/>
+            <ui:Button name="CloseWorkButton" text="Đóng" class="work-close-button" style="width: 30%; height: 60%; font-size: 50px; background-color: rgb(218, 0, 0); border-top-left-radius: 20px; border-top-right-radius: 20px; border-bottom-right-radius: 20px; border-bottom-left-radius: 20px;"/>
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

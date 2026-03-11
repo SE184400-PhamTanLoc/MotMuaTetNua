@@ -4,13 +4,6 @@ public class CursorStateController : MonoBehaviour
 {
     void Update()
     {
-        if (InGameSettingsPanelController.IsAnySettingsOpen)
-        {
-            Cursor.lockState = CursorLockMode.None;
-            Cursor.visible = true;
-            return;
-        }
-
         if (GameFlow.Instance == null) return;
         
         GameState currentState = GameFlow.Instance.currentState;
