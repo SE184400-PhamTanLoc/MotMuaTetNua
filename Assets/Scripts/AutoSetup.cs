@@ -3,7 +3,7 @@ using UnityEngine.UI;
 using TMPro;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.UI;
-using System.Collections.Generic;
+using UnityEngine.SceneManagement;
 
 /// <summary>
 /// AUTO SETUP - TỰ CHẠY KHI BẤM PLAY, KHÔNG CẦN GẮN VÀO GAMEOBJECT NÀO!
@@ -65,15 +65,25 @@ public class AutoSetup : MonoBehaviour
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void TuDongSetup()
     {
+        // Lấy tên scene hiện tại
+        string sceneName = SceneManager.GetActiveScene().name;
+
+        // Nếu không phải scene Day28 thì bỏ qua
+        if (sceneName != "Day_28_Scene")
+        {
+            Debug.Log("[AutoSetup] Skip setup vì không phải scene_day_28");
+            return;
+        }
+
         Debug.Log("<color=yellow>===================================</color>");
         Debug.Log("<color=yellow>[AutoSetup] 🏮 Bắt đầu tự động setup game Chợ Tết...</color>");
         Debug.Log("<color=yellow>===================================</color>");
 
-        // Tạo 1 GameObject để chạy MonoBehaviour
+        Debug.Log("[AutoSetup] Bắt đầu setup scene Day28...");
+
         GameObject setupObj = new GameObject("_AutoSetup_Runner");
         DontDestroyOnLoad(setupObj);
 
-        // Chạy từng bước
         try { SetupGameManager(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi Manager: " + e.Message); }
         try { TaoCanvas(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi Canvas: " + e.Message); }
         try { TaoDialogueUI(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi DialogueUI: " + e.Message); }
@@ -92,19 +102,11 @@ public class AutoSetup : MonoBehaviour
         try { InitializeFruitPreviewStage(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi FruitPreviewStage: " + e.Message); }
         try { TaoFruitFallingUI(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi FruitFallingUI: " + e.Message); }
 
-        // Cursor controller
         if (UnityEngine.Object.FindFirstObjectByType<CursorStateController>() == null)
         {
             setupObj.AddComponent<CursorStateController>();
         }
 
-        // Quest automatic setup
-        if (UnityEngine.Object.FindFirstObjectByType<QuestAutoSetup>() == null)
-        {
-            setupObj.AddComponent<QuestAutoSetup>();
-        }
-
-        // GameFlow logic
         if (GameFlow.Instance != null && GameFlow.Instance.IsState(GameState.Intro))
         {
             GameFlow.Instance.ChangeState(GameState.State1_FreeOnlyChair);
@@ -114,7 +116,6 @@ public class AutoSetup : MonoBehaviour
         Debug.Log("<color=green>[AutoSetup] ✅ SETUP HOÀN TẤT!</color>");
         Debug.Log("<color=green>===================================</color>");
     }
-
     // =========================================
     // BƯỚC 1: GAME MANAGER
     // =========================================
