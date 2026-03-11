@@ -73,7 +73,7 @@ public class AutoSetup : MonoBehaviour
 
     private static void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        if (scene.name == "Day_28_Scene")
+        if (scene.name == "Day_28_Scene" || scene.name == "VillageScene")
         {
             TuDongSetup();
         }
@@ -134,26 +134,16 @@ public class AutoSetup : MonoBehaviour
         GameObject setupObj = new GameObject("_AutoSetup_Runner");
         DontDestroyOnLoad(setupObj);
 
-        try { SetupGameManager(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi Manager: " + e.Message); }
-        try { TaoCanvas(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi Canvas: " + e.Message); }
-        try { TaoDialogueUI(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi DialogueUI: " + e.Message); }
-        try { TaoHUD(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi HUD: " + e.Message); }
-        try { TaoGoiYTuongTac(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi Gợi ý: " + e.Message); }
-        try { TaoCrosshair(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi Crosshair: " + e.Message); }
-        try { TaoLuaChonButtonPrefab(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi Prefab: " + e.Message); }
-        try { TaoBargainUI(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi BargainUI: " + e.Message); }
-        try { SetupDialogueManager(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi DialogueManager: " + e.Message); }
-        try { SetupCoGaiBanMai(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi NPC: " + e.Message); }
-        try { SetupPlayer(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi Player: " + e.Message); }
-        try { SetupGameHUD(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi GameHUD: " + e.Message); }
-        try { SetupDiemLayMai(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi Điểm lấy mai: " + e.Message); }
-        try { SetupBauCua(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi Bầu Cua: " + e.Message); }
-        try { SetupGiengNguyenUoc(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi Giếng: " + e.Message); }
-        try { SetupXapGao(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi Xạp Gạo: " + e.Message); }
-        try { SetupXapThit(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi Xạp Thịt: " + e.Message); }
-        try { SetupXapTraiCay(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi Xạp Trái Cây: " + e.Message); }
-        try { InitializeFruitPreviewStage(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi FruitPreviewStage: " + e.Message); }
-        try { TaoFruitFallingUI(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi FruitFallingUI: " + e.Message); }
+        string sceneName = SceneManager.GetActiveScene().name;
+        
+        if (sceneName == "Day_28_Scene")
+        {
+            SetupMarketOnly();
+        }
+        else if (sceneName == "VillageScene")
+        {
+            SetupVillageOnly();
+        }
 
         if (UnityEngine.Object.FindFirstObjectByType<CursorStateController>() == null)
         {
@@ -1993,6 +1983,48 @@ public class AutoSetup : MonoBehaviour
         textRect.offsetMax = new Vector2(-10, -2);
 
         return btnObj;
+    }
+
+    private static void SetupMarketOnly()
+    {
+        try { SetupGameManager(); } catch {}
+        try { TaoCanvas(); } catch {}
+        try { TaoDialogueUI(); } catch {}
+        try { TaoHUD(); } catch {}
+        try { TaoGoiYTuongTac(); } catch {}
+        try { TaoCrosshair(); } catch {}
+        try { TaoLuaChonButtonPrefab(); } catch {}
+        try { TaoBargainUI(); } catch {}
+        try { SetupDialogueManager(); } catch {}
+        try { SetupCoGaiBanMai(); } catch {}
+        try { SetupPlayer(); } catch {}
+        try { SetupGameHUD(); } catch {}
+        try { SetupDiemLayMai(); } catch {}
+        try { SetupBauCua(); } catch {}
+        try { SetupGiengNguyenUoc(); } catch {}
+        try { SetupXapGao(); } catch {}
+        try { SetupXapThit(); } catch {}
+        try { SetupXapTraiCay(); } catch {}
+        try { InitializeFruitPreviewStage(); } catch {}
+        try { TaoFruitFallingUI(); } catch {}
+    }
+
+    private static void SetupVillageOnly()
+    {
+        try { SetupGameManager(); } catch {}
+        if (GameManager.Instance != null) GameManager.Instance.isVillagePhase = true;
+
+        try { TaoCanvas(); } catch {}
+        try { TaoHUD(); } catch {}
+        try { TaoDialogueUI(); } catch {}
+        try { TaoGoiYTuongTac(); } catch {}
+        try { TaoCrosshair(); } catch {}
+        try { SetupPlayer(); } catch {}
+        try { SetupGameHUD(); } catch {}
+        try { SetupDiemTraMai(); } catch {}
+        
+        // Gọi script gói bánh tự setup
+        BanhTetMinigame.Create(_canvas, _goiYTuongTacUI);
     }
 
     private static void SetLayerRecursive(GameObject obj, int layer)

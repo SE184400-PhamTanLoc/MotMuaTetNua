@@ -75,32 +75,54 @@ public class GameHUD : MonoBehaviour
         if (thongBaoPanel != null) thongBaoPanel.SetActive(false);
         if (hoanThanhPanel != null) hoanThanhPanel.SetActive(false);
 
-        // Chỉ hiển thị intro khi lần đầu vào chợ (chưa nhận nhiệm vụ nào)
-        bool lanDauVaoCho = GameManager.Instance == null || 
-                            (!GameManager.Instance.daMuaMai && !GameManager.Instance.DaThuThapDuNguyenLieu() && !GameManager.Instance.DaThuThapDuNguQua());
-        
-        if (batDauPanel != null && lanDauVaoCho)
-        {
-            batDauPanel.SetActive(true);
-            if (batDauText != null)
-            {
-                batDauText.text = "[ NHIỆM VỤ NGÀY TẾT ]\n\n" +
-                                 "Mẹ dặn bạn ra chợ Tết chọn mua một cây mai thật đẹp về chưng nhà cho có không khí.\n\n" +
-                                 "- <b>Nhiệm vụ 1:</b> Tìm cô gái bán mai và mua 1 cây (Nho/Lớn).\n" +
-                                 "- <b>Nhiệm vụ 2:</b> Mua đầy đủ nguyên liệu để gói bánh chưng.\n" +
-                                 "- <b>Nhiệm vụ 3:</b> Thu thập đủ 4 loại trái cây chưng mâm Ngũ Quả.\n\n" +
-                                 "<size=22><i>(Nhấn Space hoặc nút bên dưới để bắt đầu)</i></size>";
-            }
-            
-            Button btn = batDauPanel.GetComponentInChildren<Button>();
-            if (btn != null) btn.onClick.AddListener(DongBatDauPanel);
+        string sceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
 
-            // Cursor được quản lý bởi CursorStateController
-        }
-        else if (batDauPanel != null)
+        if (batDauPanel != null)
         {
-            // Đã vào chợ trước đó (quay lại từ Village), ẩn intro panel
-            batDauPanel.SetActive(false);
+            if (sceneName == "Day_28_Scene")
+            {
+                // Chỉ hiển thị intro khi lần đầu vào chợ (chưa nhận nhiệm vụ nào)
+                bool lanDauVaoCho = GameManager.Instance == null || 
+                                    (!GameManager.Instance.daMuaMai && !GameManager.Instance.DaThuThapDuNguyenLieu() && !GameManager.Instance.DaThuThapDuNguQua());
+                
+                if (lanDauVaoCho)
+                {
+                    batDauPanel.SetActive(true);
+                    if (batDauText != null)
+                    {
+                        batDauText.text = "[ NHIỆM VỤ NGÀY TẾT ]\n\n" +
+                                         "Mẹ dặn bạn ra chợ Tết chọn mua một cây mai thật đẹp về chưng nhà cho có không khí.\n\n" +
+                                         "- <b>Nhiệm vụ 1:</b> Tìm cô gái bán mai và mua 1 cây (Nho/Lớn).\n" +
+                                         "- <b>Nhiệm vụ 2:</b> Mua đầy đủ nguyên liệu để gói bánh chưng.\n" +
+                                         "- <b>Nhiệm vụ 3:</b> Thu thập đủ 4 loại trái cây chưng mâm Ngũ Quả.\n\n" +
+                                         "<size=22><i>(Nhấn Space hoặc nút bên dưới để bắt đầu)</i></size>";
+                    }
+                    Button btn = batDauPanel.GetComponentInChildren<Button>();
+                    if (btn != null) btn.onClick.AddListener(DongBatDauPanel);
+                }
+                else
+                {
+                    batDauPanel.SetActive(false);
+                }
+            }
+            else if (sceneName == "VillageScene")
+            {
+                Debug.Log("[GameHUD] Entering VillageScene, showing Intro Panel.");
+                batDauPanel.SetActive(true);
+                if (batDauText != null)
+                {
+                    batDauText.text = "<color=#FFD700><b>[ CHUẨN BỊ ĐÓN TẾT ]</b></color>\n\n" +
+                                     "Chào mừng con đã về nhà! Đồ đạc sắm sửa đã đủ cả rồi.\n\n" +
+                                     "Bây giờ hãy vào <color=red><b>Nhà Nhiệm Vụ</b></color> (có quả cầu đỏ ở cửa) để cùng Mẹ gói những đòn bánh Tét nhé!\n\n" +
+                                     "- <b>Nhiệm vụ:</b> Đến gặp Mẹ tại Nhà Nhiệm Vụ.\n\n" +
+                                     "<size=22><i>(Nhấn Space hoặc nút bên dưới để bắt đầu)</i></size>";
+                }
+                Button btn = batDauPanel.GetComponentInChildren<Button>();
+                if (btn != null) {
+                    btn.onClick.RemoveAllListeners();
+                    btn.onClick.AddListener(DongBatDauPanel);
+                }
+            }
         }
 
         Debug.Log("[GameHUD] ✅ Kết nối events và hiện Intro thành công");

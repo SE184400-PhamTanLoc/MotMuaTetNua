@@ -31,6 +31,9 @@ public class GameManager : MonoBehaviour
     public bool coXoai = false;
     public bool daNhanNhiemVu2 = false;
 
+    [Header("=== TRẠNG THÁI PHASE CHƠI ===")]
+    public bool isVillagePhase = false;
+
     [Header("=== EVENTS ===")]
     public UnityEvent<int> OnTienThayDoi;
     public UnityEvent<string> OnThongBao;
@@ -203,6 +206,11 @@ public class GameManager : MonoBehaviour
         return string.Format("{0:N0}đ", soTienDay);
     }
 
+    public void HienThongBao(string mess)
+    {
+        OnThongBao?.Invoke(mess);
+    }
+
     // Hàm tiện ích để kiểm tra xem đã xong HẾT nhiệm vụ ở chợ chưa
     public bool DaXongHetNhiemVu()
     {
@@ -211,6 +219,12 @@ public class GameManager : MonoBehaviour
 
     public string LayMoTaNhiemVu()
     {
+        if (isVillagePhase)
+        {
+            return "<color=#FFD700><b>[ NHIỆM VỤ LÀNG ]</b></color>\n" +
+                   "- <color=white>Vào Nhà Nhiệm Vụ để gói bánh Tét cùng Mẹ.</color>";
+        }
+
         string currentTask = "";
         
         // Nhiệm vụ chính (Mai)
