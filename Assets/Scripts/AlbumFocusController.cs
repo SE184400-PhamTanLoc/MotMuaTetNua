@@ -1,10 +1,12 @@
 using UnityEngine;
+using System.Collections;
+using UnityEngine.Events;
 
 /// <summary>
 /// Điều khiển mở/đóng album đọc sách:
 /// - Nhận lệnh mở từ AlbumInteract (cuốn A trên bàn) → spawn album B trước mặt camera.
 /// - Bật overlay mờ, khóa player, đổi state AlbumReading.
-/// - Nhấn E khi đang AlbumReading = lật trang (AlbumPageFlipController trên instance vừa spawn).
+/// - Trong AlbumReading: trang tự lật theo chuỗi thoại; phím E chỉ dùng cho dialog box.
 /// - Nhấn ESC (hoặc gọi CloseAlbum) = tắt overlay, hủy album B, unlock player, đổi state AlbumInteractable.
 /// </summary>
 public class AlbumFocusController : MonoBehaviour
@@ -39,12 +41,39 @@ public class AlbumFocusController : MonoBehaviour
     public Vector3 spawnRotationOffsetEuler = Vector3.zero;
 
     [Header("Input")]
-    public KeyCode nextPageKey = KeyCode.E;
     public KeyCode closeKey = KeyCode.Escape;
+    [Tooltip("Chỉ dùng debug. Mặc định tắt để không thể thoát album bằng ESC.")]
+    public bool allowManualCloseBeforeEnding = false;
+
+    [Header("Album B Dialogues (mỗi lần lật 1 trang)")]
+    [Tooltip("Thoại tương ứng mỗi lần lật trang (tờ 2 -> tờ 6). Có thể để trống từng dòng nếu không muốn hiện.")]
+    [TextArea(1, 4)]
+    public string[] flipDialogues = new string[5]
+    {
+        "...",
+        "...",
+        "...",
+        "...",
+        "..."
+    };
+
+    [Header("Cover Timing")]
+    [Tooltip("Thời gian chờ sau khi lật bìa đầu tiên trước khi bắt đầu thoại.")]
+    public float firstCoverFlipDelay = 0.7f;
+
+    [Header("Ending")]
+    [Tooltip("Thoại cuối khi đã xem hết các trang. Để trống nếu muốn đóng ngay.")]
+    public string endOfAlbumDialogue = "Xem xong rồi.";
+    [Tooltip("Sự kiện gọi khi đã đọc xong album. Dùng để nối cutscene/chuyển scene.")]
+    public UnityEvent onAlbumReadingCompleted;
 
     private GameObject currentAlbum;
     private AlbumPageFlipController albumPageFlipController;
     private GameState previousState;
+    private int contentFlipCount;
+    private bool coverFlipped;
+    private bool sequenceCompleted;
+    private Coroutine autoSequenceCoroutine;
 
     void Start()
     {
@@ -76,12 +105,15 @@ public class AlbumFocusController : MonoBehaviour
         // Input trong AlbumReading
         if (currentState == GameState.AlbumReading)
         {
-            if (albumPageFlipController != null && Input.GetKeyDown(nextPageKey))
+            // Khi dialog đang hiện, mọi input E phải thuộc quyền NarrativeTextController.
+            if (narrativeController != null && narrativeController.IsDialogActive)
             {
-                albumPageFlipController.FlipNextPage();
+                previousState = currentState;
+                return;
             }
 
-            if (Input.GetKeyDown(closeKey))
+            // Mặc định không cho thoát album bằng ESC.
+            if (!sequenceCompleted && allowManualCloseBeforeEnding && Input.GetKeyDown(closeKey))
             {
                 CloseAlbum();
             }
@@ -159,6 +191,18 @@ public class AlbumFocusController : MonoBehaviour
             if (albumPageFlipController != null)
                 albumPageFlipController.ResetPages();
         }
+
+        // Reset tiến trình khi mở album
+        contentFlipCount = 0;
+        coverFlipped = false;
+        sequenceCompleted = false;
+
+        // Bắt đầu luồng tự lật trang + thoại.
+        if (autoSequenceCoroutine != null)
+        {
+            StopCoroutine(autoSequenceCoroutine);
+        }
+        autoSequenceCoroutine = StartCoroutine(RunAutoAlbumSequence());
     }
 
     /// <summary>
@@ -166,6 +210,12 @@ public class AlbumFocusController : MonoBehaviour
     /// </summary>
     public void CloseAlbum()
     {
+        if (autoSequenceCoroutine != null)
+        {
+            StopCoroutine(autoSequenceCoroutine);
+            autoSequenceCoroutine = null;
+        }
+
         if (overlay != null) overlay.SetActive(false);
 
         if (currentAlbum != null)
@@ -185,5 +235,95 @@ public class AlbumFocusController : MonoBehaviour
     {
         if (playerMovement != null) playerMovement.enabled = enabled;
         if (playerLook != null) playerLook.enabled = enabled;
+    }
+
+    private IEnumerator RunAutoAlbumSequence()
+    {
+        if (sequenceCompleted) yield break;
+        if (albumPageFlipController == null) yield break;
+
+        // Bước đầu: tự lật bìa, không thoại
+        if (!coverFlipped)
+        {
+            bool coverOpened = albumPageFlipController.FlipNextPage();
+            if (!coverOpened)
+            {
+                OnReadingSequenceCompleted();
+                yield break;
+            }
+
+            coverFlipped = true;
+            yield return new WaitForSeconds(firstCoverFlipDelay);
+        }
+
+        while (!sequenceCompleted)
+        {
+            if (GameFlow.Instance == null || !GameFlow.Instance.IsState(GameState.AlbumReading))
+                yield break;
+            if (currentAlbum == null)
+                yield break;
+
+            bool flipped = albumPageFlipController.FlipNextPage();
+            if (!flipped)
+            {
+                break;
+            }
+
+            int dialogueIndex = contentFlipCount;
+            contentFlipCount++;
+            yield return ShowFlipDialogueAndWait(dialogueIndex);
+        }
+
+        OnReadingSequenceCompleted();
+    }
+
+    private void OnReadingSequenceCompleted()
+    {
+        if (sequenceCompleted) return;
+        sequenceCompleted = true;
+
+        if (narrativeController == null)
+            narrativeController = FindFirstObjectByType<NarrativeTextController>();
+
+        if (narrativeController != null && !string.IsNullOrWhiteSpace(endOfAlbumDialogue))
+        {
+            narrativeController.ShowText(endOfAlbumDialogue, TriggerAlbumReadingCompleted);
+            return;
+        }
+
+        TriggerAlbumReadingCompleted();
+    }
+
+    private void TriggerAlbumReadingCompleted()
+    {
+        onAlbumReadingCompleted?.Invoke();
+        // Không gọi CloseAlbum ở đây.
+        // Flow mong muốn: đọc xong -> tự vào cutscene/chuyển scene.
+    }
+
+    private IEnumerator ShowFlipDialogueAndWait(int flipIndex)
+    {
+        if (narrativeController == null)
+            narrativeController = FindFirstObjectByType<NarrativeTextController>();
+
+        if (narrativeController == null) yield break;
+        if (flipDialogues == null) yield break;
+        if (flipIndex < 0 || flipIndex >= flipDialogues.Length) yield break;
+
+        string text = flipDialogues[flipIndex];
+        if (string.IsNullOrWhiteSpace(text))
+            yield break;
+
+        bool dialogueCompleted = false;
+        narrativeController.ShowText(text, () => dialogueCompleted = true);
+
+        while (!dialogueCompleted)
+        {
+            if (GameFlow.Instance == null || !GameFlow.Instance.IsState(GameState.AlbumReading))
+                yield break;
+            if (currentAlbum == null)
+                yield break;
+            yield return null;
+        }
     }
 }

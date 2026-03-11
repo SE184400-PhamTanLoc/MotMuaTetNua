@@ -13,6 +13,12 @@ public class WorkAppUIController : MonoBehaviour
 
     [Header("UI References (optional)")]
     public UIDocument uiDocument;
+    
+    [Header("Audio")]
+    public AudioSource workAudioSource;
+    public AudioClip quizOptionClickClip;
+    public AudioClip answerCorrectClip;
+    public AudioClip answerWrongClip;
 
     private VisualElement root;
     private VisualElement quizPanel;
@@ -31,6 +37,8 @@ public class WorkAppUIController : MonoBehaviour
     private Button optionC;
     private Button nextButton;
     private Button completeWorkButton;
+    private ComputerUIManager computerUIManager;
+    private bool workFlowCompleted = false;
 
     private WorkStep currentStep = WorkStep.Quiz;
 
@@ -79,6 +87,11 @@ public class WorkAppUIController : MonoBehaviour
     private void Awake()
     {
         BuildQuestions();
+        if (workAudioSource == null)
+        {
+            workAudioSource = GetComponent<AudioSource>();
+        }
+        EnsureSfxChannelVolume(workAudioSource);
     }
 
     // Được gọi từ ComputerUIManager khi mở WorkAppPanel
@@ -104,6 +117,11 @@ public class WorkAppUIController : MonoBehaviour
         {
             // WorkAppViewRoot chưa được instantiate/visible
             return;
+        }
+
+        if (computerUIManager == null)
+        {
+            computerUIManager = FindFirstObjectByType<ComputerUIManager>();
         }
 
         ResetFlow();
@@ -171,10 +189,11 @@ public class WorkAppUIController : MonoBehaviour
 
         if (nextButton != null) nextButton.clicked += OnNextClicked;
 
-        // Khi vừa mở WorkApp: khóa nút Complete (đợi giải xong)
+        // Nút complete cũ không còn dùng trong flow mới: luôn ẩn/khóa
         if (completeWorkButton != null)
         {
             completeWorkButton.SetEnabled(false);
+            completeWorkButton.style.display = DisplayStyle.None;
         }
 
         // Drag handlers (runtime)
@@ -188,11 +207,16 @@ public class WorkAppUIController : MonoBehaviour
         currentStep = WorkStep.Quiz;
         currentQuestionIndex = 0;
         selectedOptionIndex = -1;
+        workFlowCompleted = false;
 
         if (quizStatusLabel != null) quizStatusLabel.text = "";
         if (arrangeStatusLabel != null) arrangeStatusLabel.text = "";
 
-        if (completeWorkButton != null) completeWorkButton.SetEnabled(false);
+        if (completeWorkButton != null)
+        {
+            completeWorkButton.SetEnabled(false);
+            completeWorkButton.style.display = DisplayStyle.None;
+        }
         if (nextButton != null)
         {
             nextButton.text = "Tiếp tục";
@@ -267,6 +291,7 @@ public class WorkAppUIController : MonoBehaviour
     {
         selectedOptionIndex = optionIndex;
         ClearOptionSelected();
+        PlayWorkClip(quizOptionClickClip);
 
         GetOptionButton(optionIndex)?.AddToClassList("work-option-selected");
 
@@ -300,12 +325,14 @@ public class WorkAppUIController : MonoBehaviour
         if (selectedOptionIndex != q.CorrectIndex)
         {
             if (quizStatusLabel != null) quizStatusLabel.text = "Sai rồi. Thử lại!";
+            PlayWorkClip(answerWrongClip);
             // Giữ nguyên câu hỏi, cho chọn lại
             selectedOptionIndex = -1;
             ClearOptionSelected();
             if (nextButton != null) nextButton.SetEnabled(false);
             return;
         }
+        PlayWorkClip(answerCorrectClip);
 
         currentQuestionIndex++;
         if (currentQuestionIndex >= questions.Count)
@@ -497,8 +524,8 @@ public class WorkAppUIController : MonoBehaviour
         if (root == null) return;
         if (dropSlotsContainer == null || answerPoolContainer == null) return;
 
-        // Không cho kéo nếu đã pass (đã mở khóa complete) để tránh rối
-        if (completeWorkButton != null && completeWorkButton.enabledSelf) return;
+        // Không cho kéo sau khi đã xác nhận đúng toàn bộ
+        if (workFlowCompleted) return;
 
         isDragging = true;
         draggingPointerId = evt.pointerId;
@@ -642,11 +669,18 @@ public class WorkAppUIController : MonoBehaviour
         if (!ok)
         {
             if (arrangeStatusLabel != null) arrangeStatusLabel.text = "Chưa đúng. Hãy kéo lại đúng ô tương ứng.";
+            PlayWorkClip(answerWrongClip);
             return;
         }
 
-        if (arrangeStatusLabel != null) arrangeStatusLabel.text = "Đúng rồi! Giờ bạn có thể bấm “Hoàn thành công việc”.";
-        if (completeWorkButton != null) completeWorkButton.SetEnabled(true);
+        workFlowCompleted = true;
+        PlayWorkClip(answerCorrectClip);
+        if (arrangeStatusLabel != null) arrangeStatusLabel.text = "Đã hoàn thành công việc";
+        if (computerUIManager == null)
+        {
+            computerUIManager = FindFirstObjectByType<ComputerUIManager>();
+        }
+        computerUIManager?.CompleteWorkTask();
 
         // Không cần bấm “Kiểm tra” nữa
         if (nextButton != null) nextButton.SetEnabled(false);
@@ -769,6 +803,43 @@ public class WorkAppUIController : MonoBehaviour
             2 => optionC,
             _ => null
         };
+    }
+    
+    private void PlayWorkClip(AudioClip clip)
+    {
+        if (clip == null)
+        {
+            return;
+        }
+
+        EnsureSfxChannelVolume(workAudioSource);
+
+        if (workAudioSource != null)
+        {
+            workAudioSource.PlayOneShot(clip);
+            return;
+        }
+
+        if (Camera.main != null)
+        {
+            AudioSource.PlayClipAtPoint(clip, Camera.main.transform.position);
+        }
+    }
+
+    private void EnsureSfxChannelVolume(AudioSource source)
+    {
+        if (source == null) return;
+
+        AudioChannelVolume channelVolume = source.GetComponent<AudioChannelVolume>();
+        if (channelVolume == null)
+        {
+            channelVolume = source.gameObject.AddComponent<AudioChannelVolume>();
+        }
+
+        channelVolume.channel = AudioChannelType.Sfx;
+        channelVolume.useAudioSourceVolumeAsBaseOnAwake = false;
+        channelVolume.baseVolume = source.volume;
+        channelVolume.ApplyCurrentVolume();
     }
 }
 

@@ -10,6 +10,12 @@ public class AlbumPageFlipController : MonoBehaviour
     [Header("Tờ 2 → 6 (lật lần lượt)")]
     [Tooltip("Pivot tờ 2, 3, 4, 5, 6 — mỗi object cần có AlbumCoverFlip. Thứ tự đúng: [0]=tờ 2, [1]=tờ 3, ...")]
     public AlbumCoverFlip[] pageFlips = new AlbumCoverFlip[5];
+    
+    [Header("Audio")]
+    public AudioSource pageAudioSource;
+    public AudioClip pageFlipClip;
+    [Tooltip("Bật để không phát âm ở lần lật đầu tiên (thường dùng cho cover).")]
+    public bool skipFirstFlipSound = true;
 
     /// <summary>
     /// Chỉ số tờ đang chờ lật tiếp: 0 = chưa lật tờ 2, 1 = đã lật tờ 2 (tiếp theo là tờ 3), ..., 5 = đã lật hết tờ 6.
@@ -29,6 +35,11 @@ public class AlbumPageFlipController : MonoBehaviour
     void Start()
     {
         _currentIndex = 0;
+        if (pageAudioSource == null)
+        {
+            pageAudioSource = GetComponent<AudioSource>();
+        }
+        EnsureSfxChannelVolume(pageAudioSource);
         // Đảm bảo tất cả tờ 2-6 ban đầu đóng
         if (pageFlips != null)
         {
@@ -49,7 +60,12 @@ public class AlbumPageFlipController : MonoBehaviour
         if (!CanFlipNext)
             return false;
 
+        int flipIndex = _currentIndex;
         pageFlips[_currentIndex].Open();
+        if (!(skipFirstFlipSound && flipIndex == 0))
+        {
+            PlayPageFlipClip();
+        }
         _currentIndex++;
         return true;
     }
@@ -68,5 +84,41 @@ public class AlbumPageFlipController : MonoBehaviour
                     pageFlips[i].Close();
             }
         }
+    }
+    
+    private void PlayPageFlipClip()
+    {
+        if (pageFlipClip == null)
+        {
+            return;
+        }
+
+        if (pageAudioSource != null)
+        {
+            EnsureSfxChannelVolume(pageAudioSource);
+            pageAudioSource.PlayOneShot(pageFlipClip);
+            return;
+        }
+
+        if (Camera.main != null)
+        {
+            AudioSource.PlayClipAtPoint(pageFlipClip, Camera.main.transform.position);
+        }
+    }
+
+    private void EnsureSfxChannelVolume(AudioSource source)
+    {
+        if (source == null) return;
+
+        AudioChannelVolume channelVolume = source.GetComponent<AudioChannelVolume>();
+        if (channelVolume == null)
+        {
+            channelVolume = source.gameObject.AddComponent<AudioChannelVolume>();
+        }
+
+        channelVolume.channel = AudioChannelType.Sfx;
+        channelVolume.useAudioSourceVolumeAsBaseOnAwake = false;
+        channelVolume.baseVolume = source.volume;
+        channelVolume.ApplyCurrentVolume();
     }
 }

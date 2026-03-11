@@ -15,6 +15,11 @@ public class NarrativeTextController : MonoBehaviour
     public float typewriterSpeed = 0.05f; // Thời gian giữa mỗi ký tự (giây)
     public KeyCode continueKey = KeyCode.E; // Phím để tiếp tục/đóng text
     
+    [Header("Audio")]
+    public AudioSource dialogAudioSource;
+    public AudioClip dialogTypeClip;
+    [Range(0f, 1f)] public float dialogTypeVolume = 0.35f;
+    
     private Coroutine currentTextCoroutine;
     private bool isTyping = false;
     private bool isWaitingForInput = false;
@@ -37,6 +42,7 @@ void Awake()
 void Start()
 {
     EnsureReferences();
+    EnsureAudioSource();
     if (dialogBox == null && (narrativeTMP != null || narrativeText != null))
     {
         var t = (narrativeTMP != null ? narrativeTMP.transform : narrativeText.transform);
@@ -90,6 +96,7 @@ private void EnsureReferences()
         // Đây là owner duy nhất của phím E khi dialog đang hiện
         if (!IsDialogActive)
         {
+            StopTypingLoopSfx();
             ignoreNextInput = false; // Reset khi dialog không active
             return;
         }
@@ -129,6 +136,7 @@ private void EnsureReferences()
     
     public void ShowText(string text, System.Action onComplete = null)
     {
+        EnsureAudioSource();
         EnsureReferences();
         if (dialogBox == null && (narrativeTMP != null || narrativeText != null))
         {
@@ -154,6 +162,7 @@ private void EnsureReferences()
             StopCoroutine(currentTextCoroutine);
             currentTextCoroutine = null;
         }
+        StopTypingLoopSfx();
         
         // Reset state để đảm bảo text mới có thể hiển thị
         isTyping = false;
@@ -175,6 +184,7 @@ private void EnsureReferences()
         isWaitingForInput = false;
         
         dialogBox.SetActive(true);
+        StartTypingLoopSfx();
         SetDialogText("");
         yield return null;
         for (int i = 0; i < text.Length; i++)
@@ -184,6 +194,7 @@ private void EnsureReferences()
         }
         
         // Text đã xong, chờ nhấn E
+        StopTypingLoopSfx();
         isTyping = false;
         isWaitingForInput = true;
         
@@ -206,6 +217,7 @@ private void EnsureReferences()
             StopCoroutine(currentTextCoroutine);
             currentTextCoroutine = null;
         }
+        StopTypingLoopSfx();
         
         isTyping = false;
         isWaitingForInput = false;
@@ -223,8 +235,82 @@ private void EnsureReferences()
         currentTextCoroutine = null;
     }
 
+            StopTypingLoopSfx();
             SetDialogText(fullText);
             isTyping = false;
             isWaitingForInput = true;
+    }
+    
+    private void EnsureAudioSource()
+    {
+    if (dialogAudioSource == null)
+        {
+        dialogAudioSource = GetComponent<AudioSource>();
+        if (dialogAudioSource == null)
+        {
+            dialogAudioSource = gameObject.AddComponent<AudioSource>();
+        }
+        }
+
+    dialogAudioSource.playOnAwake = false;
+    dialogAudioSource.spatialBlend = 0f;
+    EnsureSfxChannelVolume(dialogAudioSource);
+}
+
+    private void PlayDialogClip(AudioClip clip, float volumeScale = 1f)
+    {
+        if (clip == null) return;
+
+        if (dialogAudioSource != null)
+        {
+            dialogAudioSource.PlayOneShot(clip, Mathf.Clamp01(volumeScale));
+            return;
+        }
+
+        if (Camera.main != null)
+        {
+            AudioSource.PlayClipAtPoint(clip, Camera.main.transform.position, Mathf.Clamp01(volumeScale));
+        }
+    }
+    
+    private void StartTypingLoopSfx()
+    {
+        if (dialogAudioSource == null || dialogTypeClip == null) return;
+
+        if (dialogAudioSource.clip != dialogTypeClip)
+        {
+            dialogAudioSource.clip = dialogTypeClip;
+        }
+        
+        dialogAudioSource.loop = true;
+        dialogAudioSource.volume = Mathf.Clamp01(dialogTypeVolume);
+        if (!dialogAudioSource.isPlaying)
+        {
+            dialogAudioSource.Play();
+        }
+    }
+
+    private void StopTypingLoopSfx()
+    {
+        if (dialogAudioSource == null) return;
+        if (!dialogAudioSource.isPlaying) return;
+        
+        dialogAudioSource.Stop();
+    }
+
+    private void EnsureSfxChannelVolume(AudioSource source)
+    {
+        if (source == null) return;
+
+        AudioChannelVolume channelVolume = source.GetComponent<AudioChannelVolume>();
+        if (channelVolume == null)
+        {
+            channelVolume = source.gameObject.AddComponent<AudioChannelVolume>();
+        }
+
+        channelVolume.channel = AudioChannelType.Sfx;
+        channelVolume.useAudioSourceVolumeAsBaseOnAwake = false;
+        channelVolume.baseVolume = source.volume > 0f ? source.volume : 1f;
+        channelVolume.ApplyCurrentVolume();
     }
 }
