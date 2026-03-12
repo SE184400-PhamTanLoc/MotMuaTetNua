@@ -198,11 +198,13 @@ public class AutoSetup : MonoBehaviour
         if (sceneName == "Day_28_Scene")
         {
             SetupMarketOnly();
+            PlayDay28Bgm();
         }
         else if (sceneName == "VillageScene")
         {
             if (GameManager.Instance != null) GameManager.Instance.isVillagePhase = true;
             SetupVillageOutsideOnly();
+            PlayVillageBgm();
         }
         else if (sceneName == "RoomVillage" || sceneName == "RoomScene")
         {
@@ -242,6 +244,53 @@ public class AutoSetup : MonoBehaviour
         Debug.Log("[AutoSetup] ✅ Tạo GameManager (tiền: " + TIEN_BAN_DAU + "k)");
     }
 
+    private static void PlayDay28Bgm()
+    {
+        // Tạo object BGM mới hoặc tìm trên Runner
+        GameObject runner = GameObject.Find("_AutoSetup_Runner");
+        if (runner == null) return;
+
+        AudioSource source = runner.GetComponent<AudioSource>();
+        if (source == null) source = runner.AddComponent<AudioSource>();
+
+        SimpleBgmPlayer bgmPlayer = runner.GetComponent<SimpleBgmPlayer>();
+        if (bgmPlayer == null) bgmPlayer = runner.AddComponent<SimpleBgmPlayer>();
+
+        AudioClip clip = Resources.Load<AudioClip>("music/Silent Beauty");
+        if (clip != null)
+        {
+            bgmPlayer.Setup(clip, 0.7f);
+            Debug.Log("[AutoSetup] ✅ Đã phát nhạc: Silent Beauty (Theme bài 28)");
+        }
+        else
+        {
+            Debug.LogWarning("[AutoSetup] ❌ Không tìm thấy nhạc tại Resources/music/Silent Beauty");
+        }
+    }
+
+    private static void PlayVillageBgm()
+    {
+        GameObject runner = GameObject.Find("_AutoSetup_Runner");
+        if (runner == null) return;
+
+        AudioSource source = runner.GetComponent<AudioSource>();
+        if (source == null) source = runner.AddComponent<AudioSource>();
+
+        SimpleBgmPlayer bgmPlayer = runner.GetComponent<SimpleBgmPlayer>();
+        if (bgmPlayer == null) bgmPlayer = runner.AddComponent<SimpleBgmPlayer>();
+
+        AudioClip clip = Resources.Load<AudioClip>("music/Luminous");
+        if (clip != null)
+        {
+            bgmPlayer.Setup(clip, 0.6f);
+            Debug.Log("[AutoSetup] ✅ Đã phát nhạc: Luminous (Theme Village)");
+        }
+        else
+        {
+            Debug.LogWarning("[AutoSetup] ❌ Không tìm thấy nhạc tại Resources/music/Luminous");
+        }
+    }
+
     // =========================================
     // BƯỚC 2: TẠO CANVAS + UI
     // =========================================
@@ -277,7 +326,7 @@ public class AutoSetup : MonoBehaviour
         _dialoguePanel = TaoPanel("DialoguePanel", _canvas.transform);
         RectTransform dpRect = _dialoguePanel.GetComponent<RectTransform>();
         dpRect.anchorMin = new Vector2(0.05f, 0.02f);
-        dpRect.anchorMax = new Vector2(0.95f, 0.65f); // Tăng lên 65% màn hình để chứa được nhiều chữ hơn
+        dpRect.anchorMax = new Vector2(0.95f, 0.35f); // Giữ ở khoảng 1/3 màn hình để không che cảnh
         dpRect.offsetMin = Vector2.zero;
         dpRect.offsetMax = Vector2.zero;
 
@@ -303,7 +352,7 @@ public class AutoSetup : MonoBehaviour
         tenRect.offsetMax = new Vector2(-10, -2);
 
         // === Nội dung ===
-        _noiDungText = TaoText("NoiDung", _dialoguePanel.transform, "", 42, TextAlignmentOptions.TopLeft); 
+        _noiDungText = TaoText("NoiDung", _dialoguePanel.transform, "", 32, TextAlignmentOptions.TopLeft); // Giảm font size xuống 32
         _noiDungText.fontStyle = FontStyles.Bold;
         _noiDungText.color = mauChuChinh;
         _noiDungText.enableWordWrapping = true;
@@ -311,7 +360,7 @@ public class AutoSetup : MonoBehaviour
         _noiDungText.outlineWidth = 0.25f;
         _noiDungText.outlineColor = Color.black;
         RectTransform ndRect = _noiDungText.GetComponent<RectTransform>();
-        ndRect.anchorMin = new Vector2(0.04f, 0.35f); // Dành phần dưới cho lựa chọn
+        ndRect.anchorMin = new Vector2(0.04f, 0.55f); // Để dành hơn nửa dưới cho nút
         ndRect.anchorMax = new Vector2(0.96f, 0.94f);
         ndRect.offsetMin = Vector2.zero;
         ndRect.offsetMax = Vector2.zero;
@@ -321,7 +370,7 @@ public class AutoSetup : MonoBehaviour
         _luaChonPanel.transform.SetParent(_dialoguePanel.transform, false);
         RectTransform lcRect = _luaChonPanel.AddComponent<RectTransform>();
         lcRect.anchorMin = new Vector2(0.04f, 0.02f);
-        lcRect.anchorMax = new Vector2(0.96f, 0.33f); // Dành 31% chiều cao panel cho các nút
+        lcRect.anchorMax = new Vector2(0.96f, 0.53f); // Mở rộng thêm nữa lên 0.53 để đủ chỗ cho 3 nút
         lcRect.offsetMin = Vector2.zero;
         lcRect.offsetMax = Vector2.zero;
 
@@ -382,7 +431,7 @@ public class AutoSetup : MonoBehaviour
         _nhiemVuPanel = TaoPanel("NhiemVuPanel", _canvas.transform);
         _nhiemVuPanel.GetComponent<Image>().color = mauNenGiay;
         RectTransform nvRect = _nhiemVuPanel.GetComponent<RectTransform>();
-        nvRect.anchorMin = new Vector2(0.01f, 0.72f); // Cắt sát đến chữ Xoài (từ 0.65 lên 0.72)
+        nvRect.anchorMin = new Vector2(0.01f, 0.55f); // Chỉnh lại ngắn hơn một chút (từ 0.45 lên 0.55)
         nvRect.anchorMax = new Vector2(0.25f, 0.985f);
         nvRect.offsetMin = Vector2.zero;
         nvRect.offsetMax = Vector2.zero;
@@ -391,7 +440,7 @@ public class AutoSetup : MonoBehaviour
         GameObject nvHeader = TaoPanel("NhiemVuHeader", _nhiemVuPanel.transform);
         nvHeader.GetComponent<Image>().color = mauDoTuoi;
         RectTransform nvhRect = nvHeader.GetComponent<RectTransform>();
-        nvhRect.anchorMin = new Vector2(0, 0.82f); // Chỉnh lại header cho khung siêu nhỏ
+        nvhRect.anchorMin = new Vector2(0, 0.85f); // Header nhỏ lại một chút theo tỷ lệ mới
         nvhRect.anchorMax = new Vector2(1, 1);
         nvhRect.offsetMin = Vector2.zero;
         nvhRect.offsetMax = Vector2.zero;
@@ -405,7 +454,7 @@ public class AutoSetup : MonoBehaviour
         nvTitleRect.offsetMin = Vector2.zero;
         nvTitleRect.offsetMax = Vector2.zero;
 
-        _nhiemVuText = TaoText("NhiemVuText", _nhiemVuPanel.transform, "", 24, TextAlignmentOptions.TopLeft);
+        _nhiemVuText = TaoText("NhiemVuText", _nhiemVuPanel.transform, "", 20, TextAlignmentOptions.TopLeft); // Giảm font size xuống 20
         _nhiemVuText.fontStyle = FontStyles.Bold;
         _nhiemVuText.color = Color.black;
         _nhiemVuText.outlineWidth = 0.2f;
