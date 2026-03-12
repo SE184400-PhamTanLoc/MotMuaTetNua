@@ -13,9 +13,16 @@ public class AlbumLabTester : MonoBehaviour
     [Tooltip("AlbumCoverFlip của bìa (CoverTopPivot), nếu muốn mở bìa khi bắt đầu.")]
     public AlbumCoverFlip coverFlip;
 
+    [Tooltip("Optional: gate lật trang theo tiến độ render video.")]
+    public EndAlbumVideoPageController endAlbumVideoPageController;
+
     [Header("Settings")]
     [Tooltip("Nếu bật: vào scene lab sẽ tự mở bìa.")]
     public bool openCoverOnStart = true;
+    [Tooltip("Chỉ cho lật khi video trang hiện tại đã chạy xong.")]
+    public bool requireCurrentVideoFinishedBeforeFlip = true;
+    [Tooltip("In log khi đang bị chặn lật trang.")]
+    public bool debugBlockedFlip;
 
     void Start()
     {
@@ -30,6 +37,9 @@ public class AlbumLabTester : MonoBehaviour
         {
             coverFlip.Open();
         }
+
+        if (endAlbumVideoPageController == null)
+            endAlbumVideoPageController = FindFirstObjectByType<EndAlbumVideoPageController>();
     }
 
     void Update()
@@ -37,6 +47,15 @@ public class AlbumLabTester : MonoBehaviour
         // Nhấn E để lật tờ tiếp theo (tờ 2→6)
         if (Input.GetKeyDown(KeyCode.E) && albumPageFlipController != null)
         {
+            if (requireCurrentVideoFinishedBeforeFlip &&
+                endAlbumVideoPageController != null &&
+                !endAlbumVideoPageController.CanFlipNextPageNow())
+            {
+                if (debugBlockedFlip)
+                    Debug.Log("[AlbumLabTester] Chưa cho lật: video trang hiện tại chưa chạy xong.");
+                return;
+            }
+
             albumPageFlipController.FlipNextPage();
         }
     }

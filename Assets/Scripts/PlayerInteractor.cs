@@ -4,10 +4,13 @@ public class PlayerInteractor : MonoBehaviour
 {
     public float rayDistance = 2.5f;
     public KeyCode interactKey = KeyCode.E;
+    [Tooltip("Cho phép tương tác NPCBase (ví dụ DoorExit) khi state = State1_FreeOnlyChair. Mặc định tắt để không ảnh hưởng flow cũ.")]
+    public bool enableNpcInteractionInFreeOnlyChairState = false;
 
     private ChairInteract currentChair;
     private ComputerInteract currentComputer;
     private AlbumInteract currentAlbum;
+    private NPCBase currentNpc;
     private NarrativeTextController narrativeController;
     private Camera cachedCamera;
 
@@ -50,6 +53,7 @@ public class PlayerInteractor : MonoBehaviour
         ChairInteract hitChair = null;
         ComputerInteract hitComputer = null;
         AlbumInteract hitAlbum = null;
+        NPCBase hitNpc = null;
 
         RaycastHit[] hits = Physics.RaycastAll(ray, rayDistance, ~0, QueryTriggerInteraction.Collide);
         if (hits.Length > 1)
@@ -69,6 +73,13 @@ public class PlayerInteractor : MonoBehaviour
                     hitChair = hit.collider.GetComponentInParent<ChairInteract>();
                     if (hitChair != null)
                         break;
+
+                    if (enableNpcInteractionInFreeOnlyChairState && hitNpc == null)
+                    {
+                        hitNpc = hit.collider.GetComponentInParent<NPCBase>();
+                        if (hitNpc != null)
+                            break;
+                    }
                 }
                 else if (currentState == GameState.SittingAtDesk ||
                          currentState == GameState.ComputerFinished ||
@@ -122,6 +133,12 @@ public class PlayerInteractor : MonoBehaviour
                 currentAlbum.OnHoverEnter();
         }
 
+        // Xử lý NPCBase hover-like (chỉ giữ reference để tương tác E)
+        if (hitNpc != currentNpc)
+        {
+            currentNpc = hitNpc;
+        }
+
         // Xử lý input - chỉ khi không có UI/narrative đang active
         if (currentChair != null && Input.GetKeyDown(interactKey))
         {
@@ -134,6 +151,11 @@ public class PlayerInteractor : MonoBehaviour
         else if (currentAlbum != null && Input.GetKeyDown(interactKey))
         {
             currentAlbum.Interact();
+        }
+        else if (currentNpc != null && Input.GetKeyDown(interactKey))
+        {
+            if (currentNpc.coTheTuongTac)
+                currentNpc.BatDauTuongTac();
         }
     }
 
@@ -157,5 +179,7 @@ public class PlayerInteractor : MonoBehaviour
             currentAlbum.OnHoverExit();
             currentAlbum = null;
         }
+
+        currentNpc = null;
     }
 }

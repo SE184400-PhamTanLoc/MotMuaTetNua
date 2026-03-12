@@ -263,4 +263,21 @@ public class CameraStateController : MonoBehaviour
         isFocusingAlbum = false;
         Debug.Log("[CameraStateController] ResetToSittingRotation (Pitch kept)");
     }
+
+    /// <summary>
+    /// Đồng bộ góc camera hiện tại thành baseline nội bộ để tránh snap/giật
+    /// khi script bắt đầu điều khiển lại (vd: sau fade/animation intro).
+    /// </summary>
+    public void SyncCurrentViewAsBaseline(bool updateSittingBaseYaw = true)
+    {
+        if (updateSittingBaseYaw && playerBody != null)
+        {
+            sittingBaseYRotation = playerBody.rotation.eulerAngles.y;
+        }
+
+        xRotation = NormalizePitch(transform.localEulerAngles.x);
+        isFocusingAlbum = false;
+        shouldFocusAlbum = false;
+        smoothedMouseDelta = Vector2.zero;
+    }
 }

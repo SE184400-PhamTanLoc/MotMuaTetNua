@@ -30,6 +30,15 @@ public class MouseLook : MonoBehaviour
         while (angle < -180f) angle += 360f;
         return angle;
     }
+    /// <summary>
+    /// Đồng bộ pitch nội bộ theo góc camera hiện tại để tránh snap khi bật lại control.
+    /// </summary>
+    public void SyncCurrentPitchFromTransform()
+    {
+        xRotation = NormalizePitch(transform.localEulerAngles.x);
+        smoothedMouseDelta = Vector2.zero;
+
+    }
 
     private Vector2 ReadSmoothedMouseDelta()
     {
@@ -97,5 +106,11 @@ public class MouseLook : MonoBehaviour
     public void ForceSyncRotation(float newX)
     {
         xRotation = newX;
+    }
+
+    private static float NormalizePitch(float x)
+    {
+        if (x > 180f) return x - 360f;
+        return x;
     }
 }
