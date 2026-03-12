@@ -156,11 +156,30 @@ public class AlbumInteract : MonoBehaviour
 
         // Nếu chưa gán bằng Inspector, thử tìm
         if (albumFocusController == null)
-            albumFocusController = FindFirstObjectByType<AlbumFocusController>();
+            albumFocusController = FindBestAlbumFocusController();
 
         // Mở thẳng album B (không thoại)
         if (albumFocusController != null)
             albumFocusController.OpenAlbum();
+    }
+
+    private AlbumFocusController FindBestAlbumFocusController()
+    {
+        AlbumFocusController[] controllers = FindObjectsByType<AlbumFocusController>(FindObjectsSortMode.None);
+        if (controllers == null || controllers.Length == 0)
+            return null;
+
+        for (int i = 0; i < controllers.Length; i++)
+        {
+            AlbumFocusController candidate = controllers[i];
+            if (candidate == null) continue;
+
+            // Ưu tiên controller đã được cấu hình đầy đủ cho RoomScene.
+            if (candidate.albumPrefab != null && candidate.playerCamera != null && candidate.overlay != null)
+                return candidate;
+        }
+
+        return controllers[0];
     }
 
     private void RepositionHoverHint()
