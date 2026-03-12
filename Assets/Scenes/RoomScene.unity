@@ -1405,6 +1405,21 @@ CanvasGroup:
   m_CorrespondingSourceObject: {fileID: 8781455754403254146, guid: 5d2b0969dacd067468fb5349457965c5, type: 3}
   m_PrefabInstance: {fileID: 6461815045898304411}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &286657668
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 286657662}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e19747de3f5aca642ab2be37e372fb86, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Outline
+  m_EffectColor: {r: 0.03773582, g: 0.03773582, b: 0.03773582, a: 0.5}
+  m_EffectDistance: {x: 1, y: -1}
+  m_UseGraphicAlpha: 1
 --- !u!4 &305970637 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3909571450499054548, guid: d2abb3f7c9ac59048a122c38a8480e71, type: 3}
@@ -6225,7 +6240,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WindowCityAmbience
   cityAudioSource: {fileID: 1355443722}
   cityLoopClip: {fileID: 8300000, guid: 3ba696e81000fde468795ac072567d15, type: 3}
-  baseVolume: 0.417
+  baseVolume: 0.738
   seatedVolumeMultiplier: 0.08
   volumeFadeSpeed: 1.6
   minDistance: 1.2
@@ -6901,7 +6916,7 @@ MonoBehaviour:
   footstepMinPitch: 0.95
   footstepMaxPitch: 1.05
   footstepGroundCheckDistance: 0.25
-  footstepMaxVolume: 0.5
+  footstepMaxVolume: 1
   footstepFadeInSpeed: 8
   footstepFadeOutSpeed: 10
   debugFootstep: 1
@@ -6944,7 +6959,7 @@ AudioSource:
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 0}
   m_PlayOnAwake: 0
-  m_Volume: 0.686
+  m_Volume: 1
   m_Pitch: 1
   Loop: 0
   Mute: 0
@@ -8835,8 +8850,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 70
-  m_fontSizeBase: 70
+  m_fontSize: 50
+  m_fontSizeBase: 50
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -8905,7 +8920,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 1000, y: 100}
+  m_SizeDelta: {x: 1300, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1001 &1916420436
 PrefabInstance:
@@ -10013,6 +10028,18 @@ PrefabInstance:
       propertyPath: mainMenuSceneName
       value: Main Menu
       objectReference: {fileID: 0}
+    - target: {fileID: 1376498952572130965, guid: 5d2b0969dacd067468fb5349457965c5, type: 3}
+      propertyPath: m_SortingOrder
+      value: 500
+      objectReference: {fileID: 0}
+    - target: {fileID: 2659897055567526215, guid: 5d2b0969dacd067468fb5349457965c5, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 500
+      objectReference: {fileID: 0}
+    - target: {fileID: 2659897055567526215, guid: 5d2b0969dacd067468fb5349457965c5, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 150
+      objectReference: {fileID: 0}
     - target: {fileID: 3925797703633762805, guid: 5d2b0969dacd067468fb5349457965c5, type: 3}
       propertyPath: m_AnchorMax.x
       value: 1
@@ -10064,7 +10091,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 5613109381043843578, guid: 5d2b0969dacd067468fb5349457965c5, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 286657668}
   m_SourcePrefab: {fileID: 100100000, guid: 5d2b0969dacd067468fb5349457965c5, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
