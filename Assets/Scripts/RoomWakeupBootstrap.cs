@@ -102,6 +102,12 @@ public class RoomWakeupBootstrap : MonoBehaviour
 
     public bool HasWakeupCompleted { get; private set; }
 
+    private void Awake()
+    {
+        // Chặn script fade legacy càng sớm càng tốt để tránh nó đổi state về FreeOnlyChair.
+        DisableLegacyFadeIfNeeded();
+    }
+
     private void Start()
     {
         StartCoroutine(BootstrapRoutine());
@@ -166,12 +172,7 @@ public class RoomWakeupBootstrap : MonoBehaviour
             }
         }
 
-        if (disableLegacyRoomSceneFadeIn)
-        {
-            RoomSceneFadeIn legacyFade = FindFirstObjectByType<RoomSceneFadeIn>();
-            if (legacyFade != null && legacyFade.enabled)
-                legacyFade.enabled = false;
-        }
+        DisableLegacyFadeIfNeeded();
 
         if (settingsController == null)
             settingsController = FindFirstObjectByType<InGameSettingsPanelController>();
@@ -564,5 +565,23 @@ public class RoomWakeupBootstrap : MonoBehaviour
 
         settingsController.allowKeyboardToggle = cachedAllowKeyboardToggle;
         settingsController.CloseSettings();
+    }
+
+    private void DisableLegacyFadeIfNeeded()
+    {
+        if (!disableLegacyRoomSceneFadeIn) return;
+
+        RoomSceneFadeIn[] legacyFades = FindObjectsByType<RoomSceneFadeIn>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        if (legacyFades == null || legacyFades.Length == 0) return;
+
+        for (int i = 0; i < legacyFades.Length; i++)
+        {
+            RoomSceneFadeIn legacyFade = legacyFades[i];
+            if (legacyFade == null) continue;
+
+            // Dừng coroutine đang chạy để tránh callback đổi state khi fade xong.
+            legacyFade.StopAllCoroutines();
+            legacyFade.enabled = false;
+        }
     }
 }

@@ -26,6 +26,16 @@ public class WakeupStandUpController : MonoBehaviour
     [Header("Hint (optional)")]
     public GameObject standUpHintRoot;
 
+    [Header("State Guide Hint (optional)")]
+    [Tooltip("Dùng StateGuideHintController để hiện hint khi vào phase nhấn F.")]
+    public bool useStateGuideHint = true;
+    [Tooltip("Để trống sẽ tự tìm trong scene.")]
+    public StateGuideHintController stateGuideHintController;
+    [TextArea(1, 3)]
+    public string stateGuideStandUpMessage = "Ấn F để rời khỏi ghế";
+    [Tooltip("Thời gian hiển thị hint qua StateGuideHintController.")]
+    public float stateGuideStandUpDuration = 5f;
+
     [Header("State")]
     [Tooltip("State sau khi đứng dậy.")]
     public GameState stateAfterStandUp = GameState.State1_FreeOnlyChair;
@@ -89,6 +99,7 @@ public class WakeupStandUpController : MonoBehaviour
 
         standUpPhaseEnabled = true;
         SetHintVisible(true);
+        ShowStandUpHintViaStateGuide();
         TryDebugLog("[WakeupStandUpController] EnableStandUpPhase() -> đã bật phase nhấn F.");
         onStandUpEnabled?.Invoke();
     }
@@ -125,5 +136,17 @@ public class WakeupStandUpController : MonoBehaviour
         if (Time.unscaledTime < nextDebugLogAt) return;
         nextDebugLogAt = Time.unscaledTime + 0.1f;
         Debug.Log(message);
+    }
+
+    private void ShowStandUpHintViaStateGuide()
+    {
+        if (!useStateGuideHint) return;
+        if (string.IsNullOrWhiteSpace(stateGuideStandUpMessage)) return;
+
+        if (stateGuideHintController == null)
+            stateGuideHintController = FindFirstObjectByType<StateGuideHintController>();
+        if (stateGuideHintController == null) return;
+
+        stateGuideHintController.ShowHint(stateGuideStandUpMessage, Mathf.Max(0.1f, stateGuideStandUpDuration));
     }
 }

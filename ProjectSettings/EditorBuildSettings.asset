@@ -23,6 +23,12 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Day_28_Scene.unity
     guid: c7cb74bed61dc94408aea0034875af2a
+  - enabled: 1
+    path: Assets/Scenes/Ending.unity
+    guid: 0328d4cff9e53334fb7a6afd7d179f74
+  - enabled: 1
+    path: Assets/Scenes/Cut End.unity
+    guid: 42307a5825e728f40b3b54f94654867e
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   m_UseUCBPForAssetBundles: 0
