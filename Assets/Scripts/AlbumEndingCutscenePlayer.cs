@@ -1,6 +1,7 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 using UnityEngine.Video;
 
 public class AlbumEndingCutscenePlayer : MonoBehaviour
@@ -10,6 +11,8 @@ public class AlbumEndingCutscenePlayer : MonoBehaviour
     public GameObject cutsceneCanvas;
     [Tooltip("VideoPlayer đã setup clip + render texture + audio source.")]
     public VideoPlayer videoPlayer;
+    [Tooltip("RawImage đang hiển thị target texture của video (optional).")]
+    public RawImage cutsceneRawImage;
     [Tooltip("Optional: dùng để đóng album nếu không chuyển scene.")]
     public AlbumFocusController albumFocusController;
 
@@ -25,12 +28,45 @@ public class AlbumEndingCutscenePlayer : MonoBehaviour
 
     private bool isPlaying;
 
+    private void Awake()
+    {
+        ResetCutsceneVisual();
+    }
+
+    private void OnDestroy()
+    {
+        // Cleanup khi object bị hủy.
+        if (videoPlayer != null)
+        {
+            videoPlayer.Stop();
+        }
+        ClearVideoTargetTexture();
+    }
+
     /// <summary>
     /// Gọi hàm này từ UnityEvent onAlbumReadingCompleted trong AlbumFocusController.
     /// </summary>
     public void PlayCutsceneFromAlbumEnd()
     {
         if (isPlaying) return;
+
+        if (cutsceneCanvas != null && !cutsceneCanvas.activeInHierarchy)
+        {
+            cutsceneCanvas.SetActive(true);
+        }
+
+        // UnityEvent vẫn có thể gọi method trên object đang inactive,
+        // nhưng MonoBehaviour inactive thì không StartCoroutine được.
+        if (!gameObject.activeInHierarchy)
+        {
+            gameObject.SetActive(true);
+        }
+        if (!isActiveAndEnabled)
+        {
+            Debug.LogWarning("AlbumEndingCutscenePlayer: Không thể phát cutscene vì object/component vẫn đang inactive.");
+            return;
+        }
+
         StartCoroutine(PlayRoutine());
     }
 
@@ -41,6 +77,11 @@ public class AlbumEndingCutscenePlayer : MonoBehaviour
         if (cutsceneCanvas != null)
         {
             cutsceneCanvas.SetActive(true);
+        }
+        if (cutsceneRawImage != null)
+        {
+            cutsceneRawImage.enabled = true;
+            cutsceneRawImage.color = Color.white;
         }
 
         if (videoPlayer == null)
@@ -78,10 +119,11 @@ public class AlbumEndingCutscenePlayer : MonoBehaviour
 
     private IEnumerator EndFlow()
     {
-        if (cutsceneCanvas != null)
+        if (videoPlayer != null)
         {
-            cutsceneCanvas.SetActive(false);
+            videoPlayer.Stop();
         }
+        ClearVideoTargetTexture();
 
         if (loadSceneAfterCutscene)
         {
@@ -99,7 +141,46 @@ public class AlbumEndingCutscenePlayer : MonoBehaviour
             albumFocusController.CloseAlbum();
         }
 
+        if (cutsceneCanvas != null && !loadSceneAfterCutscene)
+        {
+            cutsceneCanvas.SetActive(false);
+        }
+
         isPlaying = false;
         yield return null;
+    }
+
+    private void ResetCutsceneVisual()
+    {
+        isPlaying = false;
+        if (videoPlayer != null)
+        {
+            videoPlayer.Stop();
+            videoPlayer.time = 0d;
+        }
+
+        ClearVideoTargetTexture();
+
+        if (cutsceneRawImage != null)
+        {
+            cutsceneRawImage.color = Color.clear;
+            cutsceneRawImage.enabled = false;
+        }
+
+        if (cutsceneCanvas != null)
+        {
+            cutsceneCanvas.SetActive(false);
+        }
+    }
+
+    private void ClearVideoTargetTexture()
+    {
+        if (videoPlayer == null || videoPlayer.targetTexture == null) return;
+
+        RenderTexture rt = videoPlayer.targetTexture;
+        RenderTexture prev = RenderTexture.active;
+        RenderTexture.active = rt;
+        GL.Clear(true, true, Color.clear);
+        RenderTexture.active = prev;
     }
 }

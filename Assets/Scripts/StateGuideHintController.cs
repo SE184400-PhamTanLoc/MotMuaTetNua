@@ -19,6 +19,10 @@ public class StateGuideHintEntry
 /// </summary>
 public class StateGuideHintController : MonoBehaviour
 {
+    [Header("Settings State Source")]
+    [Tooltip("Nếu có, dùng thêm controller này để fallback đọc trạng thái mở settings.")]
+    public InGameSettingsPanelController settingsPanelController;
+
     [Header("Guide Targets - Gameplay")]
     public GameObject gameplayGuideRoot;
     public CanvasGroup gameplayCanvasGroup;
@@ -74,9 +78,13 @@ public class StateGuideHintController : MonoBehaviour
     private void Start()
     {
         EnsureTypeAudioSource();
+        if (settingsPanelController == null)
+        {
+            settingsPanelController = FindFirstObjectByType<InGameSettingsPanelController>();
+        }
         SetRootsActive(false, false);
         SetAlphaDirect(0f);
-        lastSettingsOpen = InGameSettingsPanelController.IsAnySettingsOpen;
+        lastSettingsOpen = IsSettingsOpenNow();
     }
 
     private void Update()
@@ -91,7 +99,7 @@ public class StateGuideHintController : MonoBehaviour
             }
         }
 
-        bool settingsOpen = InGameSettingsPanelController.IsAnySettingsOpen;
+        bool settingsOpen = IsSettingsOpenNow();
         if (settingsOpen != lastSettingsOpen)
         {
             lastSettingsOpen = settingsOpen;
@@ -135,7 +143,8 @@ public class StateGuideHintController : MonoBehaviour
         }
 
         if (!replayLastHintWhenSettingsOpen) return;
-        if (string.IsNullOrWhiteSpace(lastShownMessage)) return;
+        string settingsMessage = GetCurrentStateMessageOrLast();
+        if (string.IsNullOrWhiteSpace(settingsMessage)) return;
 
         if (keepHintVisibleInSettings)
         {
@@ -145,7 +154,7 @@ public class StateGuideHintController : MonoBehaviour
                 hintCoroutine = null;
                 isHintRunning = false;
             }
-            ShowPersistentHintInSettings(lastShownMessage);
+            ShowPersistentHintInSettings(settingsMessage);
             return;
         }
 
@@ -161,7 +170,7 @@ public class StateGuideHintController : MonoBehaviour
     {
         lastShownMessage = message;
 
-        if (keepHintVisibleInSettings && InGameSettingsPanelController.IsAnySettingsOpen)
+        if (keepHintVisibleInSettings && IsSettingsOpenNow())
         {
             ShowPersistentHintInSettings(message);
             return;
@@ -254,8 +263,9 @@ public class StateGuideHintController : MonoBehaviour
     {
         if (settingsGuideRoot == null) yield break;
 
-        SetGuideText(lastShownMessage);
-        SetSettingsGuideText(lastShownMessage);
+        string settingsMessage = GetCurrentStateMessageOrLast();
+        SetGuideText(settingsMessage);
+        SetSettingsGuideText(settingsMessage);
         SetRootsActive(false, true);
 
         float t = 0f;
@@ -286,7 +296,7 @@ public class StateGuideHintController : MonoBehaviour
 
     private void ApplyActiveTarget(float alpha)
     {
-        bool showInSettings = InGameSettingsPanelController.IsAnySettingsOpen;
+        bool showInSettings = IsSettingsOpenNow();
         SetRootsActive(!showInSettings, showInSettings);
         SetAlphaDirect(alpha);
     }
@@ -330,6 +340,40 @@ public class StateGuideHintController : MonoBehaviour
         SetGuideText(message);
         SetRootsActive(false, true);
         if (settingsCanvasGroup != null) settingsCanvasGroup.alpha = 1f;
+    }
+
+    private bool IsSettingsOpenNow()
+    {
+        if (InGameSettingsPanelController.IsAnySettingsOpen)
+        {
+            return true;
+        }
+
+        if (settingsPanelController != null && settingsPanelController.settingsPanelRoot != null)
+        {
+            return settingsPanelController.settingsPanelRoot.activeInHierarchy;
+        }
+
+        return false;
+    }
+
+    private string GetCurrentStateMessageOrLast()
+    {
+        if (GameFlow.Instance == null)
+        {
+            return lastShownMessage;
+        }
+
+        GameState current = GameFlow.Instance.currentState;
+        for (int i = 0; i < entries.Count; i++)
+        {
+            StateGuideHintEntry entry = entries[i];
+            if (entry == null || entry.state != current) continue;
+            if (string.IsNullOrWhiteSpace(entry.message)) continue;
+            return entry.message;
+        }
+
+        return lastShownMessage;
     }
 
     private void EnsureTypeAudioSource()
