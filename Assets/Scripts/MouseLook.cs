@@ -9,6 +9,15 @@ public class MouseLook : MonoBehaviour
     float xRotation = 0f;
     private Vector2 smoothedMouseDelta;
 
+    /// <summary>
+    /// Đồng bộ pitch nội bộ theo góc camera hiện tại để tránh snap khi bật lại control.
+    /// </summary>
+    public void SyncCurrentPitchFromTransform()
+    {
+        xRotation = NormalizePitch(transform.localEulerAngles.x);
+        smoothedMouseDelta = Vector2.zero;
+    }
+
     private Vector2 ReadSmoothedMouseDelta()
     {
         Vector2 rawDelta = new Vector2(
@@ -50,5 +59,11 @@ public class MouseLook : MonoBehaviour
 
         transform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
         playerBody.Rotate(Vector3.up * mouseX);
+    }
+
+    private static float NormalizePitch(float x)
+    {
+        if (x > 180f) return x - 360f;
+        return x;
     }
 }
