@@ -5,17 +5,13 @@ public class ChairInteract : MonoBehaviour
     public GameObject hoverText;
     public Transform sitPosition; // Vị trí player sẽ ngồi (có thể để null, sẽ tự tính)
 
-    private Outline outline;
+    private Outline[] outlines = new Outline[0];
     private bool isHovered;
 
     void Awake()
     {
-        outline = GetComponent<Outline>();
-        if (outline == null)
-            outline = GetComponentInChildren<Outline>();
-
-        if (outline != null)
-            outline.enabled = false;
+        CacheOutlines();
+        SetOutlineState(false);
 
         if (hoverText != null)
             hoverText.SetActive(false);
@@ -51,8 +47,7 @@ public class ChairInteract : MonoBehaviour
         if (isHovered) return;
         isHovered = true;
 
-        if (outline != null)
-            outline.enabled = true;
+        SetOutlineState(true);
 
         if (hoverText != null)
             hoverText.SetActive(true);
@@ -63,8 +58,7 @@ public class ChairInteract : MonoBehaviour
         if (!isHovered) return;
         isHovered = false;
 
-        if (outline != null)
-            outline.enabled = false;
+        SetOutlineState(false);
 
         if (hoverText != null)
             hoverText.SetActive(false);
@@ -129,6 +123,41 @@ public class ChairInteract : MonoBehaviour
             cameraController = Camera.main.GetComponent<CameraStateController>();
         if (cameraController != null)
             cameraController.SetSittingRotation(player.transform.rotation.eulerAngles.y);
+    }
+
+    private void CacheOutlines()
+    {
+        var list = new System.Collections.Generic.List<Outline>();
+
+        Outline self = GetComponent<Outline>();
+        if (self != null) list.Add(self);
+
+        Outline parent = GetComponentInParent<Outline>(true);
+        if (parent != null && !list.Contains(parent)) list.Add(parent);
+
+        Outline[] children = GetComponentsInChildren<Outline>(true);
+        for (int i = 0; i < children.Length; i++)
+        {
+            Outline child = children[i];
+            if (child != null && !list.Contains(child))
+            {
+                list.Add(child);
+            }
+        }
+
+        outlines = list.ToArray();
+    }
+
+    private void SetOutlineState(bool enabled)
+    {
+        if (outlines == null || outlines.Length == 0) return;
+        for (int i = 0; i < outlines.Length; i++)
+        {
+            if (outlines[i] != null)
+            {
+                outlines[i].enabled = enabled;
+            }
+        }
     }
 }
     

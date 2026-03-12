@@ -13,6 +13,13 @@ public class CursorStateController : MonoBehaviour
             return;
         }
 
+        // 1.5 Kiểm tra Settings
+        if (InGameSettingsPanelController.IsAnySettingsOpen)
+        {
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+            return;
+        }
         // 2. Kiểm tra Dialogue hoặc Bảng trả giá
         bool dangHoiThoai = DialogueManager.Instance != null && DialogueManager.Instance.DangHoiThoai;
         bool dangTraGia = DialogueManager.Instance != null && DialogueManager.Instance.bargainPanel != null && DialogueManager.Instance.bargainPanel.activeSelf;
@@ -74,7 +81,7 @@ public class CursorStateController : MonoBehaviour
             Cursor.visible = false;
             return;
         }
-        
+        if (GameFlow.Instance == null) return;
         GameState currentState = GameFlow.Instance.currentState;
         
         // 3. Logic cho máy tính (ComputerActive)

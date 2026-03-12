@@ -44,6 +44,8 @@ public class RoomSceneFadeIn : MonoBehaviour
     
     private IEnumerator FadeInCameraView()
     {
+        EnsureFadeVisualReady();
+
         // Đảm bảo màn hình đen ban đầu
         if (fadeImage != null)
         {
@@ -81,6 +83,29 @@ public class RoomSceneFadeIn : MonoBehaviour
         if (GameFlow.Instance != null)
         {
             GameFlow.Instance.ChangeState(GameState.State1_FreeOnlyChair);
+        }
+    }
+
+    private void EnsureFadeVisualReady()
+    {
+        if (fadeImage == null) return;
+
+        // Bật parent hierarchy nếu đang tắt.
+        Transform t = fadeImage.transform;
+        while (t != null)
+        {
+            if (!t.gameObject.activeSelf)
+            {
+                t.gameObject.SetActive(true);
+            }
+
+            RectTransform rt = t as RectTransform;
+            if (rt != null && rt.localScale == Vector3.zero)
+            {
+                rt.localScale = Vector3.one;
+            }
+
+            t = t.parent;
         }
     }
 }

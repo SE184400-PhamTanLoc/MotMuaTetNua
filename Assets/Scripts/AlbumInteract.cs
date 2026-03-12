@@ -1,4 +1,6 @@
 using UnityEngine;
+using TMPro;
+using UnityEngine.UI;
 
 /// <summary>
 /// Tương tác với cuốn sách (Album) trên bàn: highlight khi hover, nhấn E hiện "Nghỉ ngơi tí đã".
@@ -8,6 +10,14 @@ public class AlbumInteract : MonoBehaviour
 {
     [Header("UI")]
     public GameObject hoverText;
+    [Header("Hint Text")]
+    public string hoverHintMessage = "Nhấn E để mở album";
+    [Tooltip("Bật nếu muốn code tự kéo hint theo anchor khi hover. Mặc định tắt để giữ nguyên vị trí bạn set trong scene.")]
+    public bool repositionHintOnHover = false;
+    [Tooltip("Điểm neo cho hint. Để trống sẽ dùng transform của object album.")]
+    public Transform hoverHintAnchor;
+    [Tooltip("Offset vị trí hint so với điểm neo (world space).")]
+    public Vector3 hoverHintOffset = new Vector3(0f, 0.2f, 0f);
 
     [Header("Controller")]
     [Tooltip("AlbumFocusController để mở album B (spawn trước mặt, bật overlay).")]
@@ -20,6 +30,8 @@ public class AlbumInteract : MonoBehaviour
 
     private Outline outline;
     private bool isHovered;
+    private TMP_Text hoverTMP;
+    private Text hoverUGUI;
 
     void Awake()
     {
@@ -27,6 +39,9 @@ public class AlbumInteract : MonoBehaviour
             EnsureInteractionCollider();
 
         EnsureRaycastableLayer();
+
+        // Ưu tiên dùng hint nằm trong chính hierarchy của Album để tránh trỏ nhầm
+        AssignLocalHoverHintIfAvailable();
 
         outline = GetComponent<Outline>();
         if (outline == null)
@@ -36,7 +51,25 @@ public class AlbumInteract : MonoBehaviour
             outline.enabled = false;
 
         if (hoverText != null)
+        {
+            hoverTMP = hoverText.GetComponentInChildren<TMP_Text>(true);
+            hoverUGUI = hoverText.GetComponentInChildren<Text>(true);
             hoverText.SetActive(false);
+        }
+    }
+
+    private void AssignLocalHoverHintIfAvailable()
+    {
+        Transform[] allChildren = GetComponentsInChildren<Transform>(true);
+        for (int i = 0; i < allChildren.Length; i++)
+        {
+            Transform child = allChildren[i];
+            if (child == null) continue;
+            if (!string.Equals(child.name, "Hint")) continue;
+
+            hoverText = child.gameObject;
+            return;
+        }
     }
 
     private void EnsureRaycastableLayer()
@@ -95,7 +128,13 @@ public class AlbumInteract : MonoBehaviour
             outline.enabled = true;
 
         if (hoverText != null)
+        {
+            if (hoverTMP != null) hoverTMP.text = hoverHintMessage;
+            else if (hoverUGUI != null) hoverUGUI.text = hoverHintMessage;
+            if (repositionHintOnHover)
+                RepositionHoverHint();
             hoverText.SetActive(true);
+        }
     }
 
     public void OnHoverExit()
@@ -122,5 +161,12 @@ public class AlbumInteract : MonoBehaviour
         // Mở thẳng album B (không thoại)
         if (albumFocusController != null)
             albumFocusController.OpenAlbum();
+    }
+
+    private void RepositionHoverHint()
+    {
+        if (hoverText == null) return;
+        Transform anchor = hoverHintAnchor != null ? hoverHintAnchor : transform;
+        hoverText.transform.position = anchor.position + hoverHintOffset;
     }
 }

@@ -23,6 +23,11 @@ public class ComputerUIManager : MonoBehaviour
     public bool useFakeCompletion = true; // Bật/tắt fake completion
     public bool autoCloseAfterFakeCompletion = false; // Tự động đóng máy tính sau khi fake completion (tắt mặc định)
     
+    [Header("Audio")]
+    public AudioSource uiAudioSource;
+    public AudioClip firstMessageNotificationClip;
+    [Range(0f, 1f)] public float firstMessageNotificationVolume = 0.7f;
+    
     // UI Toolkit Elements (sẽ query từ UXML)
     private VisualElement rootElement;
     private VisualElement desktopPanel;
@@ -50,6 +55,7 @@ public class ComputerUIManager : MonoBehaviour
     private ComputerUIState currentUIState = ComputerUIState.Desktop;
     private bool isTaskCompleted = false;
     private bool hasEnteredWorkApp = false; // Track xem đã vào WorkApp chưa
+    private bool firstNotificationSoundPlayed = false;
     private NarrativeTextController narrativeController;
     private ChatUIController chatUIController;
     private WorkAppUIController workAppUIController;
@@ -79,6 +85,8 @@ public class ComputerUIManager : MonoBehaviour
         
         // KHÔNG initialize UI Toolkit ở đây vì UIDocument đang disabled
         // Sẽ initialize khi OpenComputer() được gọi lần đầu
+        EnsureUIAudioSource();
+        EnsureSfxChannelVolume(uiAudioSource);
     }
     
     private void InitializeUIToolkit()
@@ -307,14 +315,34 @@ public class ComputerUIManager : MonoBehaviour
                 break;
                 
             case ComputerUIState.MessageApp:
-                // Logic cho MessageApp sẽ implement sau
-                // Có thể thêm ESC để đóng app
+                // Chỉ cho phép thoát MessageApp khi đã hoàn thành luồng chat
+                UpdateMessageAppCloseButtonState();
                 break;
                 
             case ComputerUIState.WorkApp:
                 // Logic cho WorkApp sẽ implement sau
                 break;
         }
+    }
+
+    private bool CanCloseMessageApp()
+    {
+        if (chatUIController == null)
+        {
+            // Fallback an toàn nếu thiếu reference
+            return true;
+        }
+
+        return chatUIController.IsChatFlowDone();
+    }
+
+    private void UpdateMessageAppCloseButtonState()
+    {
+        if (closeMessageButton == null) return;
+
+        bool canClose = CanCloseMessageApp();
+        closeMessageButton.SetEnabled(canClose);
+        closeMessageButton.style.opacity = canClose ? 1f : 0.5f;
     }
     
     public void OpenComputer()
@@ -359,6 +387,7 @@ public class ComputerUIManager : MonoBehaviour
         currentUIState = ComputerUIState.Desktop;
         isTaskCompleted = false;
         hasEnteredWorkApp = false; // Reset flag khi mở máy tính
+        firstNotificationSoundPlayed = false;
 
         ShowDesktop();
         ShowNotification(); // Hiển thị notification trước
@@ -443,6 +472,7 @@ public class ComputerUIManager : MonoBehaviour
         if (notificationPanel != null)
         {
             currentUIState = ComputerUIState.Notification;
+            TryPlayFirstNotificationSound();
             
             // Vô hiệu hóa desktop icons khi ở Notification (không thể click)
             if (messageAppIcon != null)
@@ -456,9 +486,85 @@ public class ComputerUIManager : MonoBehaviour
             
             // Bắt đầu animation slide từ dưới lên (display sẽ được set trong coroutine)
             StartCoroutine(SlideNotificationIn());
+            StartCoroutine(PlayFirstNotificationSoundDelayed(0.08f));
             
             Debug.Log("Notification hiển thị - Chỉ có thể ấn Space");
         }
+    }
+    
+    private void TryPlayFirstNotificationSound()
+    {
+        if (firstNotificationSoundPlayed)
+        {
+            return;
+        }
+
+        PlayUIClip(firstMessageNotificationClip, firstMessageNotificationVolume);
+        firstNotificationSoundPlayed = true;
+    }
+    
+    private System.Collections.IEnumerator PlayFirstNotificationSoundDelayed(float delaySeconds)
+    {
+        if (firstNotificationSoundPlayed) yield break;
+        yield return new WaitForSeconds(delaySeconds);
+        TryPlayFirstNotificationSound();
+    }
+    
+    private void PlayUIClip(AudioClip clip, float volumeScale = 1f)
+    {
+        if (clip == null)
+        {
+            Debug.LogWarning($"[ComputerUI] firstMessageNotificationClip chưa được gán | object={gameObject.name} | scene={gameObject.scene.name}");
+            return;
+        }
+
+        EnsureUIAudioSource();
+        EnsureSfxChannelVolume(uiAudioSource);
+
+        if (uiAudioSource != null)
+        {
+            uiAudioSource.PlayOneShot(clip, Mathf.Clamp01(volumeScale));
+            return;
+        }
+
+        if (Camera.main != null)
+        {
+            AudioSource.PlayClipAtPoint(clip, Camera.main.transform.position);
+        }
+    }
+
+    private void EnsureUIAudioSource()
+    {
+        if (uiAudioSource != null)
+        {
+            return;
+        }
+
+        uiAudioSource = GetComponent<AudioSource>();
+        if (uiAudioSource == null)
+        {
+            uiAudioSource = gameObject.AddComponent<AudioSource>();
+            uiAudioSource.playOnAwake = false;
+            uiAudioSource.spatialBlend = 0f;
+            uiAudioSource.volume = 1f;
+            uiAudioSource.mute = false;
+        }
+    }
+
+    private void EnsureSfxChannelVolume(AudioSource source)
+    {
+        if (source == null) return;
+
+        AudioChannelVolume channelVolume = source.GetComponent<AudioChannelVolume>();
+        if (channelVolume == null)
+        {
+            channelVolume = source.gameObject.AddComponent<AudioChannelVolume>();
+        }
+
+        channelVolume.channel = AudioChannelType.Sfx;
+        channelVolume.useAudioSourceVolumeAsBaseOnAwake = false;
+        channelVolume.baseVolume = source.volume;
+        channelVolume.ApplyCurrentVolume();
     }
     
     // Animation slide Notification từ dưới lên
@@ -547,6 +653,8 @@ public class ComputerUIManager : MonoBehaviour
             {
                 chatUIController.OnMessageAppOpened();
             }
+
+            UpdateMessageAppCloseButtonState();
             
             // Debug: Log kích thước sau khi hiển thị (delay 1 frame để layout được tính toán)
             Debug.Log("[OpenMessageApp] Bắt đầu coroutine DebugUISizes");
@@ -618,6 +726,8 @@ public class ComputerUIManager : MonoBehaviour
             {
                 chatUIController.OnMessageAppOpened();
             }
+
+            UpdateMessageAppCloseButtonState();
             
             // Debug: Log kích thước sau khi hiển thị (delay 1 frame để layout được tính toán)
             Debug.Log("[ShowMessageApp] Bắt đầu coroutine DebugUISizes");
@@ -662,6 +772,12 @@ public class ComputerUIManager : MonoBehaviour
     // Đóng MessageApp (chỉ quay về Desktop, không tự động mở WorkApp)
     public void CloseMessageApp()
     {
+        if (!CanCloseMessageApp())
+        {
+            Debug.Log("Chưa thể đóng MessageApp: Hãy hoàn thành luồng chat trước.");
+            return;
+        }
+
         if (messageAppPanel != null)
         {
             messageAppPanel.style.display = DisplayStyle.None;
