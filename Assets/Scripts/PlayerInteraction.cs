@@ -82,7 +82,10 @@ public class PlayerInteraction : MonoBehaviour
             goiYTuongTacUI.SetActive(true);
             var tmp = goiYTuongTacUI.GetComponentInChildren<TMPro.TextMeshProUGUI>();
             if (tmp != null && _npcHienTai != null)
-                tmp.text = $"Nhấn <color=#FFD700><b>E</b></color> để {_npcHienTai.hanhDongTuongTac} với {tenNPC}";
+            {
+                // Sử dụng màu vàng đậm và outline đen để dễ đọc trên nền sáng/tối
+                tmp.text = $"Nhấn <color=yellow><b>E</b></color> để <b>{_npcHienTai.hanhDongTuongTac}</b> với <b>{tenNPC}</b>";
+            }
         }
     }
 

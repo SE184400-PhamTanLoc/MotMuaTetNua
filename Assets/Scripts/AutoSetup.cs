@@ -4,7 +4,7 @@ using TMPro;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.UI;
 using UnityEngine.SceneManagement;
-
+using System.Collections.Generic;
 /// <summary>
 /// AUTO SETUP - TỰ CHẠY KHI BẤM PLAY, KHÔNG CẦN GẮN VÀO GAMEOBJECT NÀO!
 /// Script này sử dụng [RuntimeInitializeOnLoadMethod] để tự động chạy
@@ -17,7 +17,7 @@ public class AutoSetup : MonoBehaviour
     private static int GIA_MAI_LON = 500;
 
     // === MÀU SẮC UI ===
-    private static Color mauNenPanel = new Color(0.08f, 0, 0, 0.85f); // Deep Red
+    private static Color mauNenPanel = new Color(0.02f, 0, 0, 1.0f); // Fully Opaque Very Dark Red
     private static Color mauChuChinh = new Color(1.0f, 1.0f, 0.9f, 1f); // Off-white
     private static Color mauVang = new Color(1.0f, 0.84f, 0.0f, 1f); // Gold
     private static Color mauNutBinhThuong = new Color(0.6f, 0.15f, 0.1f, 1f);
@@ -68,22 +68,21 @@ public class AutoSetup : MonoBehaviour
         // Lấy tên scene hiện tại
         string sceneName = SceneManager.GetActiveScene().name;
 
-        // Nếu không phải scene Day28 thì bỏ qua
-        if (sceneName != "Day_28_Scene")
+        // Nếu không phải scene Day28 hoặc RoomVillage thì bỏ qua
+        if (sceneName != "Day_28_Scene" && sceneName != "RoomVillage")
         {
-            Debug.Log("[AutoSetup] Skip setup vì không phải scene_day_28");
+            Debug.Log("[AutoSetup] Skip setup vì không phải scene hợp lệ cho UI");
             return;
         }
 
         Debug.Log("<color=yellow>===================================</color>");
-        Debug.Log("<color=yellow>[AutoSetup] 🏮 Bắt đầu tự động setup game Chợ Tết...</color>");
+        Debug.Log("<color=yellow>[AutoSetup] 🏮 Bắt đầu tự động setup game (Scene: " + sceneName + ")...</color>");
         Debug.Log("<color=yellow>===================================</color>");
-
-        Debug.Log("[AutoSetup] Bắt đầu setup scene Day28...");
 
         GameObject setupObj = new GameObject("_AutoSetup_Runner");
         DontDestroyOnLoad(setupObj);
 
+        // Core UI (Hầu hết các scene đều cần)
         try { SetupGameManager(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi Manager: " + e.Message); }
         try { TaoCanvas(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi Canvas: " + e.Message); }
         try { TaoDialogueUI(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi DialogueUI: " + e.Message); }
@@ -93,14 +92,21 @@ public class AutoSetup : MonoBehaviour
         try { TaoLuaChonButtonPrefab(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi Prefab: " + e.Message); }
         try { TaoBargainUI(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi BargainUI: " + e.Message); }
         try { SetupDialogueManager(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi DialogueManager: " + e.Message); }
-        try { SetupCoGaiBanMai(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi NPC: " + e.Message); }
+        
+        // Setup Player (Luôn cần)
         try { SetupPlayer(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi Player: " + e.Message); }
         try { SetupGameHUD(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi GameHUD: " + e.Message); }
-        try { SetupDiemLayMai(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi Điểm lấy mai: " + e.Message); }
-        try { SetupBauCua(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi Bầu Cua: " + e.Message); }
-        try { SetupGiengNguyenUoc(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi Giếng: " + e.Message); }
-        try { InitializeFruitPreviewStage(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi FruitPreviewStage: " + e.Message); }
-        try { TaoFruitFallingUI(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi FruitFallingUI: " + e.Message); }
+
+        // Setup Day 28 Specifics
+        if (sceneName == "Day_28_Scene")
+        {
+            try { SetupCoGaiBanMai(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi NPC: " + e.Message); }
+            try { SetupDiemLayMai(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi Điểm lấy mai: " + e.Message); }
+            try { SetupBauCua(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi Bầu Cua: " + e.Message); }
+            try { SetupGiengNguyenUoc(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi Giếng: " + e.Message); }
+            try { InitializeFruitPreviewStage(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi FruitPreviewStage: " + e.Message); }
+            try { TaoFruitFallingUI(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi FruitFallingUI: " + e.Message); }
+        }
 
         if (UnityEngine.Object.FindFirstObjectByType<CursorStateController>() == null)
         {
@@ -186,6 +192,8 @@ public class AutoSetup : MonoBehaviour
         _tenNguoiNoiText = TaoText("TenNguoiNoi", tenPanel.transform, "???", 36, TextAlignmentOptions.Center);
         _tenNguoiNoiText.fontStyle = FontStyles.Bold;
         _tenNguoiNoiText.color = mauVang;
+        _tenNguoiNoiText.outlineWidth = 0.25f;
+        _tenNguoiNoiText.outlineColor = Color.black;
         RectTransform tenRect = _tenNguoiNoiText.GetComponent<RectTransform>();
         tenRect.anchorMin = Vector2.zero;
         tenRect.anchorMax = Vector2.one;
@@ -193,10 +201,13 @@ public class AutoSetup : MonoBehaviour
         tenRect.offsetMax = new Vector2(-10, -2);
 
         // === Nội dung ===
-        _noiDungText = TaoText("NoiDung", _dialoguePanel.transform, "", 36, TextAlignmentOptions.TopLeft); // Giảm nhẹ xuống 36 để cân đối không gian
+        _noiDungText = TaoText("NoiDung", _dialoguePanel.transform, "", 42, TextAlignmentOptions.TopLeft); 
+        _noiDungText.fontStyle = FontStyles.Bold;
         _noiDungText.color = mauChuChinh;
         _noiDungText.enableWordWrapping = true;
         _noiDungText.richText = true;
+        _noiDungText.outlineWidth = 0.25f;
+        _noiDungText.outlineColor = Color.black;
         RectTransform ndRect = _noiDungText.GetComponent<RectTransform>();
         ndRect.anchorMin = new Vector2(0.04f, 0.35f); // Dành phần dưới cho lựa chọn
         ndRect.anchorMax = new Vector2(0.96f, 0.94f);
@@ -254,9 +265,11 @@ public class AutoSetup : MonoBehaviour
         tbRect.offsetMin = Vector2.zero;
         tbRect.offsetMax = Vector2.zero;
 
-        _tienText = TaoText("TienText", tienBg.transform, "Tiền: 1,000,000đ", 32, TextAlignmentOptions.Right);
+        _tienText = TaoText("TienText", tienBg.transform, "Tiền: 1,000,000đ", 36, TextAlignmentOptions.Right);
         _tienText.fontStyle = FontStyles.Bold;
         _tienText.color = mauVang;
+        _tienText.outlineWidth = 0.25f;
+        _tienText.outlineColor = Color.black;
         RectTransform tienInnerRect = _tienText.GetComponent<RectTransform>();
         tienInnerRect.anchorMin = Vector2.zero;
         tienInnerRect.anchorMax = Vector2.one;
@@ -290,8 +303,11 @@ public class AutoSetup : MonoBehaviour
         nvTitleRect.offsetMin = Vector2.zero;
         nvTitleRect.offsetMax = Vector2.zero;
 
-        _nhiemVuText = TaoText("NhiemVuText", _nhiemVuPanel.transform, "", 20, TextAlignmentOptions.TopLeft);
+        _nhiemVuText = TaoText("NhiemVuText", _nhiemVuPanel.transform, "", 24, TextAlignmentOptions.TopLeft);
+        _nhiemVuText.fontStyle = FontStyles.Bold;
         _nhiemVuText.color = Color.black;
+        _nhiemVuText.outlineWidth = 0.2f;
+        _nhiemVuText.outlineColor = new Color(0, 0, 0, 0.5f); // Subtle outline for dark text on light bg
         _nhiemVuText.lineSpacing = -5;
         RectTransform nvTextRect = _nhiemVuText.GetComponent<RectTransform>();
         nvTextRect.anchorMin = new Vector2(0.05f, 0.02f);
@@ -385,14 +401,19 @@ public class AutoSetup : MonoBehaviour
         TextMeshProUGUI bdTitle = TaoText("BatDauTitle", _batDauPanel.transform, "CÁO THỊ NGÀY TẾT", 44, TextAlignmentOptions.Center);
         bdTitle.color = mauDoTuoi;
         bdTitle.fontStyle = FontStyles.Bold;
+        bdTitle.outlineWidth = 0.25f;
+        bdTitle.outlineColor = Color.black;
         RectTransform bdtRect = bdTitle.GetComponent<RectTransform>();
         bdtRect.anchorMin = new Vector2(0, 0.8f);
         bdtRect.anchorMax = new Vector2(1, 0.95f);
         bdtRect.offsetMin = Vector2.zero;
         bdtRect.offsetMax = Vector2.zero;
 
-        _batDauText = TaoText("BatDauText", _batDauPanel.transform, "", 32, TextAlignmentOptions.Center);
+        _batDauText = TaoText("BatDauText", _batDauPanel.transform, "", 36, TextAlignmentOptions.Center);
         _batDauText.color = Color.black;
+        _batDauText.fontStyle = FontStyles.Bold;
+        _batDauText.outlineWidth = 0.25f;
+        _batDauText.outlineColor = new Color(0, 0, 0, 0.4f);
         _batDauText.lineSpacing = 15; // Tăng khoảng cách dòng
         RectTransform bdTextRect = _batDauText.GetComponent<RectTransform>();
         bdTextRect.anchorMin = new Vector2(0.08f, 0.25f);
@@ -784,8 +805,18 @@ public class AutoSetup : MonoBehaviour
         _goiYTuongTacUI.GetComponent<Image>().color = new Color(0, 0, 0, 0.75f);
 
         TextMeshProUGUI gyText = TaoText("GoiYText", _goiYTuongTacUI.transform,
-            "Nhấn <color=#FFD700><b>E</b></color> để nói chuyện", 28, TextAlignmentOptions.Center);
+            "Nhấn <color=yellow><b>E</b></color> để tương tác", 30, TextAlignmentOptions.Center);
         gyText.color = Color.white;
+        gyText.fontStyle = FontStyles.Bold;
+        
+        // Thêm Outline đen cực mạnh để chữ "nổi" hẳn lên
+        gyText.outlineWidth = 0.35f;
+        gyText.outlineColor = Color.black;
+        
+        // Thêm đổ bóng (Shadow)
+        gyText.fontMaterial.EnableKeyword("UNDERLAY_ON");
+        gyText.fontMaterial.SetColor("_UnderlayColor", new Color(0, 0, 0, 0.5f));
+        gyText.fontMaterial.SetVector("_UnderlayOffset", new Vector4(2, -2, 0, 0));
         RectTransform gyTextRect = gyText.GetComponent<RectTransform>();
         gyTextRect.anchorMin = Vector2.zero;
         gyTextRect.anchorMax = Vector2.one;
@@ -1084,12 +1115,14 @@ public class AutoSetup : MonoBehaviour
 
         Debug.Log($"[AutoSetup] 🎯 Player: {playerObj.name} tại {playerObj.transform.position}");
 
-        // Thu nhỏ CharacterController radius để đi qua hẻm hẹp
+        // Thu nhỏ CharacterController radius cực linh hoạt để qua cửa sổ/cửa hẹp
         CharacterController charCtrl = playerObj.GetComponent<CharacterController>();
         if (charCtrl != null)
         {
-            charCtrl.radius = 0.25f;
-            Debug.Log($"[AutoSetup] ✅ Thu nhỏ CharacterController radius = {charCtrl.radius}");
+            charCtrl.radius = 0.08f; // Thu nhỏ thêm chút nữa
+            charCtrl.stepOffset = 0.4f; // Tăng bước cao hơn để leo qua các bậc cửa
+            charCtrl.slopeLimit = 60f; // Cho phép leo dốc tốt hơn
+            Debug.Log($"[AutoSetup] ✅ Tối ưu CharacterController: radius={charCtrl.radius}, stepOffset={charCtrl.stepOffset}");
         }
 
         // Gắn PlayerInteraction

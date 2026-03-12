@@ -198,7 +198,30 @@ public class GameManager : MonoBehaviour
 
     public string LayMoTaNhiemVu()
     {
+        string sceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
         string currentTask = "";
+
+        // --- SCENE ROOMVILLAGE (Lau bàn thờ) ---
+        if (sceneName == "RoomVillage")
+        {
+            if (RoomVillageManager.Instance != null && RoomVillageManager.Instance.missionActive)
+            {
+                currentTask += "- Lau dọn bàn thờ:\n";
+                currentTask += (RoomVillageManager.Instance.hasCloth ? " <color=green>[x]</color> " : " <color=red>[ ]</color> ") + "Lấy khăn lau\n";
+                currentTask += (RoomVillageManager.Instance.altarCleaned ? " <color=green>[x]</color> " : " <color=red>[ ]</color> ") + "Lau sạch bàn thờ\n";
+                currentTask += (RoomVillageManager.Instance.incenseLit ? " <color=green>[x]</color> " : " <color=red>[ ]</color> ") + "Thắp nhang\n";
+                
+                if (RoomVillageManager.Instance.incenseLit)
+                    return "<color=green><b>- Đã hoàn thành dọn dẹp bàn thờ!</b></color>";
+            }
+            else
+            {
+                currentTask = "- Hãy tìm gặp Mẹ để nhận việc.";
+            }
+            return currentTask;
+        }
+
+        // --- CÁC SCENE KHÁC (Chợ Tết, Day 28...) ---
         
         // Nhiệm vụ chính (Mai)
         if (!daMuaMai)
@@ -208,12 +231,12 @@ public class GameManager : MonoBehaviour
         else if (!daMangMaiVeMe)
             currentTask = "- Mang mai về cho mẹ\n";
 
-        // Nhiệm vụ 1: Nguyên liệu (Hiện song song hoặc sau)
+        // Nhiệm vụ 1: Nguyên liệu
         if (daNhanNhiemVu1)
         {
             if (DaThuThapDuNguyenLieu())
             {
-                currentTask += "- Đã đủ nguyên liệu gói bánh!\n";
+                currentTask += "- <color=green>[x]</color> Đã đủ nguyên liệu gói bánh!\n";
             }
             else
             {
@@ -226,12 +249,12 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        // Nhiệm vụ 2: Mâm Ngũ Quả (Cầu Vừa Đủ Xài)
+        // Nhiệm vụ 2: Mâm Ngũ Quả
         if (daNhanNhiemVu2)
         {
             if (DaThuThapDuNguQua())
             {
-                currentTask += "- Đã đủ mâm Ngũ Quả!\n";
+                currentTask += "- <color=green>[x]</color> Đã đủ mâm Ngũ Quả!\n";
             }
             else
             {

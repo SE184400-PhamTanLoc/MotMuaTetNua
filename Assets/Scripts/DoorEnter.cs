@@ -16,6 +16,8 @@ public class DoorEnter : MonoBehaviour
 
     void Update()
     {
+        if (pressText != null && pressText.activeSelf) pressText.SetActive(false); // Đảm bảo luôn ẩn
+
         if (playerNear && Input.GetKeyDown(KeyCode.O))
         {
             SceneManager.LoadScene(sceneName);
@@ -28,8 +30,8 @@ public class DoorEnter : MonoBehaviour
         {
             playerNear = true;
 
-            if (pressText != null)
-                pressText.SetActive(true); // hiện chữ
+            // if (pressText != null)
+            //    pressText.SetActive(true); // hiện chữ (Đã vô hiệu hoá để tránh trùng lặp)
         }
     }
 
@@ -39,8 +41,8 @@ public class DoorEnter : MonoBehaviour
         {
             playerNear = false;
 
-            if (pressText != null)
-                pressText.SetActive(false); // ẩn chữ
+            // if (pressText != null)
+            //    pressText.SetActive(false); // ẩn chữ (Đã vô hiệu hoá để tránh trùng lặp)
         }
     }
 }

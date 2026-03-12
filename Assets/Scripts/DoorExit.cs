@@ -1,46 +1,34 @@
 ﻿using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class DoorExit : MonoBehaviour
+public class DoorExit : NPCBase
 {
     public string sceneName;
-    public GameObject pressText;   // UI hiển thị "Bấm phím L..."
+    public GameObject pressText;
 
-    private bool playerNear = false;
-
-    void Start()
+    protected override void Start()
     {
+        base.Start();
+        tenNPC = "ngoài sân";
+        hanhDongTuongTac = "đi ra";
+        quayVePhiaPlayer = false;
+
         if (pressText != null)
-            pressText.SetActive(false); // ban đầu ẩn text
+            pressText.SetActive(false);
     }
 
-    void Update()
+    protected override void OnTuongTac()
     {
-        if (playerNear && Input.GetKeyDown(KeyCode.L))
+        if (!string.IsNullOrEmpty(sceneName))
         {
             SceneManager.LoadScene(sceneName);
         }
+        KetThucTuongTac();
     }
 
-    private void OnTriggerEnter(Collider other)
-    {
-        if (other.CompareTag("Player"))
-        {
-            playerNear = true;
-
-            if (pressText != null)
-                pressText.SetActive(true); // hiện chữ
-        }
-    }
-
-    private void OnTriggerExit(Collider other)
-    {
-        if (other.CompareTag("Player"))
-        {
-            playerNear = false;
-
-            if (pressText != null)
-                pressText.SetActive(false); // ẩn chữ
-        }
+    void Update() 
+    { 
+        base.Update(); 
+        if (pressText != null && pressText.activeSelf) pressText.SetActive(false); 
     }
 }
