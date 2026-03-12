@@ -18,9 +18,9 @@ public class CanhNoiBanhMinigame : MonoBehaviour
     public TextMeshProUGUI characterNameText;
 
     [Header("Gameplay Settings")]
-    public float fuelDecayRate = 15f; // Tăng nhanh hơn
-    public float cookingSpeed = 4f;   // Tăng tốc độ nấu xanh lá lên gấp đôi (4 thay vì 2)
-    public float fuelGainPerWood = 35f; // Tăng nhanh hơn để phản hồi tốt hơn
+    public float fuelDecayRate = 20f; // Tăng decay để khó hơn tí
+    public float cookingSpeed = 5f;   // Tăng tốc độ nấu hơn nữa
+    public float fuelGainPerWood = 45f; // Tăng củi lên nhiều để cảm giác E có lực
 
     [Header("Difficulty Settings")]
     public float safeZoneMin = 40f;
@@ -35,6 +35,7 @@ public class CanhNoiBanhMinigame : MonoBehaviour
     private bool _isGameActive = false;
     private int _dialogueIndex = 0;
     private bool _isGameOver = false;
+    private GameObject _instructionPrompt; // Thêm reference để tắt/bật hướng dẫn
 
     [System.Serializable]
     public struct DialogueStep
@@ -112,11 +113,35 @@ public class CanhNoiBanhMinigame : MonoBehaviour
             FinishGame();
         }
 
-        // 6. Interaction Input (Cheat removed)
+        // 6. Interaction Input
+        if (Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame)
+        {
+            AddFirewood();
+        }
     }
 
     public void StartGame()
     {
+        // Kiểm tra điều kiện tiên quyết
+        if (GameManager.Instance != null)
+        {
+            if (GameManager.Instance.currentDay != GameManager.TetDay.Day30)
+            {
+                GameManager.Instance.HienThongBao("Chưa đến lúc canh nồi bánh đâu.");
+                return;
+            }
+            if (!GameManager.Instance.daNhanNhiemVuNgay30TuMe)
+            {
+                GameManager.Instance.HienThongBao("Trước khi canh nồi bánh, hãy hỏi Mẹ xem cần làm gì đã.");
+                return;
+            }
+            if (!GameManager.Instance.daGoiBanhTet)
+            {
+                GameManager.Instance.HienThongBao("Phải gói bánh xong mới có bánh mà canh chứ!");
+                return;
+            }
+        }
+
         gameObject.SetActive(true);
         _isGameActive = true;
         _isGameOver = false;
@@ -125,6 +150,7 @@ public class CanhNoiBanhMinigame : MonoBehaviour
         _dialogueIndex = 0;
         panel.SetActive(true);
         if (failPanel != null) failPanel.SetActive(false);
+        if (_instructionPrompt != null) _instructionPrompt.SetActive(true);
         
         SetAtmosphere(true);
         
@@ -201,11 +227,14 @@ public class CanhNoiBanhMinigame : MonoBehaviour
 
         if (GameManager.Instance != null)
         {
+            GameManager.Instance.daCanhNoiBanh = true;
             GameManager.Instance.HienThongBao("Nấu bánh xong rồi! Đã đến lúc vớt bánh! 🥘✨");
+            GameManager.Instance.OnNhiemVuThayDoi?.Invoke();
         }
         
         dialogueText.text = "Bánh đã chín! Mọi người chuẩn bị vớt bánh thôi...";
         characterNameText.text = "Dẫn chuyện";
+        if (_instructionPrompt != null) _instructionPrompt.SetActive(false);
 
         Invoke("ClosePanel", 4f);
     }
@@ -433,20 +462,40 @@ public class CanhNoiBanhMinigame : MonoBehaviour
         insRect.anchorMax = new Vector2(0.7f, 0.45f);
         insRect.offsetMin = Vector2.zero;
         insRect.offsetMax = Vector2.zero;
+        game._instructionPrompt = instruction;
 
         // --- WORLD INTEGRATION ---
-        GameObject fire = GameObject.Find("cui_lua");
-        if (fire != null)
+        // ƯU TIÊN gắn vào nồi bánh thật trong scene nếu có
+        GameObject worldTarget = GameObject.Find("noi_banh_tet");
+        string targetNameForLog = "noi_banh_tet";
+
+        // Fallback: nếu không có nồi thì gắn vào cụm củi_lửa như cũ
+        if (worldTarget == null)
         {
-            Debug.Log("[CanhNoiBanh] ✅ Tích hợp tương tác vào cui_lua");
-            CanhNoiBanhTrigger t = fire.GetComponent<CanhNoiBanhTrigger>();
-            if (t == null) t = fire.AddComponent<CanhNoiBanhTrigger>();
+            worldTarget = GameObject.Find("cui_lua");
+            targetNameForLog = "cui_lua";
+        }
+
+        if (worldTarget != null)
+        {
+            Debug.Log($"[CanhNoiBanh] ✅ Tích hợp tương tác vào {targetNameForLog}");
+            CanhNoiBanhTrigger t = worldTarget.GetComponent<CanhNoiBanhTrigger>();
+            if (t == null) t = worldTarget.AddComponent<CanhNoiBanhTrigger>();
             t.Setup(interactionUI);
 
-            SphereCollider sc = fire.GetComponent<SphereCollider>();
-            if (sc == null) sc = fire.AddComponent<SphereCollider>();
+            // Dùng SphereCollider trigger riêng cho vùng tương tác, không đụng collider mesh có sẵn
+            SphereCollider sc = null;
+            foreach (var c in worldTarget.GetComponents<Collider>())
+            {
+                if (c is SphereCollider sphere)
+                {
+                    sc = sphere;
+                    break;
+                }
+            }
+            if (sc == null) sc = worldTarget.AddComponent<SphereCollider>();
             sc.isTrigger = true;
-            sc.radius = 3f / Mathf.Max(fire.transform.lossyScale.x, 0.001f);
+            sc.radius = 3f / Mathf.Max(worldTarget.transform.lossyScale.x, 0.001f);
         }
     }
 }

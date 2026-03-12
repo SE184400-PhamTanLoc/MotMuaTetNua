@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.InputSystem;
 
 public enum PortalType
 {
@@ -13,10 +14,10 @@ public class VillageMarketTransition : MonoBehaviour
     public string sceneNameToLoad;
     
     [Header("UI Message Settings")]
-    [Tooltip("Text object to show 'Press O to enter' or similar")]
+    [Tooltip("Text object to show hint (optional, có thể để trống để chỉ dùng banner xanh)")]
     public GameObject pressTextUI;
-    [Tooltip("Key to press to interact")]
-    public KeyCode interactKey = KeyCode.O;
+    [Tooltip("Key to press to interact (giữ lại cho tương thích, mặc định E)")]
+    public KeyCode interactKey = KeyCode.E;
 
     private bool playerNear = false;
 
@@ -30,7 +31,14 @@ public class VillageMarketTransition : MonoBehaviour
 
     void Update()
     {
-        if (playerNear && Input.GetKeyDown(interactKey))
+        if (!playerNear) return;
+
+        // Hỗ trợ cả Input System mới (Keyboard.current) và Input cũ
+        bool pressedE = (Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame)
+                        || Input.GetKeyDown(KeyCode.E)
+                        || Input.GetKeyDown(interactKey);
+
+        if (pressedE)
         {
             TryTransition();
         }
@@ -81,9 +89,34 @@ public class VillageMarketTransition : MonoBehaviour
         if (other.CompareTag("Player"))
         {
             playerNear = true;
-            if (pressTextUI != null)
+
+            // Ẩn UI cũ nếu có, ưu tiên dùng banner xanh của GameManager
+            if (pressTextUI != null) pressTextUI.SetActive(false);
+
+            if (GameManager.Instance != null)
             {
-                pressTextUI.SetActive(true);
+                string msg = null;
+                var day = GameManager.Instance.currentDay;
+
+                if (portalType == PortalType.ToMarket)
+                {
+                    // Tùy ngày mà gợi ý câu khác nhau cho hợp nhiệm vụ
+                    if (day == GameManager.TetDay.Day29)
+                    {
+                        msg = "Nhấn <color=yellow><b>E</b></color> để ra chợ Tết mua mai và chuẩn bị đồ Tết.";
+                    }
+                    else
+                    {
+                        msg = "Nhấn <color=yellow><b>E</b></color> để ra chợ Tết.";
+                    }
+                }
+                else if (portalType == PortalType.ToVillage)
+                {
+                    msg = "Nhấn <color=yellow><b>E</b></color> để quay lại làng.";
+                }
+
+                if (!string.IsNullOrEmpty(msg))
+                    GameManager.Instance.HienThongBao(msg);
             }
         }
     }
@@ -93,10 +126,7 @@ public class VillageMarketTransition : MonoBehaviour
         if (other.CompareTag("Player"))
         {
             playerNear = false;
-            if (pressTextUI != null)
-            {
-                pressTextUI.SetActive(false);
-            }
+            if (pressTextUI != null) pressTextUI.SetActive(false);
         }
     }
 }

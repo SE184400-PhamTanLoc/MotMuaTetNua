@@ -264,6 +264,17 @@ public class BanhTetMinigame : MonoBehaviour
 
     public void StartGame()
     {
+        if (GameManager.Instance != null && GameManager.Instance.currentDay != GameManager.TetDay.Day30)
+        {
+            GameManager.Instance.HienThongBao("Chưa đến lúc gói bánh đâu con.");
+            return;
+        }
+        // Tất cả nhiệm vụ ngày 30 (gói bánh, canh nồi, mâm cúng) đều phải được kích hoạt qua Mẹ
+        if (GameManager.Instance != null && !GameManager.Instance.daNhanNhiemVuNgay30TuMe)
+        {
+            GameManager.Instance.HienThongBao("Hãy hỏi Mẹ xem hôm nay cần làm gì đã.");
+            return;
+        }
         _isGameActive = true;
         _currentSequenceIndex = 0;
         panel.SetActive(true);
@@ -356,7 +367,9 @@ public class BanhTetMinigame : MonoBehaviour
         
         if (GameManager.Instance != null)
         {
+            GameManager.Instance.daGoiBanhTet = true;
             GameManager.Instance.HienThongBao("Bạn đã hoàn thành gói bánh Tét cùng Mẹ!");
+            GameManager.Instance.OnNhiemVuThayDoi?.Invoke();
         }
     }
 

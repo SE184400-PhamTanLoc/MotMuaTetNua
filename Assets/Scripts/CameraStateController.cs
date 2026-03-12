@@ -16,6 +16,7 @@ public class CameraStateController : MonoBehaviour
     private MouseLook mouseLook;
     
     // Camera rotation
+    public float XRotation { get => xRotation; set => xRotation = value; }
     private float xRotation = 0f;
     private float sittingBaseYRotation = 0f; // Góc nhìn ban đầu khi ngồi
     
@@ -62,9 +63,9 @@ public class CameraStateController : MonoBehaviour
             Input.GetAxisRaw("Mouse X"),
             Input.GetAxisRaw("Mouse Y")
         );
-
         float dt = Time.unscaledDeltaTime;
-        Vector2 targetDelta = rawDelta * mouseSensitivity * dt;
+        // Đồng nhất với MouseLook: dùng 0.5f scale và không nhân dt ở đây.
+        Vector2 targetDelta = rawDelta * (mouseSensitivity * 0.5f); 
         float blend = 1f - Mathf.Exp(-mouseSmoothing * dt);
         smoothedMouseDelta = Vector2.Lerp(smoothedMouseDelta, targetDelta, blend);
         return smoothedMouseDelta;
@@ -81,6 +82,24 @@ public class CameraStateController : MonoBehaviour
             previousState != GameState.AlbumInteractable)
         {
             ResetToSittingRotation();
+        }
+
+        // ĐỒNG BỘ X-ROTATION khi chuyển từ Free sang Limited (hoặc ngược lại nếu cần)
+        if (currentState != GameState.State1_FreeOnlyChair && previousState == GameState.State1_FreeOnlyChair)
+        {
+            if (mouseLook != null)
+            {
+                xRotation = mouseLook.XRotation;
+                Debug.Log($"[CameraStateController] Đồng bộ X từ MouseLook: {xRotation}");
+            }
+        }
+        else if (currentState == GameState.State1_FreeOnlyChair && previousState != GameState.State1_FreeOnlyChair)
+        {
+             if (mouseLook != null)
+             {
+                 mouseLook.XRotation = xRotation;
+                 Debug.Log($"[CameraStateController] Trả lại X cho MouseLook: {xRotation}");
+             }
         }
         
         // Xử lý theo từng state
@@ -127,6 +146,7 @@ public class CameraStateController : MonoBehaviour
                 
             default:
                 // State1_FreeOnlyChair: xoay tự do (MouseLook xử lý)
+                smoothedMouseDelta = Vector2.zero;
                 break;
         }
         
@@ -144,8 +164,8 @@ public class CameraStateController : MonoBehaviour
         
         // Giới hạn xoay 180 độ từ góc nhìn ban đầu
         Vector2 mouseDelta = ReadSmoothedMouseDelta();
-        float mouseX = mouseDelta.x;
-        float mouseY = mouseDelta.y;
+        float mouseX = mouseDelta.x * Time.unscaledDeltaTime;
+        float mouseY = mouseDelta.y * Time.unscaledDeltaTime;
         
         xRotation -= mouseY;
         xRotation = Mathf.Clamp(xRotation, -80f, 80f);
@@ -224,8 +244,11 @@ public class CameraStateController : MonoBehaviour
     public void SetSittingRotation(float baseYRotation)
     {
         sittingBaseYRotation = baseYRotation;
-        xRotation = 0f;
-        isFocusingAlbum = false; // Reset khi ngồi lại
+        // KHÔNG reset xRotation về 0, để giữ hướng nhìn hiện tại của người chơi cho mượt
+        Vector3 currentRot = transform.localRotation.eulerAngles;
+        xRotation = NormalizePitch(currentRot.x);
+        isFocusingAlbum = false; 
+        Debug.Log($"[CameraStateController] SetSittingRotation: {baseYRotation}, X preserved: {xRotation}");
     }
     
     // Được gọi khi chuyển sang AlbumInteractable để quay lại góc nhìn ban đầu
@@ -235,7 +258,9 @@ public class CameraStateController : MonoBehaviour
         {
             playerBody.rotation = Quaternion.Euler(0f, sittingBaseYRotation, 0f);
         }
-        xRotation = 0f;
+        // Khi reset về vị trí ngồi chuẩn, có thể lướt nhẹ về 0 hoặc giữ nguyên.
+        // Ở đây ta giữ nguyên để tránh bị "giật" ngược lại.
         isFocusingAlbum = false;
+        Debug.Log("[CameraStateController] ResetToSittingRotation (Pitch kept)");
     }
 }

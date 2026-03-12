@@ -1,0 +1,287 @@
+using UnityEngine;
+using UnityEngine.UI;
+using UnityEngine.SceneManagement;
+
+/// <summary>
+/// Tự động setup các component tương tác cho cảnh RoomVillage
+/// </summary>
+public class RoomVillageSetup : MonoBehaviour
+{
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+    private static void TuDongSetup()
+    {
+        // Lấy tên scene hiện tại
+        string sceneName = SceneManager.GetActiveScene().name;
+
+        // Nếu không phải scene RoomVillage hoặc VillageScene thì bỏ qua
+        if (sceneName != "RoomVillage" && sceneName != "VillageScene")
+        {
+            return;
+        }
+
+        Debug.Log("<color=cyan>===================================</color>");
+        Debug.Log("<color=cyan>[RoomVillageSetup] 🏠 Bắt đầu tự động setup game RoomVillage...</color>");
+        Debug.Log("<color=cyan>===================================</color>");
+
+        GameObject setupObj = new GameObject("_RoomVillageSetup_Runner");
+        DontDestroyOnLoad(setupObj);
+
+        // Tạo Manager
+        if (Object.FindFirstObjectByType<RoomVillageManager>() == null)
+        {
+            GameObject rmObj = new GameObject("RoomVillageManager");
+            rmObj.AddComponent<RoomVillageManager>();
+            Debug.Log("[RoomVillageSetup] Đã tạo RoomVillageManager.");
+        }
+
+        // Tạo AltarCleaningMinigame manager
+        if (Object.FindFirstObjectByType<AltarCleaningMinigame>() == null)
+        {
+            GameObject minigameObj = new GameObject("AltarCleaningMinigame");
+            minigameObj.AddComponent<AltarCleaningMinigame>();
+            Debug.Log("[RoomVillageSetup] Đã tạo AltarCleaningMinigame.");
+        }
+
+        // Tạo YardSweepingMinigame manager
+        if (Object.FindFirstObjectByType<YardSweepingMinigame>() == null)
+        {
+            GameObject yardMinigameObj = new GameObject("YardSweepingMinigame");
+            yardMinigameObj.AddComponent<YardSweepingMinigame>();
+            Debug.Log("[RoomVillageSetup] Đã tạo YardSweepingMinigame.");
+        }
+
+        // Setup Flashback UI
+        TaoFlashbackUI();
+
+        // Setup các object tương tác
+        setupObj.AddComponent<RoomVillageSetupRunner>();
+    }
+
+    private static void TaoFlashbackUI()
+    {
+        if (Object.FindFirstObjectByType<FlashbackController>() != null) return;
+
+        Canvas canvas = Object.FindFirstObjectByType<Canvas>();
+        if (canvas == null)
+        {
+            Debug.LogError("[RoomVillageSetup] Không tìm thấy Canvas để tạo Flashback UI");
+            return;
+        }
+
+        GameObject panel = new GameObject("FlashbackPanel");
+        panel.transform.SetParent(canvas.transform, false);
+        
+        RectTransform rect = panel.AddComponent<RectTransform>();
+        rect.anchorMin = Vector2.zero;
+        rect.anchorMax = Vector2.one;
+        rect.offsetMin = Vector2.zero;
+        rect.offsetMax = Vector2.zero;
+
+        Image img = panel.AddComponent<Image>();
+        img.color = Color.white;
+        // if (Resources.Load<Sprite>("FlashbackPhoto") != null) 
+        //    img.sprite = Resources.Load<Sprite>("FlashbackPhoto");
+
+        CanvasGroup cg = panel.AddComponent<CanvasGroup>();
+        cg.alpha = 0;
+
+        FlashbackController controller = panel.AddComponent<FlashbackController>();
+        controller.flashbackPanel = panel;
+        controller.flashbackImage = img;
+        controller.canvasGroup = cg;
+
+        panel.SetActive(false);
+        Debug.Log("[RoomVillageSetup] Đã tạo Flashback UI.");
+    }
+}
+
+public class RoomVillageSetupRunner : MonoBehaviour
+{
+    void Start()
+    {
+        Invoke("SetupInteractions", 0.5f); // Đợi các object load xong
+    }
+
+    void SetupInteractions()
+    {
+        // Sử dụng FindObjectsByType và kiểm tra tên linh hoạt hơn (vì có thể là "BanTho (2)", v.v.)
+        GameObject[] allObjects = GameObject.FindObjectsOfType<GameObject>();
+
+        foreach (var obj in allObjects)
+        {
+            string lowerName = obj.name.ToLower();
+
+            // 1. Nguoi_Me
+            if (lowerName.Contains("nguoi_me"))
+            {
+                if (obj.GetComponent<NguoiMeInteract>() == null)
+                {
+                    obj.AddComponent<NguoiMeInteract>();
+                    Debug.Log("[RoomVillageSetup] ✅ Setup NguoiMeInteract cho " + obj.name);
+                }
+            }
+            // 2. CaiKhan
+            else if (lowerName.Contains("caikhan"))
+            {
+                if (obj.GetComponent<ClothInteract>() == null)
+                {
+                    obj.AddComponent<ClothInteract>();
+                    Debug.Log("[RoomVillageSetup] ✅ Setup ClothInteract cho " + obj.name);
+                }
+            }
+            // 3. BanTho
+            else if (lowerName.Contains("bantho"))
+            {
+                if (obj.GetComponent<AltarInteract>() == null)
+                {
+                    obj.AddComponent<AltarInteract>();
+                    Debug.Log("[RoomVillageSetup] ✅ Setup AltarInteract cho " + obj.name);
+                }
+            }
+            // 4. Thoát (RaKhoiNha / Exit)
+            else if (lowerName.Contains("rakhoinha") || lowerName.Contains("door_exit") || lowerName.Contains("exit"))
+            {
+                if (obj.GetComponent<DoorExit>() == null)
+                {
+                    var de = obj.AddComponent<DoorExit>();
+                    de.sceneName = "VillageScene"; // Chuyển từ RoomVillage ra VillageScene thay vì Day_28
+                    Debug.Log("[RoomVillageSetup] ✅ Setup DoorExit cho " + obj.name + " -> VillageScene");
+                }
+            }
+            // 4b. Vào (VaoTrongNha / Entrance)
+            else if (lowerName.Contains("vaotrongnha") || lowerName.Contains("vaonha") || lowerName.Contains("entrance") || lowerName.Contains("door_enter"))
+            {
+                if (obj.GetComponent<DoorEnter>() == null)
+                {
+                    var den = obj.AddComponent<DoorEnter>();
+                    den.sceneName = "RoomVillage"; // Chuyển từ VillageScene vào lại RoomVillage
+                    Debug.Log("[RoomVillageSetup] ✅ Setup DoorEnter cho " + obj.name + " -> RoomVillage");
+                }
+            }
+            // 5. Cái chổi / Sân (Broom / Yard) - CHỈ setup ở VillageScene
+            else if (lowerName.Contains("caychoi") || lowerName.Contains("broom") || lowerName.Contains("sannha") || lowerName.Contains("yard"))
+            {
+                // Fix: Chỉ gắn YardInteract nếu đang ở đúng scene ngoài sân
+                if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "VillageScene")
+                {
+                    // Ưu tiên vật thể tên "CayChoi" (có hoa văn/tương tác tốt hơn theo hình ảnh user)
+                    if (lowerName == "caychoi")
+                    {
+                         if (obj.GetComponent<YardInteract>() == null)
+                         {
+                             var yi = obj.AddComponent<YardInteract>();
+                             yi.tenNPC = "Cái Chổi";
+                             yi.hanhDongTuongTac = "quét sân";
+                             Debug.Log("[RoomVillageSetup] 🧹 Đã gán thành công vào CayChoi chính: " + obj.name);
+                         }
+                         continue; 
+                    }
+
+                    if (obj.GetComponent<YardInteract>() == null)
+                    {
+                        var yi = obj.AddComponent<YardInteract>();
+                        // Nếu là cái chổi thì đổi tên tương tác
+                        if (lowerName.Contains("caychoi") || lowerName.Contains("broom"))
+                        {
+                            yi.tenNPC = "Cái Chổi";
+                            yi.hanhDongTuongTac = "quét sân";
+                        }
+                        Debug.Log("[RoomVillageSetup] ✅ Setup YardInteract cho " + obj.name);
+                    }
+                }
+            }
+        }
+
+        // --- 6. SETUP PLAYER INTERACTION ---
+        SetupPlayerInteraction();
+
+        // --- 7. CLEANUP CAMERA CONFLICTS (RE-CHECK) ---
+        // --- CAMERA JITTER FIX: Đảm bảo không có 2 script điều phối rotation cùng lúc ---
+        var fpsCtrl = Object.FindFirstObjectByType<StarterAssets.FirstPersonController>();
+        var pMove = Object.FindFirstObjectByType<PlayerMovement>();
+        
+        if (fpsCtrl != null && pMove != null)
+        {
+            Debug.Log("[RoomVillageSetup] ⚠️ Tắt FirstPersonController toàn diện để tránh giật camera");
+            fpsCtrl.enabled = false;
+            
+            // Tắt luôn các component phụ trợ của nó
+            var pInput = fpsCtrl.GetComponent<UnityEngine.InputSystem.PlayerInput>();
+            if (pInput != null) pInput.enabled = false;
+
+            var sInput = fpsCtrl.GetComponent<StarterAssets.StarterAssetsInputs>();
+            if (sInput != null) sInput.enabled = false;
+        }
+
+        // Tắt CinemachineBrain và VirtualCameras nếu có để trả lại quyền điều khiển cho MouseLook
+        var cam = Camera.main;
+        if (cam != null)
+        {
+            var brain = cam.GetComponent("CinemachineBrain");
+            if (brain != null && brain is MonoBehaviour mb) mb.enabled = false;
+        }
+        
+        // Tắt mọi Virtual Cameras để chắc chắn không cái nào "giằng" cam
+        var vCams = Object.FindObjectsByType<MonoBehaviour>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        foreach (var v in vCams)
+        {
+            if (v.GetType().Name.Contains("CinemachineVirtualCamera"))
+            {
+                v.enabled = false;
+                Debug.Log("[RoomVillageSetup] 🛑 Đã tắt Virtual Camera: " + v.name);
+            }
+        }
+
+        // Đảm bảo GameFlow state là State1_FreeOnlyChair để không bị LimitedRotation
+        if (GameFlow.Instance != null)
+        {
+            GameFlow.Instance.currentState = GameState.State1_FreeOnlyChair;
+            Debug.Log("[RoomVillageSetup] 🔄 Force GameFlow state -> State1_FreeOnlyChair");
+        }
+        
+        // Đảm bảo MouseLook có reference tới playerBody
+        var mLook = Object.FindFirstObjectByType<MouseLook>();
+        if (mLook != null && mLook.playerBody == null)
+        {
+            if (pMove != null) mLook.playerBody = pMove.transform;
+            else if (fpsCtrl != null) mLook.playerBody = fpsCtrl.transform;
+            Debug.Log("[RoomVillageSetup] 🎯 Đã gán playerBody cho MouseLook");
+        }
+
+        Destroy(gameObject); // Setup xong thì huỷ runner
+    }
+
+    private static void SetupPlayerInteraction()
+    {
+        // Tìm player đang hoạt động
+        GameObject playerObj = null;
+        var pm = Object.FindObjectOfType<PlayerMovement>();
+        if (pm != null) playerObj = pm.gameObject;
+        
+        if (playerObj == null)
+        {
+            var fpc = Object.FindObjectOfType<StarterAssets.FirstPersonController>();
+            if (fpc != null) playerObj = fpc.gameObject;
+        }
+
+        if (playerObj != null)
+        {
+            var pi = playerObj.GetComponent<PlayerInteraction>();
+            if (pi == null) pi = playerObj.AddComponent<PlayerInteraction>();
+            
+            pi.khoangCachTuongTac = 4.0f; // Tầm tương tác trung bình
+            
+            // Tìm UI Interaction Prompt trong scene nếu chưa có
+            if (pi.goiYTuongTacUI == null)
+            {
+                var canvas = Object.FindObjectOfType<Canvas>();
+                if (canvas != null)
+                {
+                    Transform t = canvas.transform.Find("InteractionPrompt"); // Tên phổ biến
+                    if (t != null) pi.goiYTuongTacUI = t.gameObject;
+                }
+            }
+            Debug.Log("[RoomVillageSetup] ✅ Setup PlayerInteraction trên " + playerObj.name);
+        }
+    }
+}

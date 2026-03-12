@@ -12,13 +12,13 @@ public class RoomVillageManager : MonoBehaviour
     public bool missionActive = false;
     public bool hasCloth = false;
     public bool altarCleaned = false;
-    public bool incenseLit = false;
+    public bool yardSwept = false;
 
     [Header("=== EVENTS ===")]
     public UnityEvent OnMissionStarted;
     public UnityEvent OnClothPickedUp;
     public UnityEvent OnAltarCleaned;
-    public UnityEvent OnIncenseLit;
+    public UnityEvent OnYardSwept;
 
     private void Awake()
     {
@@ -34,7 +34,7 @@ public class RoomVillageManager : MonoBehaviour
         if (OnMissionStarted == null) OnMissionStarted = new UnityEvent();
         if (OnClothPickedUp == null) OnClothPickedUp = new UnityEvent();
         if (OnAltarCleaned == null) OnAltarCleaned = new UnityEvent();
-        if (OnIncenseLit == null) OnIncenseLit = new UnityEvent();
+        if (OnYardSwept == null) OnYardSwept = new UnityEvent();
     }
 
     public void StartMission()
@@ -65,25 +65,25 @@ public class RoomVillageManager : MonoBehaviour
     {
         if (!missionActive || !hasCloth || altarCleaned) return;
         altarCleaned = true;
+        if (GameManager.Instance != null) GameManager.Instance.altarCleaned = true;
         OnAltarCleaned?.Invoke();
         if (GameManager.Instance != null)
         {
-            GameManager.Instance.OnThongBao?.Invoke("Đã lau sạch bàn thờ. Hãy thắp nhang.");
+            GameManager.Instance.OnThongBao?.Invoke("Đã lau sạch bàn thờ.");
             GameManager.Instance.OnNhiemVuThayDoi?.Invoke();
         }
     }
 
-    public void LightIncense()
+    public void SweepYard()
     {
-        if (!altarCleaned || incenseLit) return;
-        incenseLit = true;
-        OnIncenseLit?.Invoke();
+        if (yardSwept) return;
+        yardSwept = true;
+        OnYardSwept?.Invoke();
         if (GameManager.Instance != null)
         {
-            GameManager.Instance.OnThongBao?.Invoke("Đã thắp nhang.");
+            GameManager.Instance.yardSwept = true;
+            GameManager.Instance.OnThongBao?.Invoke("Đã quét sạch lá ngoài sân.");
             GameManager.Instance.OnNhiemVuThayDoi?.Invoke();
         }
-        
-        // Gọi Flashback ở đây hoặc để AltarInteract gọi
     }
 }

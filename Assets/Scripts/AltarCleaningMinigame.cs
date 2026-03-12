@@ -221,6 +221,9 @@ public class AltarCleaningMinigame : MonoBehaviour
         // Gọi manager hoàn thành nhiệm vụ
         if (RoomVillageManager.Instance != null)
             RoomVillageManager.Instance.CleanAltar();
+
+        // Kích hoạt flashback ký ức
+        FlashbackController.Instance?.StartFlashback();
     }
 
     private void UpdateProgressUI()

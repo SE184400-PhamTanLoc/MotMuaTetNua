@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 
 /// <summary>
 /// PlayerInteraction - Gắn vào Player để phát hiện và tương tác với NPC
@@ -8,7 +9,7 @@ using UnityEngine.InputSystem;
 public class PlayerInteraction : MonoBehaviour
 {
     [Header("=== CÀI ĐẶT TƯƠNG TÁC ===")]
-    public float khoangCachTuongTac = 5f;
+    public float khoangCachTuongTac = 3f; // Tầm nhìn ~3m như yêu cầu
     public LayerMask npcLayer;
 
     [Header("=== UI ===")]
@@ -22,6 +23,28 @@ public class PlayerInteraction : MonoBehaviour
         _mainCamera = Camera.main;
         if (goiYTuongTacUI != null)
             goiYTuongTacUI.SetActive(false);
+        else
+        {
+            // Fallback: Tìm UI gợi ý trong Canvas
+            var canvas = FindObjectOfType<Canvas>();
+            if (canvas != null)
+            {
+                Transform t = canvas.transform.Find("InteractionPrompt");
+                if (t != null) goiYTuongTacUI = t.gameObject;
+                else
+                {
+                    // Tìm bất kỳ object nào có tên chứa Interaction hoặc GoiY
+                    foreach (Transform child in canvas.transform)
+                    {
+                        if (child.name.ToLower().Contains("interaction") || child.name.ToLower().Contains("goiy"))
+                        {
+                            goiYTuongTacUI = child.gameObject;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private void Update()
@@ -38,15 +61,32 @@ public class PlayerInteraction : MonoBehaviour
 
     private void KiemTraNPC()
     {
-        NPCBase[] tatCaNPC = FindObjectsOfType<NPCBase>();
+        // Sử dụng Physics.OverlapSphere để kiểm tra các collider xung quanh trong layer NPC.
+        // Bán kính quét rộng hơn một chút theo chiều dọc để bắt được các object có pivot ở trên cao (cổng, bảng hiệu...),
+        // nhưng khi so sánh khoảng cách thì chỉ tính theo mặt phẳng ngang (XZ) để đúng với "tầm 3m" quanh người chơi.
+        float physicsRadius = khoangCachTuongTac + 2f;
+        Collider[] hitColliders = Physics.OverlapSphere(transform.position, physicsRadius, npcLayer);
+        
+        if (hitColliders.Length > 0 && Time.frameCount % 60 == 0) 
+            Debug.Log($"[PlayerInteraction] Thấy {hitColliders.Length} vật thể trên Layer 6 xung quanh.");
+
         NPCBase npcGanNhat = null;
         float khoangCachGanNhat = khoangCachTuongTac;
 
-        foreach (var npc in tatCaNPC)
+        foreach (var hitCollider in hitColliders)
         {
-            if (!npc.coTheTuongTac) continue;
+            NPCBase npc = hitCollider.GetComponentInParent<NPCBase>();
+            if (npc == null || !npc.coTheTuongTac) 
+            {
+                if (npc == null && Time.frameCount % 60 == 0)
+                    Debug.Log($"[PlayerInteraction] Vật thể {hitCollider.name} không có NPCBase.");
+                continue;
+            }
 
-            float khoangCach = Vector3.Distance(transform.position, npc.transform.position);
+            // Khoảng cách theo mặt phẳng ngang (bỏ qua chênh lệch độ cao)
+            Vector2 playerXZ = new Vector2(transform.position.x, transform.position.z);
+            Vector2 npcXZ = new Vector2(npc.transform.position.x, npc.transform.position.z);
+            float khoangCach = Vector2.Distance(playerXZ, npcXZ);
             if (khoangCach < khoangCachGanNhat)
             {
                 khoangCachGanNhat = khoangCach;
@@ -56,13 +96,41 @@ public class PlayerInteraction : MonoBehaviour
 
         if (npcGanNhat != null)
         {
-            _npcHienTai = npcGanNhat;
-            HienGoiY(npcGanNhat.tenNPC);
+            if (_npcHienTai != npcGanNhat)
+            {
+                _npcHienTai = npcGanNhat;
+                Debug.Log($"[PlayerInteraction] 🎯 Phát hiện NPC mới: {npcGanNhat.tenNPC} ở khoảng cách {khoangCachGanNhat:F2}");
+                HienGoiY(npcGanNhat.tenNPC);
+
+                // Đồng thời bắn một thông báo xanh ở trên (giống các chỗ khác)
+                if (GameManager.Instance != null)
+                {
+                    string msg = null;
+
+                    if (npcGanNhat is YardInteract)
+                    {
+                        msg = "Nhấn <color=yellow><b>E</b></color> để quét sân cùng Cái Chổi";
+                    }
+                    else if (npcGanNhat is DoorEnter || npcGanNhat is DoorExit)
+                    {
+                        // Dùng đúng câu chữ theo cấu hình tenNPC + hanhDongTuongTac
+                        msg = $"Nhấn <color=yellow><b>E</b></color> để <b>{npcGanNhat.hanhDongTuongTac} {npcGanNhat.tenNPC}</b>";
+                    }
+
+                    if (!string.IsNullOrEmpty(msg))
+                    {
+                        GameManager.Instance.HienThongBao(msg);
+                    }
+                }
+            }
         }
         else
         {
-            _npcHienTai = null;
-            AnGoiY();
+            if (_npcHienTai != null)
+            {
+                _npcHienTai = null;
+                AnGoiY();
+            }
         }
     }
 
@@ -77,6 +145,13 @@ public class PlayerInteraction : MonoBehaviour
 
     private void HienGoiY(string tenNPC)
     {
+        // Với mọi cửa (vào nhà / ra sân / cổng làng đi chợ), chỉ dùng banner xanh ở trên,
+        // KHÔNG hiện ô đen giữa màn hình.
+        if (_npcHienTai is DoorEnter || _npcHienTai is DoorExit)
+        {
+            return;
+        }
+
         if (goiYTuongTacUI != null)
         {
             goiYTuongTacUI.SetActive(true);
@@ -84,7 +159,15 @@ public class PlayerInteraction : MonoBehaviour
             if (tmp != null && _npcHienTai != null)
             {
                 // Sử dụng màu vàng đậm và outline đen để dễ đọc trên nền sáng/tối
-                tmp.text = $"Nhấn <color=yellow><b>E</b></color> để <b>{_npcHienTai.hanhDongTuongTac}</b> với <b>{tenNPC}</b>";
+                if (tenNPC.Contains("ra sân") || tenNPC.Contains("vào nhà") || tenNPC.Contains("Cửa")
+                    || tenNPC.Contains("chợ") || tenNPC.Contains("làng"))
+                {
+                    tmp.text = $"Nhấn <color=yellow><b>E</b></color> để <b>{_npcHienTai.hanhDongTuongTac} {tenNPC}</b>";
+                }
+                else
+                {
+                    tmp.text = $"Nhấn <color=yellow><b>E</b></color> để <b>{_npcHienTai.hanhDongTuongTac}</b> với <b>{tenNPC}</b>";
+                }
             }
         }
     }

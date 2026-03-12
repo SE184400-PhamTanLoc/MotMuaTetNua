@@ -27,46 +27,77 @@ public class AltarInteract : NPCBase
             return;
         }
 
-        if (!RoomVillageManager.Instance.hasCloth)
+        if (GameManager.Instance.currentDay == GameManager.TetDay.Day29)
         {
-            var nodes = new System.Collections.Generic.List<DialogueManager.DialogueNode> {
-                new DialogueManager.DialogueNode { tenNguoiNoi = "Bản thân", noiDung = "Mình cần tìm khăn để lau bàn thờ trước." }
-            };
-            DialogueManager.Instance.BatDauHoiThoai(nodes);
-            KetThucTuongTac();
-            return;
-        }
-
-        if (!RoomVillageManager.Instance.altarCleaned)
-        {
-            // Mở minigame lau bàn thờ thay vì hoàn thành ngay
-            if (AltarCleaningMinigame.Instance != null)
+            if (!RoomVillageManager.Instance.hasCloth)
             {
-                AltarCleaningMinigame.Instance.OpenMinigame();
+                var nodes = new System.Collections.Generic.List<DialogueManager.DialogueNode> {
+                    new DialogueManager.DialogueNode { tenNguoiNoi = "Bản thân", noiDung = "Mình cần tìm khăn để lau bàn thờ trước." }
+                };
+                DialogueManager.Instance.BatDauHoiThoai(nodes);
+                KetThucTuongTac();
+                return;
+            }
+
+            if (!RoomVillageManager.Instance.altarCleaned)
+            {
+                if (AltarCleaningMinigame.Instance != null)
+                    AltarCleaningMinigame.Instance.OpenMinigame();
+                else
+                {
+                    RoomVillageManager.Instance.CleanAltar();
+                    FlashbackController.Instance?.StartFlashback();
+                }
+                KetThucTuongTac();
+                return;
+            }
+
+            DialogueManager.Instance.BatDauHoiThoai(new System.Collections.Generic.List<DialogueManager.DialogueNode> {
+                new DialogueManager.DialogueNode { tenNguoiNoi = "Bản thân", noiDung = "Bàn thờ đã được dọn dẹp sạch sẽ cho ngày Tết." }
+            });
+        }
+        else if (GameManager.Instance.currentDay == GameManager.TetDay.Day30)
+        {
+            if (!GameManager.Instance.daCanhNoiBanh)
+            {
+                DialogueManager.Instance.BatDauHoiThoai(new System.Collections.Generic.List<DialogueManager.DialogueNode> {
+                    new DialogueManager.DialogueNode { tenNguoiNoi = "Bản thân", noiDung = "Đợi vớt bánh xong rồi mới chuẩn bị mâm cúng được." }
+                });
+            }
+            else if (!GameManager.Instance.daChuanBiMamCung)
+            {
+                if (!GameManager.Instance.daNhanNhiemVuNgay30TuMe)
+                {
+                    DialogueManager.Instance.BatDauHoiThoai(new System.Collections.Generic.List<DialogueManager.DialogueNode> {
+                        new DialogueManager.DialogueNode { tenNguoiNoi = "Bản thân", noiDung = "Mình nên hỏi Mẹ xem cần bày mâm cúng thế nào đã." }
+                    });
+                }
+                else if (GameManager.Instance.DaThuThapDuNguQua() && GameManager.Instance.daGoiBanhTet)
+                {
+                    DialogueManager.Instance.BatDauHoiThoai(new System.Collections.Generic.List<DialogueManager.DialogueNode> {
+                        new DialogueManager.DialogueNode { tenNguoiNoi = "Bản thân", noiDung = "Mâm ngũ quả và bánh Tét đã sẵn sàng. Con xin dâng lên ông bà tổ tiên." }
+                    }, () => {
+                        GameManager.Instance.daChuanBiMamCung = true;
+                        GameManager.Instance.OnThongBao?.Invoke("Đã chuẩn bị xong mâm cúng Giao Thừa!");
+                        GameManager.Instance.OnNhiemVuThayDoi?.Invoke();
+                        // Kích hoạt sự kiện Giao Thừa
+                        NewYearsEveManager.Instance?.StartCountdown();
+                    });
+                }
+                else
+                {
+                    DialogueManager.Instance.BatDauHoiThoai(new System.Collections.Generic.List<DialogueManager.DialogueNode> {
+                        new DialogueManager.DialogueNode { tenNguoiNoi = "Bản thân", noiDung = "Mình cần chuẩn bị đủ mâm ngũ quả và bánh Tét để cúng bái." }
+                    });
+                }
             }
             else
             {
-                // Fallback nếu chưa có minigame trong scene
-                RoomVillageManager.Instance.CleanAltar();
+                DialogueManager.Instance.BatDauHoiThoai(new System.Collections.Generic.List<DialogueManager.DialogueNode> {
+                    new DialogueManager.DialogueNode { tenNguoiNoi = "Bản thân", noiDung = "Mâm cúng đã được sửa soạn chu đáo." }
+                });
             }
-            KetThucTuongTac();
-            return;
         }
-
-        if (!RoomVillageManager.Instance.incenseLit)
-        {
-            RoomVillageManager.Instance.LightIncense();
-            
-            // Kích hoạt flashback
-            FlashbackController.Instance?.StartFlashback();
-            KetThucTuongTac();
-            return;
-        }
-        
-        var endNodes = new System.Collections.Generic.List<DialogueManager.DialogueNode> {
-            new DialogueManager.DialogueNode { tenNguoiNoi = "Bản thân", noiDung = "Bàn thờ đã được dọn dẹp sạch sẽ và thắp nhang." }
-        };
-        DialogueManager.Instance.BatDauHoiThoai(endNodes);
         KetThucTuongTac();
     }
 }

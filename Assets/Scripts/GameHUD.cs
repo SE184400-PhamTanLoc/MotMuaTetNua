@@ -90,12 +90,13 @@ public class GameHUD : MonoBehaviour
                     batDauPanel.SetActive(true);
                     if (batDauText != null)
                     {
-                        batDauText.text = "[ NHIỆM VỤ NGÀY TẾT ]\n\n" +
-                                         "Mẹ dặn bạn ra chợ Tết chọn mua một cây mai thật đẹp về chưng nhà cho có không khí.\n\n" +
-                                         "- <b>Nhiệm vụ 1:</b> Tìm cô gái bán mai và mua 1 cây (Nho/Lớn).\n" +
-                                         "- <b>Nhiệm vụ 2:</b> Mua đầy đủ nguyên liệu để gói bánh chưng.\n" +
-                                         "- <b>Nhiệm vụ 3:</b> Thu thập đủ 4 loại trái cây chưng mâm Ngũ Quả.\n\n" +
-                                         "<size=22><i>(Nhấn Space hoặc nút bên dưới để bắt đầu)</i></size>";
+                        // Đồng bộ nội dung với bảng nhiệm vụ (LayMoTaNhiemVu của GameManager)
+                        string tasks = GameManager.Instance.LayMoTaNhiemVu();
+                        batDauText.text =
+                            "<color=#FFD700><b>[ NHIỆM VỤ NGÀY TẾT ]</b></color>\n\n" +
+                            "Mẹ dặn bạn ra chợ Tết chọn mua một cây mai thật đẹp và sắm sửa đầy đủ cho ngày 29 Tết.\n\n" +
+                            tasks + "\n\n" +
+                            "<size=22><i>(Nhấn Space hoặc nút bên dưới để bắt đầu)</i></size>";
                     }
                     Button btn = batDauPanel.GetComponentInChildren<Button>();
                     if (btn != null) btn.onClick.AddListener(DongBatDauPanel);
@@ -107,15 +108,29 @@ public class GameHUD : MonoBehaviour
             }
             else if (sceneName == "VillageScene" || sceneName == "RoomVillage")
             {
-                Debug.Log($"[GameHUD] Entering {sceneName}, showing Intro Panel.");
+                bool daXongMoiThu = GameManager.Instance.daMangMaiVeMe && 
+                                   GameManager.Instance.DaThuThapDuNguyenLieu() && 
+                                   GameManager.Instance.DaThuThapDuNguQua();
+
                 batDauPanel.SetActive(true);
                 if (batDauText != null)
                 {
-                    batDauText.text = "<color=#FFD700><b>[ CHUẨN BỊ ĐÓN TẾT ]</b></color>\n\n" +
-                                     "Chào mừng con đã về nhà! Đồ đạc sắm sửa đã đủ cả rồi.\n\n" +
-                                     "Bây giờ hãy vào <color=red><b>Nhà Nhiệm Vụ</b></color> (có quả cầu đỏ ở cửa) để cùng Mẹ gói những đòn bánh Tét nhé!\n\n" +
-                                     "- <b>Nhiệm vụ:</b> Đến gặp Mẹ tại Nhà Nhiệm Vụ.\n\n" +
-                                     "<size=22><i>(Nhấn Space hoặc nút bên dưới để bắt đầu)</i></size>";
+                    if (daXongMoiThu)
+                    {
+                        batDauText.text = "<color=#FFD700><b>[ CHUẨN BỊ ĐÓN TẾT ]</b></color>\n\n" +
+                                         "Chào mừng con đã về nhà! Đồ đạc sắm sửa đã đủ cả rồi.\n\n" +
+                                         "Bây giờ hãy vào <color=red><b>Nhà</b></color> (có quả cầu đỏ ở cửa) để cùng Mẹ lau dọn bàn thờ đón Tết nhé!\n\n" +
+                                         "- <b>Nhiệm vụ:</b> Đến gặp Mẹ tại Nhà để nhận việc.\n\n" +
+                                         "<size=22><i>(Nhấn Space hoặc nút bên dưới để bắt đầu)</i></size>";
+                    }
+                    else
+                    {
+                        batDauText.text = "<color=#FFD700><b>[ VỀ NHÀ ĂN TẾT ]</b></color>\n\n" +
+                                         "Dù đồ sắm Tết chưa đủ, nhưng mẹ đã gọi về gấp để dọn dẹp nhà cửa.\n\n" +
+                                         "Hãy vào gặp Mẹ để xem cần giúp gì nhé!\n\n" +
+                                         "- <b>Nhiệm vụ:</b> Tìm gặp Mẹ.\n\n" +
+                                         "<size=22><i>(Nhấn Space hoặc nút bên dưới để bắt đầu)</i></size>";
+                    }
                 }
                 Button btn = batDauPanel.GetComponentInChildren<Button>();
                 if (btn != null) {

@@ -17,6 +17,13 @@ public class GoiBanhTrigger : MonoBehaviour
     {
         if (_playerInZone && GameManager.Instance != null)
         {
+            // CHỈ cho phép gói bánh NẾU đã quét sân xong
+            if (!GameManager.Instance.yardSwept)
+            {
+                if (_goiYUI != null) _goiYUI.SetActive(false);
+                return;
+            }
+
             if (GameManager.Instance != null && !_hasNotifiedThisEntry)
             {
                 GameManager.Instance.HienThongBao("Nhấn <color=yellow><b>E</b></color> để bắt đầu gói bánh Tét cùng Mẹ");

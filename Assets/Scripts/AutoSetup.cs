@@ -79,6 +79,44 @@ public class AutoSetup : MonoBehaviour
         }
     }
 
+    private static void SetupNewManagers(GameObject runner)
+    {
+        if (NewYearsEveManager.Instance == null) runner.AddComponent<NewYearsEveManager>();
+        if (Mung1Manager.Instance == null) runner.AddComponent<Mung1Manager>();
+        if (FamilyPhotoMinigame.Instance == null)
+        {
+            FamilyPhotoMinigame photo = runner.AddComponent<FamilyPhotoMinigame>();
+            // Setup UI for FamilyPhoto
+            GameObject canvas = GameObject.Find("GameplayCanvas");
+            if (canvas != null)
+            {
+                GameObject panel = new GameObject("FamilyPhotoPanel");
+                panel.transform.SetParent(canvas.transform, false);
+                photo.panel = panel;
+                
+                GameObject flash = new GameObject("FlashOverlay");
+                flash.transform.SetParent(panel.transform, false);
+                Image fImg = flash.AddComponent<Image>();
+                fImg.color = new Color(1, 1, 1, 0);
+                RectTransform fRect = flash.GetComponent<RectTransform>();
+                fRect.anchorMin = Vector2.zero;
+                fRect.anchorMax = Vector2.one;
+                fRect.offsetMin = Vector2.zero;
+                fRect.offsetMax = Vector2.zero;
+                photo.flashOverlay = fImg;
+
+                GameObject text = new GameObject("CountdownText");
+                text.transform.SetParent(panel.transform, false);
+                TextMeshProUGUI tmp = text.AddComponent<TextMeshProUGUI>();
+                tmp.fontSize = 100;
+                tmp.alignment = TextAlignmentOptions.Center;
+                photo.countdownText = tmp;
+                
+                panel.SetActive(false);
+            }
+        }
+    }
+
     private static void TuDongSetup()
     {
         // Lấy tên scene hiện tại
@@ -154,6 +192,7 @@ public class AutoSetup : MonoBehaviour
         // Setup Player
         try { SetupPlayer(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi Player: " + e.Message); }
         try { SetupGameHUD(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi GameHUD: " + e.Message); }
+        try { SetupNewManagers(setupObj); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi NewManagers: " + e.Message); }
 
         // Setup Scene Specifics
         if (sceneName == "Day_28_Scene")
@@ -162,6 +201,7 @@ public class AutoSetup : MonoBehaviour
         }
         else if (sceneName == "VillageScene")
         {
+            if (GameManager.Instance != null) GameManager.Instance.isVillagePhase = true;
             SetupVillageOutsideOnly();
         }
         else if (sceneName == "RoomVillage" || sceneName == "RoomScene")
@@ -1177,14 +1217,14 @@ public class AutoSetup : MonoBehaviour
 
         Debug.Log($"[AutoSetup] 🎯 Player: {playerObj.name} tại {playerObj.transform.position}");
 
-        // Thu nhỏ CharacterController radius cực linh hoạt để qua cửa sổ/cửa hẹp
+        // Đặt bán kính CharacterController hợp lý để tránh giật camera và kẹt physics
         CharacterController charCtrl = playerObj.GetComponent<CharacterController>();
         if (charCtrl != null)
         {
-            charCtrl.radius = 0.08f; // Thu nhỏ thêm chút nữa
-            charCtrl.stepOffset = 0.4f; // Tăng bước cao hơn để leo qua các bậc cửa
-            charCtrl.slopeLimit = 60f; // Cho phép leo dốc tốt hơn
-            Debug.Log($"[AutoSetup] ✅ Tối ưu CharacterController: radius={charCtrl.radius}, stepOffset={charCtrl.stepOffset}");
+            charCtrl.radius = 0.3f; // Tăng lên 0.3 để ổn định hơn (trước là 0.08 quá nhỏ gây jitter)
+            charCtrl.stepOffset = 0.4f;
+            charCtrl.slopeLimit = 60f;
+            Debug.Log($"[AutoSetup] ✅ Tối ưu CharacterController: radius={charCtrl.radius}");
         }
 
         // Gắn PlayerInteraction
@@ -1192,11 +1232,11 @@ public class AutoSetup : MonoBehaviour
         if (pi == null)
             pi = playerObj.AddComponent<PlayerInteraction>();
 
-        pi.khoangCachTuongTac = 3f; // Khoảng cách tương tác hợp lý
+        pi.khoangCachTuongTac = 3f; // Tầm nhìn ~3m theo yêu cầu
         pi.npcLayer = 1 << 6;
         pi.goiYTuongTacUI = _goiYTuongTacUI;
 
-        Debug.Log("[AutoSetup] ✅ Setup Player hoàn tất");
+        Debug.Log($"[AutoSetup] ✅ Setup Player hoàn tất (Khoảng cách tương tác: {pi.khoangCachTuongTac}, LayerMask: {pi.npcLayer.value})");
     }
 
     // =========================================
@@ -2073,9 +2113,15 @@ public class AutoSetup : MonoBehaviour
         try { SetupPlayer(); } catch {}
         try { SetupGameHUD(); } catch {}
 
+        // Managers đặc thù cho cả trong và ngoài (như quét sân)
+        try { SetupRoomVillageManagers(); } catch {}
+
         // Minigames cụ thể cho khu vực làng (ngoài sân)
         try { BanhTetMinigame.Create(_canvas, _goiYTuongTacUI); } catch {}
         try { CanhNoiBanhMinigame.Create(_canvas, _goiYTuongTacUI); } catch {}
+        
+        // Tự động setup các tương tác làng (Chổi, Cửa)
+        try { SetupVillageInteractions(); } catch {}
     }
 
     private static void SetupVillageOnly()
@@ -2090,6 +2136,161 @@ public class AutoSetup : MonoBehaviour
         try { SetupPlayer(); } catch {}
         try { SetupGameHUD(); } catch {}
         try { SetupDiemTraMai(); } catch {}
+        
+        // Setup các Manager đặc thù cho RoomVillage
+        try { SetupRoomVillageManagers(); } catch {}
+        // Tự động setup các tương tác (Mẹ, Cửa, v.v.)
+        try { SetupVillageInteractions(); } catch {}
+    }
+
+    private static void SetupRoomVillageManagers()
+    {
+        // 1. RoomVillageManager
+        if (Object.FindFirstObjectByType<RoomVillageManager>() == null)
+        {
+            GameObject rmObj = new GameObject("RoomVillageManager");
+            rmObj.AddComponent<RoomVillageManager>();
+        }
+
+        // 2. AltarCleaningMinigame
+        if (Object.FindFirstObjectByType<AltarCleaningMinigame>() == null)
+        {
+            GameObject minigameObj = new GameObject("AltarCleaningMinigame");
+            minigameObj.AddComponent<AltarCleaningMinigame>();
+        }
+
+        // 3. YardSweepingMinigame
+        if (Object.FindFirstObjectByType<YardSweepingMinigame>() == null)
+        {
+            GameObject yardMinigameObj = new GameObject("YardSweepingMinigame");
+            yardMinigameObj.AddComponent<YardSweepingMinigame>();
+        }
+    }
+
+    private static void SetupVillageInteractions()
+    {
+        string sceneName = SceneManager.GetActiveScene().name;
+        Debug.Log($"[AutoSetup] 🔍 Bắt đầu quét tương tác cho scene: {sceneName}");
+        GameObject[] allObjects = GameObject.FindObjectsByType<GameObject>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        Debug.Log($"[AutoSetup] Tìm thấy {allObjects.Length} objects tổng cộng.");
+
+        foreach (var obj in allObjects)
+        {
+            if (obj == null) continue;
+            string lowerName = obj.name.ToLower();
+
+            // 1. Nguoi_Me
+            if (lowerName.Contains("nguoi_me") || lowerName.Contains("mother") || lowerName.Contains("me_npc"))
+            {
+                if (obj.GetComponent<NguoiMeInteract>() == null) obj.AddComponent<NguoiMeInteract>();
+                EnsureNPCCollider(obj);
+                SetLayerRecursive(obj, 6);
+            }
+            // 1b. Ong_Noi (Kiểm tra trước vì "grandfather" chứa "father")
+            else if (lowerName.Contains("ong_noi") || lowerName.Contains("grandfather") || lowerName.Contains("ongnoi"))
+            {
+                if (obj.GetComponent<OngNoiInteract>() == null)
+                {
+                    obj.AddComponent<OngNoiInteract>();
+                    Debug.Log($"[AutoSetup] 👨‍🦳 Gắn OngNoiInteract cho: {obj.name}");
+                }
+                EnsureNPCCollider(obj);
+                SetLayerRecursive(obj, 6);
+            }
+            // 1c. Nguoi_Bo
+            else if (lowerName.Contains("nguoi_bo") || lowerName.Contains("father") || lowerName.Contains("bo_npc") || lowerName.Contains("nguoibo"))
+            {
+                if (obj.GetComponent<NguoiBoInteract>() == null)
+                {
+                    obj.AddComponent<NguoiBoInteract>();
+                    Debug.Log($"[AutoSetup] 👨 Gắn NguoiBoInteract cho: {obj.name}");
+                }
+                EnsureNPCCollider(obj);
+                SetLayerRecursive(obj, 6);
+            }
+            // 2. CaiKhan
+            else if (lowerName.Contains("caikhan"))
+            {
+                if (obj.GetComponent<ClothInteract>() == null) obj.AddComponent<ClothInteract>();
+                EnsureNPCCollider(obj, true); // Use Box for items
+                SetLayerRecursive(obj, 6);
+            }
+            // 3. BanTho
+            else if (lowerName.Contains("bantho"))
+            {
+                if (obj.GetComponent<AltarInteract>() == null) obj.AddComponent<AltarInteract>();
+                EnsureNPCCollider(obj, true);
+                SetLayerRecursive(obj, 6);
+            }
+            // 4. Thoát (RaKhoiNha / Exit) - Thường trong RoomVillage để ra ngoài
+            else if (lowerName.Contains("rakhoinha") || lowerName.Contains("door_exit") || lowerName.Contains("exit") || lowerName.Contains("door_to_village") || (sceneName == "RoomVillage" && (lowerName.Contains("door") || lowerName.Contains("gate") || lowerName.Contains("cong"))))
+            {
+                if (obj.GetComponent<DoorExit>() == null)
+                {
+                    obj.AddComponent<DoorExit>();
+                    Debug.Log($"[AutoSetup] 🚪 PHÁT HIỆN CỬA RA: {obj.name} -> Gắn DoorExit");
+                }
+                var de = obj.GetComponent<DoorExit>();
+                de.sceneName = "VillageScene";
+                de.hanhDongTuongTac = "ra ngoài";
+                
+                EnsureNPCCollider(obj, true);
+                SetLayerRecursive(obj, 6);
+            }
+            // 5. Vào (VaoTrongNha / Entrance) - Thường trong VillageScene để vào nhà
+            else if (lowerName.Contains("vaotrongnha") || lowerName.Contains("vaonha") || lowerName.Contains("entrance") || lowerName.Contains("door_to_room") || (sceneName == "VillageScene" && (lowerName.Contains("door") || lowerName.Contains("gate"))))
+            {
+                if (obj.GetComponent<DoorEnter>() == null)
+                {
+                    obj.AddComponent<DoorEnter>();
+                    Debug.Log($"[AutoSetup] 🚪 Gắn DoorEnter cho: {obj.name}");
+                }
+                var den = obj.GetComponent<DoorEnter>();
+                den.sceneName = "RoomVillage";
+                den.hanhDongTuongTac = "vào nhà";
+                
+                EnsureNPCCollider(obj, true);
+                SetLayerRecursive(obj, 6);
+            }
+            // 6. Cái chổi (Chỉ ở VillageScene)
+            else if (lowerName.Contains("caychoi") || lowerName.Contains("broom") || lowerName.Contains("choi") || lowerName.Contains("quét") || lowerName.Contains("sweeper"))
+            {
+                if (sceneName == "VillageScene")
+                {
+                    // Đảm bảo có Collider để PlayerInteraction phát hiện được
+                    if (obj.GetComponent<Collider>() == null)
+                    {
+                        // Thêm BoxCollider bao quanh mesh
+                        var meshRenderer = obj.GetComponentInChildren<MeshRenderer>();
+                        if (meshRenderer != null)
+                        {
+                            var bc = obj.AddComponent<BoxCollider>();
+                            bc.center = obj.transform.InverseTransformPoint(meshRenderer.bounds.center);
+                            bc.size = obj.transform.InverseTransformVector(meshRenderer.bounds.size) * 1.5f; // To hơn chút cho dễ bấm
+                            bc.isTrigger = true;
+                            Debug.Log($"[AutoSetup] 🛠 Đã tạo BoxCollider (Trigger) cho {obj.name}");
+                        }
+                        else
+                        {
+                            var bc = obj.AddComponent<BoxCollider>();
+                            bc.size = new Vector3(1f, 2f, 1f);
+                            bc.isTrigger = true;
+                            Debug.Log($"[AutoSetup] ⚠️ Không thấy MeshRenderer, tạo BoxCollider mặc định cho {obj.name}");
+                        }
+                    }
+
+                    if (obj.GetComponent<YardInteract>() == null)
+                    {
+                        var yi = obj.AddComponent<YardInteract>();
+                        yi.tenNPC = "Cái Chổi";
+                        yi.hanhDongTuongTac = "quét sân";
+                        Debug.Log($"[AutoSetup] ✅ Đã gắn YardInteract vào {obj.name}");
+                    }
+                    SetLayerRecursive(obj, 6);
+                }
+            }
+        }
+        Debug.Log($"[AutoSetup] 🏁 Hoàn tất quét tương tác.");
     }
 
     private static void SetLayerRecursive(GameObject obj, int layer)
@@ -2098,6 +2299,47 @@ public class AutoSetup : MonoBehaviour
         foreach (Transform child in obj.GetComponentsInChildren<Transform>(true))
         {
             child.gameObject.layer = layer;
+        }
+    }
+
+    private static void EnsureNPCCollider(GameObject obj, bool useBox = false)
+    {
+        // Xóa collider cũ nếu nó không phải là trigger hoặc ở sai layer (để setup lại cho chuẩn)
+        Collider oldCol = obj.GetComponent<Collider>();
+        if (oldCol != null && (!oldCol.isTrigger && useBox)) 
+        {
+            // Nếu là vật cản vật lý cố định, có thể để lại, nhưng ta cần trigger để tương tác
+        }
+
+        if (useBox)
+        {
+            BoxCollider bc = obj.GetComponent<BoxCollider>();
+            if (bc == null) bc = obj.AddComponent<BoxCollider>();
+            
+            bc.isTrigger = true; // Luôn để trigger cho tương tác
+            
+            Renderer rend = obj.GetComponentInChildren<Renderer>();
+            if (rend != null)
+            {
+                bc.center = obj.transform.InverseTransformPoint(rend.bounds.center);
+                bc.size = obj.transform.InverseTransformVector(rend.bounds.size) * 1.2f; // To hơn 20% cho dễ trúng
+            }
+            else
+            {
+                bc.size = new Vector3(1.5f, 2f, 1.5f);
+                bc.center = new Vector3(0, 1f, 0);
+            }
+        }
+        else
+        {
+            if (obj.GetComponent<Collider>() == null)
+            {
+                var cc = obj.AddComponent<CapsuleCollider>();
+                cc.center = new Vector3(0, 1f, 0);
+                cc.radius = 0.5f;
+                cc.height = 2f;
+                cc.isTrigger = false;
+            }
         }
     }
 

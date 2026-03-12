@@ -28,7 +28,18 @@ public class FlashbackController : MonoBehaviour
     {
         if (flashbackPanel != null)
         {
-            StartCoroutine(FlashbackRoutine());
+            flashbackPanel.SetActive(true);
+            
+            // Nếu component này bị tắt hoặc GameObject không active, 
+            // ta có thể nhờ RoomVillageManager chạy giùm Coroutine
+            if (RoomVillageManager.Instance != null)
+            {
+                RoomVillageManager.Instance.StartCoroutine(FlashbackRoutine());
+            }
+            else
+            {
+                StartCoroutine(FlashbackRoutine());
+            }
         }
         else
         {
@@ -38,7 +49,7 @@ public class FlashbackController : MonoBehaviour
 
     private IEnumerator FlashbackRoutine()
     {
-        flashbackPanel.SetActive(true);
+        // Đã SetActive ở trên rồi
         
         // Hiện text nếu cần
         if (GameManager.Instance != null)

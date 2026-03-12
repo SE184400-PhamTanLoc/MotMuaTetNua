@@ -18,6 +18,13 @@ public class CanhNoiBanhTrigger : MonoBehaviour
     {
         if (_playerInZone && !_isInteracting)
         {
+            // NẾU đang trong nhiệm vụ quét sân mà chưa xong thì KHÔNG cho canh nồi bánh
+            if (GameManager.Instance != null && GameManager.Instance.daNhanNhiemVuQuetSan && !GameManager.Instance.yardSwept)
+            {
+                if (_interactionUI != null) _interactionUI.SetActive(false);
+                return;
+            }
+
             if (GameManager.Instance != null && !_hasNotifiedThisEntry)
             {
                 GameManager.Instance.HienThongBao("Nhấn <color=yellow><b>E</b></color> để Canh nồi bánh cùng Ông và Bố");
@@ -40,14 +47,7 @@ public class CanhNoiBanhTrigger : MonoBehaviour
             _interactionUI.SetActive(false);
         }
 
-        // Nếu đang trong game, cho phép nhấn E để bốc củi (thêm củi)
-        if (_isInteracting && Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame)
-        {
-            if (CanhNoiBanhMinigame.Instance != null)
-            {
-                CanhNoiBanhMinigame.Instance.AddFirewood();
-            }
-        }
+        // Đã bỏ logic nhấn E ở đây vì đã chuyển vào CanhNoiBanhMinigame.Update
     }
 
     private void OnTriggerEnter(Collider other)
