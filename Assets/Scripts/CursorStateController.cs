@@ -58,6 +58,14 @@ public class CursorStateController : MonoBehaviour
             return;
         }
 
+        // 2.9 Kiểm tra Panel Hoàn Thành
+        if (hud != null && hud.hoanThanhPanel != null && hud.hoanThanhPanel.activeSelf)
+        {
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+            return;
+        }
+
         // Nếu không có GameFlow (ví dụ scene Day_28 không dùng GameFlow)
         // → Khóa cursor mặc định để FirstPersonController hoạt động
         if (GameFlow.Instance == null)

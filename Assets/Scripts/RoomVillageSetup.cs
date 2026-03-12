@@ -13,8 +13,8 @@ public class RoomVillageSetup : MonoBehaviour
         // Lấy tên scene hiện tại
         string sceneName = SceneManager.GetActiveScene().name;
 
-        // Nếu không phải scene RoomVillage thì bỏ qua
-        if (sceneName != "RoomVillage")
+        // Nếu không phải scene RoomVillage hoặc RoomScene thì bỏ qua
+        if (sceneName != "RoomVillage" && sceneName != "RoomScene")
         {
             return;
         }

@@ -11,13 +11,15 @@ public class XapTraiCay : NPCBase
         base.Start();
         quayVePhiaPlayer = false;
 
-        if (GetComponent<Collider>() == null)
+        // Đảm bảo có BoxCollider và là Trigger
+        BoxCollider col = GetComponent<BoxCollider>();
+        if (col == null)
         {
-            var col = gameObject.AddComponent<BoxCollider>();
-            col.isTrigger = true;
-            col.size = new Vector3(3f, 2f, 3f);
-            col.center = new Vector3(0, 1f, 0);
+            col = gameObject.AddComponent<BoxCollider>();
         }
+        col.isTrigger = true;
+        col.size = new Vector3(1.1f, 2f, 1.1f);
+        col.center = new Vector3(0, 1f, 0);
     }
 
     protected override void OnTuongTac()

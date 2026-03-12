@@ -15,6 +15,7 @@ public class GameManager : MonoBehaviour
     public bool daMuaMai = false;
     public bool daLayMai = false; // Cần lấy mai trước khi mang về
     public bool daMangMaiVeMe = false;
+    public bool daKetThucDiCho = false; // Cờ theo dõi xem đã hoàn thành việc đi chợ và trở về làng chưa
 
     [Header("=== NHIỆM VỤ 1: CHUẨN BỊ NGUYÊN LIỆU ===")]
     public bool coLaChuoi = false;
@@ -29,6 +30,9 @@ public class GameManager : MonoBehaviour
     public bool coDuDu = false;
     public bool coXoai = false;
     public bool daNhanNhiemVu2 = false;
+
+    [Header("=== TRẠNG THÁI PHASE CHƠI ===")]
+    public bool isVillagePhase = false;
 
     [Header("=== EVENTS ===")]
     public UnityEvent<int> OnTienThayDoi;
@@ -168,6 +172,12 @@ public class GameManager : MonoBehaviour
             OnNhiemVuHoanThanh?.Invoke();
         }
 
+        if (DaThuThapDuNguQua())
+        {
+            OnThongBao?.Invoke("Đã đủ mâm Ngũ Quả! Mọi thứ đã sẵn sàng cho ngày Tết.");
+            OnNhiemVuHoanThanh?.Invoke();
+        }
+
         return true;
     }
 
@@ -196,17 +206,28 @@ public class GameManager : MonoBehaviour
         return string.Format("{0:N0}đ", soTienDay);
     }
 
+    public void HienThongBao(string mess)
+    {
+        OnThongBao?.Invoke(mess);
+    }
+
+    // Hàm tiện ích để kiểm tra xem đã xong HẾT nhiệm vụ ở chợ chưa
+    public bool DaXongHetNhiemVu()
+    {
+        return DaThuThapDuNguyenLieu() && DaThuThapDuNguQua() && daMangMaiVeMe;
+    }
+
     public string LayMoTaNhiemVu()
     {
         string sceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
         string currentTask = "";
 
-        // --- SCENE ROOMVILLAGE (Lau bàn thờ) ---
-        if (sceneName == "RoomVillage")
+        // --- 1. ƯU TIÊN KIỂM TRA SCENE MINI (Phòng cụ thể) ---
+        if (sceneName == "RoomVillage" || sceneName == "RoomScene")
         {
             if (RoomVillageManager.Instance != null && RoomVillageManager.Instance.missionActive)
             {
-                currentTask += "- Lau dọn bàn thờ:\n";
+                currentTask += "<color=#FFD700><b>[ NHIỆM VỤ TRONG NHÀ ]</b></color>\n";
                 currentTask += (RoomVillageManager.Instance.hasCloth ? " <color=green>[x]</color> " : " <color=red>[ ]</color> ") + "Lấy khăn lau\n";
                 currentTask += (RoomVillageManager.Instance.altarCleaned ? " <color=green>[x]</color> " : " <color=red>[ ]</color> ") + "Lau sạch bàn thờ\n";
                 currentTask += (RoomVillageManager.Instance.incenseLit ? " <color=green>[x]</color> " : " <color=red>[ ]</color> ") + "Thắp nhang\n";
@@ -221,56 +242,68 @@ public class GameManager : MonoBehaviour
             return currentTask;
         }
 
-        // --- CÁC SCENE KHÁC (Chợ Tết, Day 28...) ---
-        
-        // Nhiệm vụ chính (Mai)
-        if (!daMuaMai)
-            currentTask = "- Mua một cây mai về cho mẹ chưng Tết\n";
-        else if (!daLayMai)
-            currentTask = $"- Đến chỗ chậu mai để lấy {_loaiMaiDaMua}\n";
-        else if (!daMangMaiVeMe)
-            currentTask = "- Mang mai về cho mẹ\n";
+        // --- 2. CÁC PHASE CHÍNH (Chợ / Làng ngoài sân) ---
 
-        // Nhiệm vụ 1: Nguyên liệu
-        if (daNhanNhiemVu1)
+        // Phase Làng (Ngoài sân)
+        if (isVillagePhase && sceneName == "VillageScene")
         {
-            if (DaThuThapDuNguyenLieu())
-            {
-                currentTask += "- <color=green>[x]</color> Đã đủ nguyên liệu gói bánh!\n";
-            }
-            else
-            {
-                string s = "- Mua đồ để gói bánh:\n";
-                s += (coLaChuoi ? " <color=green>[x]</color> " : " <color=red>[ ]</color> ") + "Lá chuối\n";
-                s += (coGaoNep ? " <color=green>[x]</color> " : " <color=red>[ ]</color> ") + "Gạo nếp\n";
-                s += (coDau ? " <color=green>[x]</color> " : " <color=red>[ ]</color> ") + "Đậu xanh\n";
-                s += (coThit ? " <color=green>[x]</color> " : " <color=red>[ ]</color> ") + "Thịt heo\n";
-                currentTask += s;
-            }
+            return "<color=#FFD700><b>[ NHIỆM VỤ LÀNG ]</b></color>\n" +
+                   "- <color=white>Vào nhà chính để gói bánh Tết cùng Mẹ.</color>";
         }
 
-        // Nhiệm vụ 2: Mâm Ngũ Quả
-        if (daNhanNhiemVu2)
+        // Phase Chợ Tết (Chỉ hiện khi ở đúng Scene chợ)
+        if (sceneName == "Day_28_Scene")
         {
-            if (DaThuThapDuNguQua())
+            // Nhiệm vụ chính (Mai)
+            if (!daMuaMai)
+                currentTask = "- Mua một cây mai về cho mẹ chưng Tết\n";
+            else if (!daLayMai)
+                currentTask = $"- Đến chỗ chậu mai để lấy {_loaiMaiDaMua}\n";
+            else if (!daMangMaiVeMe)
+                currentTask = "- Mang mai về cho mẹ\n";
+
+            // Nhiệm vụ 1: Nguyên liệu
+            if (daNhanNhiemVu1)
             {
-                currentTask += "- <color=green>[x]</color> Đã đủ mâm Ngũ Quả!\n";
+                if (DaThuThapDuNguyenLieu())
+                {
+                    currentTask += "- <color=green>[x]</color> Đã đủ nguyên liệu gói bánh!\n";
+                }
+                else
+                {
+                    string s = "- Mua đồ để gói bánh:\n";
+                    s += (coLaChuoi ? " <color=green>[x]</color> " : " <color=red>[ ]</color> ") + "Lá chuối\n";
+                    s += (coGaoNep ? " <color=green>[x]</color> " : " <color=red>[ ]</color> ") + "Gạo nếp\n";
+                    s += (coDau ? " <color=green>[x]</color> " : " <color=red>[ ]</color> ") + "Đậu xanh\n";
+                    s += (coThit ? " <color=green>[x]</color> " : " <color=red>[ ]</color> ") + "Thịt heo\n";
+                    currentTask += s;
+                }
             }
-            else
+
+            // Nhiệm vụ 2: Mâm Ngũ Quả
+            if (daNhanNhiemVu2)
             {
-                string ng = "- Mua đồ chưng mâm Ngũ Quả:\n";
-                ng += (coMangCau ? " <color=green>[x]</color> " : " <color=red>[ ]</color> ") + "Mãng cầu\n";
-                ng += (coDua ? " <color=green>[x]</color> " : " <color=red>[ ]</color> ") + "Dừa\n";
-                ng += (coDuDu ? " <color=green>[x]</color> " : " <color=red>[ ]</color> ") + "Đu đủ\n";
-                ng += (coXoai ? " <color=green>[x]</color> " : " <color=red>[ ]</color> ") + "Xoài\n";
-                currentTask += ng;
+                if (DaThuThapDuNguQua())
+                {
+                    currentTask += "- <color=green>[x]</color> Đã đủ mâm Ngũ Quả!\n";
+                }
+                else
+                {
+                    string ng = "- Mua đồ chưng mâm Ngũ Quả:\n";
+                    ng += (coMangCau ? " <color=green>[x]</color> " : " <color=red>[ ]</color> ") + "Mãng cầu\n";
+                    ng += (coDua ? " <color=green>[x]</color> " : " <color=red>[ ]</color> ") + "Dừa\n";
+                    ng += (coDuDu ? " <color=green>[x]</color> " : " <color=red>[ ]</color> ") + "Đu đủ\n";
+                    ng += (coXoai ? " <color=green>[x]</color> " : " <color=red>[ ]</color> ") + "Xoài\n";
+                    currentTask += ng;
+                }
             }
+
+            if (DaXongHetNhiemVu())
+                return "<color=green><b>- Bạn đã sẵn sàng đón Tết!</b></color>\n- Hãy trở về nhà thôi.";
+
+            return currentTask;
         }
 
-        bool daXongHet = DaThuThapDuNguyenLieu() && DaThuThapDuNguQua() && daMangMaiVeMe;
-        if (daXongHet)
-            return "<color=green><b>- Bạn đã sẵn sàng đón Tết!</b></color>\n- Hãy trở về nhà thôi.";
-
-        return currentTask;
+        return ""; // Mặc định ẩn nếu không thuộc scene nào có nhiệm vụ
     }
 }
