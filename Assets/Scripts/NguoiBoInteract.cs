@@ -21,22 +21,10 @@ public class NguoiBoInteract : NPCBase
             return;
         }
 
-        if (!Mung1Manager.Instance.hasGreetedBo)
-        {
-            DialogueManager.Instance.BatDauHoiThoai(new List<DialogueManager.DialogueNode> {
-                new DialogueManager.DialogueNode { tenNguoiNoi = "Bản thân", noiDung = "Con chúc Bố năm mới dồi dào sức khỏe, vạn sự như ý ạ!" },
-                new DialogueManager.DialogueNode { tenNguoiNoi = tenNPC, noiDung = "Giỏi lắm, bố chúc con năm mới học hành tiến tới, ngoan ngoãn nhé." }
-            }, () => {
-                Mung1Manager.Instance.Greet("Bố");
-                KetThucTuongTac();
-            });
-        }
-        else
-        {
-            DialogueManager.Instance.BatDauHoiThoai(new List<DialogueManager.DialogueNode> {
-                new DialogueManager.DialogueNode { tenNguoiNoi = tenNPC, noiDung = "Đi chúc Tết Ông Nội chưa con?" }
-            });
-            KetThucTuongTac();
-        }
+        // Ngày Mùng 1: Chúc chung tại chỗ Ông Nội (vì hai người luôn đứng cạnh nhau)
+        DialogueManager.Instance.BatDauHoiThoai(new List<DialogueManager.DialogueNode> {
+            new DialogueManager.DialogueNode { tenNguoiNoi = tenNPC, noiDung = "Con sang chúc Tết Ông Nội kìa!" }
+        });
+        KetThucTuongTac();
     }
 }

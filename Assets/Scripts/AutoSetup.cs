@@ -82,38 +82,41 @@ public class AutoSetup : MonoBehaviour
     private static void SetupNewManagers(GameObject runner)
     {
         if (NewYearsEveManager.Instance == null) runner.AddComponent<NewYearsEveManager>();
-        if (Mung1Manager.Instance == null) runner.AddComponent<Mung1Manager>();
-        if (FamilyPhotoMinigame.Instance == null)
-        {
-            FamilyPhotoMinigame photo = runner.AddComponent<FamilyPhotoMinigame>();
-            // Setup UI for FamilyPhoto
-            GameObject canvas = GameObject.Find("GameplayCanvas");
-            if (canvas != null)
-            {
-                GameObject panel = new GameObject("FamilyPhotoPanel");
-                panel.transform.SetParent(canvas.transform, false);
-                photo.panel = panel;
-                
-                GameObject flash = new GameObject("FlashOverlay");
-                flash.transform.SetParent(panel.transform, false);
-                Image fImg = flash.AddComponent<Image>();
-                fImg.color = new Color(1, 1, 1, 0);
-                RectTransform fRect = flash.GetComponent<RectTransform>();
-                fRect.anchorMin = Vector2.zero;
-                fRect.anchorMax = Vector2.one;
-                fRect.offsetMin = Vector2.zero;
-                fRect.offsetMax = Vector2.zero;
-                photo.flashOverlay = fImg;
+        
+        // Luôn add mới để đảm bảo Instance trỏ đúng runner hiện tại sạch sẽ
+        runner.AddComponent<Mung1Manager>();
+        
+        // Setup FamilyPhotoMinigame (Phải dán lại UI mỗi khi load scene vì Canvas bị destroy)
+        FamilyPhotoMinigame photo = runner.AddComponent<FamilyPhotoMinigame>();
+        Debug.Log("[AutoSetup] Created new FamilyPhotoMinigame instance.");
 
-                GameObject text = new GameObject("CountdownText");
-                text.transform.SetParent(panel.transform, false);
-                TextMeshProUGUI tmp = text.AddComponent<TextMeshProUGUI>();
-                tmp.fontSize = 100;
-                tmp.alignment = TextAlignmentOptions.Center;
-                photo.countdownText = tmp;
-                
-                panel.SetActive(false);
-            }
+        // Setup UI for FamilyPhoto
+        GameObject canvas = GameObject.Find("GameplayCanvas");
+        if (canvas != null && photo != null)
+        {
+            GameObject panel = new GameObject("FamilyPhotoPanel");
+            panel.transform.SetParent(canvas.transform, false);
+            photo.panel = panel;
+            
+            GameObject flash = new GameObject("FlashOverlay");
+            flash.transform.SetParent(panel.transform, false);
+            Image fImg = flash.AddComponent<Image>();
+            fImg.color = new Color(1, 1, 1, 0);
+            RectTransform fRect = flash.GetComponent<RectTransform>();
+            fRect.anchorMin = Vector2.zero;
+            fRect.anchorMax = Vector2.one;
+            fRect.offsetMin = Vector2.zero;
+            fRect.offsetMax = Vector2.zero;
+            photo.flashOverlay = fImg;
+
+            GameObject text = new GameObject("CountdownText");
+            text.transform.SetParent(panel.transform, false);
+            TextMeshProUGUI tmp = text.AddComponent<TextMeshProUGUI>();
+            tmp.fontSize = 100;
+            tmp.alignment = TextAlignmentOptions.Center;
+            photo.countdownText = tmp;
+            
+            panel.SetActive(false);
         }
     }
 
@@ -198,17 +201,18 @@ public class AutoSetup : MonoBehaviour
         if (sceneName == "Day_28_Scene")
         {
             SetupMarketOnly();
-            PlayDay28Bgm();
+            PlayDay28Bgm(setupObj);
         }
         else if (sceneName == "VillageScene")
         {
             if (GameManager.Instance != null) GameManager.Instance.isVillagePhase = true;
             SetupVillageOutsideOnly();
-            PlayVillageBgm();
+            PlayVillageBgm(setupObj);
         }
         else if (sceneName == "RoomVillage" || sceneName == "RoomScene")
         {
             SetupVillageOnly();
+            PlayVillageBgm(setupObj);
         }
 
         if (UnityEngine.Object.FindFirstObjectByType<CursorStateController>() == null)
@@ -244,10 +248,8 @@ public class AutoSetup : MonoBehaviour
         Debug.Log("[AutoSetup] ✅ Tạo GameManager (tiền: " + TIEN_BAN_DAU + "k)");
     }
 
-    private static void PlayDay28Bgm()
+    private static void PlayDay28Bgm(GameObject runner)
     {
-        // Tạo object BGM mới hoặc tìm trên Runner
-        GameObject runner = GameObject.Find("_AutoSetup_Runner");
         if (runner == null) return;
 
         AudioSource source = runner.GetComponent<AudioSource>();
@@ -268,9 +270,8 @@ public class AutoSetup : MonoBehaviour
         }
     }
 
-    private static void PlayVillageBgm()
+    private static void PlayVillageBgm(GameObject runner)
     {
-        GameObject runner = GameObject.Find("_AutoSetup_Runner");
         if (runner == null) return;
 
         AudioSource source = runner.GetComponent<AudioSource>();
@@ -1172,7 +1173,8 @@ public class AutoSetup : MonoBehaviour
                     Mathf.Max(box.size.y, 2f),
                     Mathf.Max(box.size.z, 1f)
                 );
-                Debug.Log($"[AutoSetup] ✅ Thêm BoxCollider cho NPC: center={box.center}, size={box.size}");
+                box.isTrigger = true; // NPC nên là Trigger để không gây xung đột vật lý
+                Debug.Log($"[AutoSetup] ✅ Thêm BoxCollider (Trigger) cho NPC: center={box.center}, size={box.size}");
             }
             else
             {
@@ -1180,7 +1182,8 @@ public class AutoSetup : MonoBehaviour
                 capsule.center = new Vector3(0, 1f, 0);
                 capsule.radius = 1f;
                 capsule.height = 2f;
-                Debug.Log("[AutoSetup] ✅ Thêm CapsuleCollider mặc định cho NPC");
+                capsule.isTrigger = true; // Cường hóa: Luôn là Trigger
+                Debug.Log("[AutoSetup] ✅ Thêm CapsuleCollider (Trigger) mặc định cho NPC");
             }
         }
         else
@@ -2231,13 +2234,19 @@ public class AutoSetup : MonoBehaviour
             // 1. Nguoi_Me
             if (lowerName.Contains("nguoi_me") || lowerName.Contains("mother") || lowerName.Contains("me_npc"))
             {
+                // ĐẶT LẠI ROTATION NGAY LẬP TỨC trước khi thêm gì – model GLB thường có baked -90X từ Blender
+                ResetNPCRotation(obj);
+                FreezeNPCPhysics(obj);
                 if (obj.GetComponent<NguoiMeInteract>() == null) obj.AddComponent<NguoiMeInteract>();
                 EnsureNPCCollider(obj);
                 SetLayerRecursive(obj, 6);
+                Debug.Log($"[AutoSetup] ✅ Đã reset và đóng băng rotation cho Mẹ: {obj.name}");
             }
             // 1b. Ong_Noi (Kiểm tra trước vì "grandfather" chứa "father")
             else if (lowerName.Contains("ong_noi") || lowerName.Contains("grandfather") || lowerName.Contains("ongnoi"))
             {
+                ResetNPCRotation(obj);
+                FreezeNPCPhysics(obj);
                 if (obj.GetComponent<OngNoiInteract>() == null)
                 {
                     obj.AddComponent<OngNoiInteract>();
@@ -2249,6 +2258,8 @@ public class AutoSetup : MonoBehaviour
             // 1c. Nguoi_Bo
             else if (lowerName.Contains("nguoi_bo") || lowerName.Contains("father") || lowerName.Contains("bo_npc") || lowerName.Contains("nguoibo"))
             {
+                ResetNPCRotation(obj);
+                FreezeNPCPhysics(obj);
                 if (obj.GetComponent<NguoiBoInteract>() == null)
                 {
                     obj.AddComponent<NguoiBoInteract>();
@@ -2333,8 +2344,8 @@ public class AutoSetup : MonoBehaviour
                         var yi = obj.AddComponent<YardInteract>();
                         yi.tenNPC = "Cái Chổi";
                         yi.hanhDongTuongTac = "quét sân";
-                        Debug.Log($"[AutoSetup] ✅ Đã gắn YardInteract vào {obj.name}");
                     }
+                    FreezeNPCPhysics(obj); // Call FreezeNPCPhysics after collider setup
                     SetLayerRecursive(obj, 6);
                 }
             }
@@ -2387,7 +2398,7 @@ public class AutoSetup : MonoBehaviour
                 cc.center = new Vector3(0, 1f, 0);
                 cc.radius = 0.5f;
                 cc.height = 2f;
-                cc.isTrigger = false;
+                cc.isTrigger = true; // Luôn làm Trigger để tránh bị lật do va chạm
             }
         }
     }
@@ -2403,6 +2414,44 @@ public class AutoSetup : MonoBehaviour
             if (found != null) return found;
         }
         return null;
+    }
+
+    /// <summary>
+    /// Chuẩn bị NPC trước khi AddComponent: chỉ tắt Animator root motion.
+    /// KHÔNG thay đổi rotation vì scene đã set đúng rồi.
+    /// NPCBase.Awake() sẽ cache và khóa rotation tự động.
+    /// </summary>
+    private static void ResetNPCRotation(GameObject obj)
+    {
+        if (obj == null) return;
+
+        // Chỉ tắt root motion - rotation do NPCBase.Awake() cache và bảo vệ
+        Animator[] animators = obj.GetComponentsInChildren<Animator>(true);
+        foreach (var anim in animators)
+            anim.applyRootMotion = false;
+
+        Debug.Log($"[AutoSetup] 🧍 Đã chuẩn bị NPC: {obj.name} (root rotation giữ nguyên)");
+    }
+
+    private static void FreezeNPCPhysics(GameObject obj)
+    {
+        if (obj == null) return;
+        
+        Rigidbody rb = obj.GetComponent<Rigidbody>();
+        if (rb == null) rb = obj.AddComponent<Rigidbody>();
+        
+        rb.isKinematic = true;
+        rb.useGravity = false;
+        rb.constraints = RigidbodyConstraints.FreezeAll;
+        
+        // Khóa luôn các con nếu có
+        Rigidbody[] childRbs = obj.GetComponentsInChildren<Rigidbody>(true);
+        foreach (var c in childRbs)
+        {
+            c.isKinematic = true;
+            c.useGravity = false;
+            c.constraints = RigidbodyConstraints.FreezeAll;
+        }
     }
 
 }

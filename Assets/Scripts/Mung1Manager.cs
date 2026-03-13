@@ -11,16 +11,49 @@ public class Mung1Manager : MonoBehaviour
 
     private void Awake()
     {
+        // Để AutoSetup quản lý vòng đời: luôn gán Instance mới nhất
         Instance = this;
+    }
+
+    private void OnDestroy()
+    {
+        if (Instance == this) Instance = null;
+    }
+
+    private void Start()
+    {
+        // Đồng bộ dữ liệu từ GameManager (nơi thực sự lưu trữ persist)
+        if (GameManager.Instance != null)
+        {
+            hasGreetedMe = GameManager.Instance.hasGreetedMe;
+            hasGreetedBo = GameManager.Instance.hasGreetedBo;
+            hasGreetedOngNoi = GameManager.Instance.hasGreetedOngNoi;
+            CheckAllGreetings();
+        }
     }
 
     public void Greet(string npcName)
     {
         if (GameManager.Instance.currentDay != GameManager.TetDay.Mung1) return;
 
-        if (npcName == "Mẹ") hasGreetedMe = true;
-        else if (npcName == "Bố") hasGreetedBo = true;
-        else if (npcName == "Ông Nội") hasGreetedOngNoi = true;
+        if (npcName == "Mẹ")
+        {
+            hasGreetedMe = true;
+            GameManager.Instance.hasGreetedMe = true; // Persist qua scene
+        }
+        else if (npcName == "Bố")
+        {
+            hasGreetedBo = true;
+            GameManager.Instance.hasGreetedBo = true;
+        }
+        else if (npcName == "Ông Nội")
+        {
+            hasGreetedOngNoi = true;
+            GameManager.Instance.hasGreetedOngNoi = true;
+        }
+
+        // Cập nhật UI ngay sau mỗi lần chúc Tết
+        GameManager.Instance.OnNhiemVuThayDoi?.Invoke();
 
         CheckAllGreetings();
     }
@@ -59,7 +92,15 @@ public class Mung1Manager : MonoBehaviour
             return;
         }
         
-        // Kích hoạt FamilyPhotoMinigame
-        FamilyPhotoMinigame.Instance?.StartMinigame();
+        // Kích hoạt FamilyPhotoMinigame (Dùng null check tường minh cho Unity Object)
+        if (FamilyPhotoMinigame.Instance != null)
+        {
+            FamilyPhotoMinigame.Instance.StartMinigame();
+        }
+        else
+        {
+            Debug.LogError("[Mung1Manager] FamilyPhotoMinigame Instance not found in scene!");
+            GameManager.Instance.HienThongBao("Lỗi: Không tìm thấy máy ảnh trong khu vực này.");
+        }
     }
 }

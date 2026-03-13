@@ -4,15 +4,7 @@ public class NguoiMeInteract : NPCBase
 {
     private void FreezeAllRigidbodies()
     {
-        var rbs = GetComponentsInChildren<Rigidbody>(true);
-        foreach (var rb in rbs)
-        {
-            rb.isKinematic = true;
-            rb.useGravity = false;
-            rb.linearVelocity = Vector3.zero;
-            rb.angularVelocity = Vector3.zero;
-            rb.constraints = RigidbodyConstraints.FreezeAll;
-        }
+        // Đã có trong NPCBase
     }
 
     protected override void Start()
@@ -21,14 +13,13 @@ public class NguoiMeInteract : NPCBase
         tenNPC = "Mẹ";
         hanhDongTuongTac = "nói chuyện";
         coTheTuongTac = true;
-        // Khóa toàn bộ rigidbody ngay từ đầu
-        FreezeAllRigidbodies();
     }
+
+    // Awake và OnEnable đã có trong NPCBase gọi FreezeAllRigidbodies()
 
     protected override void OnTuongTac()
     {
-        // Đảm bảo mỗi lần tương tác, tất cả rigidbody của Mẹ đều bị khóa lại (phòng trường hợp script/anim khác bật physics)
-        FreezeAllRigidbodies();
+        // base.BatDauTuongTac() đã gọi FreezeAllRigidbodies()
         if (GameManager.Instance != null && GameManager.Instance.currentDay == GameManager.TetDay.Mung1)
         {
             if (!Mung1Manager.Instance.hasGreetedMe)
@@ -138,9 +129,18 @@ public class NguoiMeInteract : NPCBase
                     // Người chơi đã tự lau xong bàn thờ trước khi nói chuyện, bỏ qua bước 1 và giao luôn bước 2
                     var nodes = new System.Collections.Generic.List<DialogueManager.DialogueNode> {
                         new DialogueManager.DialogueNode { tenNguoiNoi = tenNPC, noiDung = "Con lau bàn thờ gọn gàng rồi đó, giỏi lắm." },
-                        new DialogueManager.DialogueNode { tenNguoiNoi = tenNPC, noiDung = "Giờ con ra ngoài sân quét bớt lá khô giúp mẹ nhé. Với nhớ mang cây mai về chưng sân nữa." }
+                        new DialogueManager.DialogueNode { tenNguoiNoi = tenNPC, noiDung = "Giờ con ra ngoài sân quét bớt lá khô giúp mẹ nhé. Mẹ đưa cho 1 triệu ra chợ sắm cây mai thiệt đẹp mang về chưng Tết nghe con." }
                     };
-                    DialogueManager.Instance.BatDauHoiThoai(nodes);
+                    DialogueManager.Instance.BatDauHoiThoai(nodes, () => {
+                        if (GameManager.Instance != null && !GameManager.Instance.daNhanTienTuMe)
+                        {
+                            GameManager.Instance.daNhanTienTuMe = true; // Set flag BEFORE adding money
+                            GameManager.Instance.ThemTien(1000);
+                            GameManager.Instance.daNhanNhiemVu1 = true;
+                            GameManager.Instance.daNhanNhiemVu2 = true;
+                            GameManager.Instance.OnNhiemVuThayDoi?.Invoke();
+                        }
+                    });
                     RoomVillageManager.Instance.missionActive = true;
                     GameManager.Instance.daNhanNhiemVuQuetSan = true;
                     GameManager.Instance.isVillagePhase = true; 
@@ -177,9 +177,32 @@ public class NguoiMeInteract : NPCBase
                     if (!maiDone) missing += (missing != "" ? " và" : "") + " mang mai về";
                     
                     var nodes = new System.Collections.Generic.List<DialogueManager.DialogueNode> {
-                        new DialogueManager.DialogueNode { tenNguoiNoi = tenNPC, noiDung = $"Con cố gắng {missing} giúp mẹ nhé." }
+                        new DialogueManager.DialogueNode { tenNguoiNoi = tenNPC, noiDung = $"Con {missing} giúp mẹ nhé. Bàn thờ lau sạch rồi đó." }
                     };
-                    DialogueManager.Instance.BatDauHoiThoai(nodes);
+
+                    // MỚI: Nếu chưa nhận tiền thì mẹ đưa luôn lúc này
+                    if (GameManager.Instance != null && !GameManager.Instance.daNhanTienTuMe)
+                    {
+                        nodes.Add(new DialogueManager.DialogueNode { 
+                            tenNguoiNoi = tenNPC, 
+                            noiDung = "Mẹ đưa cho 1 triệu ra chợ sắm cây mai thiệt đẹp mang về nghe con." 
+                        });
+
+                        DialogueManager.Instance.BatDauHoiThoai(nodes, () => {
+                            if (GameManager.Instance != null && !GameManager.Instance.daNhanTienTuMe)
+                            {
+                                GameManager.Instance.daNhanTienTuMe = true;
+                                GameManager.Instance.ThemTien(1000);
+                                GameManager.Instance.daNhanNhiemVu1 = true;
+                                GameManager.Instance.daNhanNhiemVu2 = true;
+                                GameManager.Instance.OnNhiemVuThayDoi?.Invoke();
+                            }
+                        });
+                    }
+                    else
+                    {
+                        DialogueManager.Instance.BatDauHoiThoai(nodes);
+                    }
                 }
                 else // hoanThanhNgay29 == true
                 {

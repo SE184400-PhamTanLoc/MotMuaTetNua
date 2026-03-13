@@ -72,73 +72,17 @@ public class GameHUD : MonoBehaviour
         CapNhatTien(GameManager.Instance.SoTien);
         CapNhatNhiemVu();
 
+        // Mới: Ẩn tiền nếu chưa nhận từ mẹ
+        if (tienText != null && tienText.transform.parent != null)
+        {
+            tienText.transform.parent.gameObject.SetActive(GameManager.Instance.daNhanTienTuMe);
+        }
+
         if (thongBaoPanel != null) thongBaoPanel.SetActive(false);
         if (hoanThanhPanel != null) hoanThanhPanel.SetActive(false);
 
-        string sceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
-
-        if (batDauPanel != null)
-        {
-            if (sceneName == "Day_28_Scene")
-            {
-                // Chỉ hiển thị intro khi lần đầu vào chợ (chưa nhận nhiệm vụ nào)
-                bool lanDauVaoCho = GameManager.Instance == null || 
-                                    (!GameManager.Instance.daMuaMai && !GameManager.Instance.DaThuThapDuNguyenLieu() && !GameManager.Instance.DaThuThapDuNguQua());
-                
-                if (lanDauVaoCho)
-                {
-                    batDauPanel.SetActive(true);
-                    if (batDauText != null)
-                    {
-                        // Đồng bộ nội dung với bảng nhiệm vụ (LayMoTaNhiemVu của GameManager)
-                        string tasks = GameManager.Instance.LayMoTaNhiemVu();
-                        batDauText.text =
-                            "<color=#FFD700><b>[ NHIỆM VỤ NGÀY TẾT ]</b></color>\n\n" +
-                            "Mẹ dặn bạn ra chợ Tết chọn mua một cây mai thật đẹp và sắm sửa đầy đủ cho ngày 29 Tết.\n\n" +
-                            tasks + "\n\n" +
-                            "<size=22><i>(Nhấn Space hoặc nút bên dưới để bắt đầu)</i></size>";
-                    }
-                    Button btn = batDauPanel.GetComponentInChildren<Button>();
-                    if (btn != null) btn.onClick.AddListener(DongBatDauPanel);
-                }
-                else
-                {
-                    batDauPanel.SetActive(false);
-                }
-            }
-            else if (sceneName == "VillageScene" || sceneName == "RoomVillage")
-            {
-                bool daXongMoiThu = GameManager.Instance.daMangMaiVeMe && 
-                                   GameManager.Instance.DaThuThapDuNguyenLieu() && 
-                                   GameManager.Instance.DaThuThapDuNguQua();
-
-                batDauPanel.SetActive(true);
-                if (batDauText != null)
-                {
-                    if (daXongMoiThu)
-                    {
-                        batDauText.text = "<color=#FFD700><b>[ CHUẨN BỊ ĐÓN TẾT ]</b></color>\n\n" +
-                                         "Chào mừng con đã về nhà! Đồ đạc sắm sửa đã đủ cả rồi.\n\n" +
-                                         "Bây giờ hãy vào <color=red><b>Nhà</b></color> (có quả cầu đỏ ở cửa) để cùng Mẹ lau dọn bàn thờ đón Tết nhé!\n\n" +
-                                         "- <b>Nhiệm vụ:</b> Đến gặp Mẹ tại Nhà để nhận việc.\n\n" +
-                                         "<size=22><i>(Nhấn Space hoặc nút bên dưới để bắt đầu)</i></size>";
-                    }
-                    else
-                    {
-                        batDauText.text = "<color=#FFD700><b>[ VỀ NHÀ ĂN TẾT ]</b></color>\n\n" +
-                                         "Dù đồ sắm Tết chưa đủ, nhưng mẹ đã gọi về gấp để dọn dẹp nhà cửa.\n\n" +
-                                         "Hãy vào gặp Mẹ để xem cần giúp gì nhé!\n\n" +
-                                         "- <b>Nhiệm vụ:</b> Tìm gặp Mẹ.\n\n" +
-                                         "<size=22><i>(Nhấn Space hoặc nút bên dưới để bắt đầu)</i></size>";
-                    }
-                }
-                Button btn = batDauPanel.GetComponentInChildren<Button>();
-                if (btn != null) {
-                    btn.onClick.RemoveAllListeners();
-                    btn.onClick.AddListener(DongBatDauPanel);
-                }
-            }
-        }
+        // BỎ CÁO THỊ NGÀY TẾT
+        if (batDauPanel != null) batDauPanel.SetActive(false);
 
         Debug.Log("[GameHUD] ✅ Kết nối events và hiện Intro thành công");
     }
@@ -155,7 +99,18 @@ public class GameHUD : MonoBehaviour
     private void CapNhatTien(int soTien)
     {
         if (tienText != null)
+        {
             tienText.text = $"[Tiền] {GameManager.FormatTien(soTien)}";
+            
+            // Hiện tiền nếu đã nhận từ mẹ
+            if (GameManager.Instance != null && GameManager.Instance.daNhanTienTuMe)
+            {
+                if (tienText.transform.parent != null && !tienText.transform.parent.gameObject.activeSelf)
+                {
+                    tienText.transform.parent.gameObject.SetActive(true);
+                }
+            }
+        }
     }
 
     private void CapNhatNhiemVu()
@@ -168,6 +123,15 @@ public class GameHUD : MonoBehaviour
             if (nhiemVuPanel != null)
             {
                 nhiemVuPanel.SetActive(!string.IsNullOrEmpty(taskText));
+            }
+
+            // Đảm bảo Tiền hiện lên nếu flag đã bật (đề phòng event CapNhatTien bị kẹt)
+            if (tienText != null && tienText.transform.parent != null)
+            {
+                if (GameManager.Instance.daNhanTienTuMe && !tienText.transform.parent.gameObject.activeSelf)
+                {
+                    tienText.transform.parent.gameObject.SetActive(true);
+                }
             }
         }
     }
@@ -250,16 +214,8 @@ public class GameHUD : MonoBehaviour
     {
         if (batDauPanel != null && batDauPanel.activeSelf)
         {
-            // Kiểm tra cả Input System mới và cũ để đảm bảo luôn hoạt động
-            bool spacePressed = (Keyboard.current != null && Keyboard.current.spaceKey.wasPressedThisFrame) || 
-                                Input.GetKeyDown(KeyCode.Space) || 
-                                Input.GetKeyDown(KeyCode.Return);
-
-            if (spacePressed)
-            {
-                DongBatDauPanel();
-            }
-            return; // Đang hiện intro thì không làm gì khác
+            batDauPanel.SetActive(false);
+            return;
         }
 
         if (hoanThanhPanel != null && hoanThanhPanel.activeSelf)

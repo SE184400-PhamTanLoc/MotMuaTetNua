@@ -21,6 +21,7 @@ public class GameManager : MonoBehaviour
     public bool daLayMai = false;
     public bool daMangMaiVeMe = false;
     public bool daKetThucDiCho = false;
+    public bool daNhanTienTuMe = false; // Mới: theo dõi đã nhận tiền từ mẹ chưa
 
     [Header("=== NHIỆM VỤ 1: CHUẨN BỊ NGUYÊN LIỆU ===")]
     public bool coLaChuoi = false;
@@ -50,6 +51,10 @@ public class GameManager : MonoBehaviour
     public bool daChucTet = false;
     public bool daNhanLiXi = false;
     public bool daChupAnhGiaDinh = false;
+    // Trạng thái chúc Tết từng thành viên (lưu ở đây để persist qua scene)
+    public bool hasGreetedMe = false;
+    public bool hasGreetedBo = false;
+    public bool hasGreetedOngNoi = false;
 
     [Header("=== TRẠNG THÁI PHASE CHƠI ===")]
     public bool isVillagePhase = false;
@@ -99,20 +104,77 @@ public class GameManager : MonoBehaviour
     private void Start()
     {
         SoTien = soTienBanDau;
+    }
 
-        // Ngày 29: nhiệm vụ đi chợ Tết được Mẹ giao từ đầu, đồng thời Mẹ đưa 1 triệu cho con
+    private void Update()
+    {
+        // === DEBUG SKIP SYSTEM (F1-F5) ===
+        if (Input.GetKeyDown(KeyCode.F1)) SkipToDay29Market();
+        if (Input.GetKeyDown(KeyCode.F2)) SkipToDay29Home();
+        if (Input.GetKeyDown(KeyCode.F3)) SkipToDay30();
+        if (Input.GetKeyDown(KeyCode.F4)) SkipToMung1();
+        if (Input.GetKeyDown(KeyCode.F5)) CompleteCurrentMissions();
+    }
+
+    private void SkipToDay29Market()
+    {
+        currentDay = TetDay.Day29;
+        daNhanTienTuMe = true;
+        if (SoTien < 1000) SoTien = 1000;
+        UnityEngine.SceneManagement.SceneManager.LoadScene("Day_28_Scene");
+        HienThongBao("DEBUG: Đã chuyển sang Ngày 29 - Chợ Tết");
+    }
+
+    private void SkipToDay29Home()
+    {
+        currentDay = TetDay.Day29;
+        daNhanTienTuMe = true;
+        if (SoTien < 1000) SoTien = 1000;
+        UnityEngine.SceneManagement.SceneManager.LoadScene("VillageScene");
+        HienThongBao("DEBUG: Đã chuyển sang Ngày 29 - Ở Nhà");
+    }
+
+    private void SkipToDay30()
+    {
+        currentDay = TetDay.Day30;
+        daNhanNhiemVuNgay30TuMe = true;
+        UnityEngine.SceneManagement.SceneManager.LoadScene("VillageScene");
+        HienThongBao("DEBUG: Đã chuyển sang Ngày 30 - Gói Bánh");
+    }
+
+    private void SkipToMung1()
+    {
+        currentDay = TetDay.Mung1;
+        UnityEngine.SceneManagement.SceneManager.LoadScene("VillageScene");
+        HienThongBao("DEBUG: Đã chuyển sang Mùng 1 - Chúc Tết");
+    }
+
+    private void CompleteCurrentMissions()
+    {
         if (currentDay == TetDay.Day29)
         {
-            OnThongBao?.Invoke("[ NHIỆM VỤ ] Mẹ đưa cho bạn 1 triệu và dặn ra chợ Tết mua đồ chuẩn bị Tết.");
-
-            // Cho người chơi 1.000.000đ (1000 nghìn)
-            ThemTien(1000);
-
-            // Kích hoạt luôn Nhiệm vụ 1 và 2 để người chơi thấy danh sách rõ ràng ở bảng nhiệm vụ
-            daNhanNhiemVu1 = true;
-            daNhanNhiemVu2 = true;
-            OnNhiemVuThayDoi?.Invoke();
+            daMuaMai = true;
+            daLayMai = true;
+            daMangMaiVeMe = true;
+            altarCleaned = true;
+            yardSwept = true;
         }
+        else if (currentDay == TetDay.Day30)
+        {
+            coLaChuoi = coGaoNep = coDau = coThit = true;
+            coMangCau = coDua = coDuDu = coXoai = true;
+            daGoiBanhTet = true;
+            daCanhNoiBanh = true;
+            daNhanNhiemVuNgay30TuMe = true;
+        }
+        else if (currentDay == TetDay.Mung1)
+        {
+            daChucTet = true;
+            daNhanLiXi = true;
+            daChupAnhGiaDinh = true;
+        }
+        OnNhiemVuThayDoi?.Invoke();
+        HienThongBao("DEBUG: Đã hoàn thành tất cả nhiệm vụ hiện tại!");
     }
 
     public bool CoĐuTien(int soTienCan)
@@ -299,9 +361,10 @@ public class GameManager : MonoBehaviour
         else if (currentDay == TetDay.Mung1)
         {
             currentTask += "<color=#FFD700><b>[ MÙNG 1 TẾT - KHỞI ĐẦU ]</b></color>\n";
-            currentTask += (daChucTet ? " <color=green>[x]</color> " : " <color=red>[ ]</color> ") + "Chúc Tết gia đình\n";
-            currentTask += (daNhanLiXi ? " <color=green>[x]</color> " : " <color=red>[ ]</color> ") + "Nhận lì xì\n";
-            currentTask += (daChupAnhGiaDinh ? " <color=green>[x]</color> " : " <color=red>[ ]</color> ") + "Chụp ảnh gia đình\n";
+            currentTask += (hasGreetedMe                        ? " <color=green>[x]</color> " : " <color=red>[ ]</color> ") + "Chúc Tết Mẹ\n";
+            currentTask += (hasGreetedBo && hasGreetedOngNoi   ? " <color=green>[x]</color> " : " <color=red>[ ]</color> ") + "Chúc Tết Bố và Ông Nội\n";
+            currentTask += (daNhanLiXi                          ? " <color=green>[x]</color> " : " <color=red>[ ]</color> ") + "Nhận lì xì\n";
+            currentTask += (daChupAnhGiaDinh                    ? " <color=green>[x]</color> " : " <color=red>[ ]</color> ") + "Chụp ảnh gia đình\n";
         }
 
         if (string.IsNullOrEmpty(currentTask)) return "- Hãy tìm gặp Mẹ để nhận việc.";
