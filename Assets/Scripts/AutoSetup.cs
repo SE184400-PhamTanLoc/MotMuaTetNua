@@ -5,6 +5,7 @@ using TMPro;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.UI;
 using UnityEngine.SceneManagement;
+using UnityEngine.Video;
 using System.Collections.Generic;
 
 /// <summary>
@@ -60,6 +61,7 @@ public class AutoSetup : MonoBehaviour
     private static GameObject[] _fruitPreviewModels = new GameObject[4];
     private static Camera _previewCamera;
     private static GameObject _minigameRunner;
+    private static CutsceneManager _cutsceneManager;
 
     /// <summary>
     /// TỰ ĐỘNG CHẠY KHI NHẤN PLAY - Đã sửa để bắt sự kiện LoadScene
@@ -118,6 +120,55 @@ public class AutoSetup : MonoBehaviour
             
             panel.SetActive(false);
         }
+    }
+
+    private static void SetupCutsceneManager(GameObject runner)
+    {
+        if (CutsceneManager.Instance != null) return;
+
+        GameObject canvas = GameObject.Find("GameplayCanvas");
+        if (canvas == null) return;
+
+        // Overlay cho video
+        GameObject cutsceneOverlay = new GameObject("CutsceneOverlay");
+        cutsceneOverlay.transform.SetParent(canvas.transform, false);
+        CanvasGroup cg = cutsceneOverlay.AddComponent<CanvasGroup>();
+        cg.alpha = 0;
+        
+        RectTransform rect = cutsceneOverlay.AddComponent<RectTransform>();
+        rect.anchorMin = Vector2.zero;
+        rect.anchorMax = Vector2.one;
+        rect.offsetMin = Vector2.zero;
+        rect.offsetMax = Vector2.zero;
+
+        Image bg = cutsceneOverlay.AddComponent<Image>();
+        bg.color = Color.black;
+
+        // RawImage hiển thị video
+        GameObject videoDisplayObj = new GameObject("VideoDisplay");
+        videoDisplayObj.transform.SetParent(cutsceneOverlay.transform, false);
+        RawImage ri = videoDisplayObj.AddComponent<RawImage>();
+        RectTransform riRect = videoDisplayObj.GetComponent<RectTransform>();
+        riRect.anchorMin = Vector2.zero;
+        riRect.anchorMax = Vector2.one;
+        riRect.offsetMin = Vector2.zero;
+        riRect.offsetMax = Vector2.zero;
+
+        // VideoPlayer
+        VideoPlayer vp = runner.AddComponent<VideoPlayer>();
+        vp.playOnAwake = false;
+        vp.renderMode = VideoRenderMode.APIOnly;
+        
+        // Cần gán texture cho RawImage khi video phát
+        // Ở đây ta dùng Camera mode hoặc RenderTexture sẽ tiện hơn trong script, 
+        // nhưng APIOnly + gán texture thủ công trong script manager cũng được.
+        // Để đơn giản, update script CutsceneManager sau để cấp texture.
+        
+        _cutsceneManager = runner.AddComponent<CutsceneManager>();
+        _cutsceneManager.cutsceneOverlay = cutsceneOverlay;
+        _cutsceneManager.videoDisplay = ri;
+        _cutsceneManager.videoPlayer = vp;
+        _cutsceneManager.overlayCanvasGroup = cg;
     }
 
     private static void TuDongSetup()
@@ -195,6 +246,7 @@ public class AutoSetup : MonoBehaviour
         // Setup Player
         try { SetupPlayer(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi Player: " + e.Message); }
         try { SetupGameHUD(); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi GameHUD: " + e.Message); }
+        try { SetupCutsceneManager(setupObj); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi Cutscene: " + e.Message); }
         try { SetupNewManagers(setupObj); } catch (System.Exception e) { Debug.LogError("[AutoSetup] Lỗi NewManagers: " + e.Message); }
 
         // Setup Scene Specifics

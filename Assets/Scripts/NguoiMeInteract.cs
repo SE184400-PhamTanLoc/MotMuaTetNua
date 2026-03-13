@@ -155,9 +155,20 @@ public class NguoiMeInteract : NPCBase
                         new DialogueManager.DialogueNode { tenNguoiNoi = tenNPC, noiDung = "Con đi nghỉ sớm đi, mai 30 Tết còn nhiều việc lắm đó." }
                     };
                     DialogueManager.Instance.BatDauHoiThoai(nodes, () => {
-                        GameManager.Instance.currentDay = GameManager.TetDay.Day30;
-                        GameManager.Instance.OnThongBao?.Invoke("Ngày 29 trôi qua... Sáng 30 Tết nhộn nhịp đã đến!");
-                        GameManager.Instance.OnNhiemVuThayDoi?.Invoke();
+                        if (CutsceneManager.Instance != null)
+                        {
+                            CutsceneManager.Instance.PlayCutscene("video_boc_lic", () => {
+                                GameManager.Instance.currentDay = GameManager.TetDay.Day30;
+                                GameManager.Instance.OnThongBao?.Invoke("Ngày 29 trôi qua... Sáng 30 Tết nhộn nhịp đã đến!");
+                                GameManager.Instance.OnNhiemVuThayDoi?.Invoke();
+                            });
+                        }
+                        else
+                        {
+                            GameManager.Instance.currentDay = GameManager.TetDay.Day30;
+                            GameManager.Instance.OnThongBao?.Invoke("Ngày 29 trôi qua... Sáng 30 Tết nhộn nhịp đã đến!");
+                            GameManager.Instance.OnNhiemVuThayDoi?.Invoke();
+                        }
                     });
                 }
             }
@@ -211,10 +222,22 @@ public class NguoiMeInteract : NPCBase
                         new DialogueManager.DialogueNode { tenNguoiNoi = tenNPC, noiDung = "Mọi thứ đã sẵn sàng rồi. Con đi nghỉ đi, mai 30 Tết rồi, nhiều việc lắm đó!" }
                     };
                     DialogueManager.Instance.BatDauHoiThoai(nodes, () => {
-                        // Chuyển sang Ngày 30
-                        GameManager.Instance.currentDay = GameManager.TetDay.Day30;
-                        GameManager.Instance.OnThongBao?.Invoke("Ngày 29 trôi qua... Sáng 30 Tết nhộn nhịp đã đến!");
-                        GameManager.Instance.OnNhiemVuThayDoi?.Invoke();
+                        if (CutsceneManager.Instance != null)
+                        {
+                            CutsceneManager.Instance.PlayCutscene("video_boc_lic", () => {
+                                // Chuyển sang Ngày 30
+                                GameManager.Instance.currentDay = GameManager.TetDay.Day30;
+                                GameManager.Instance.OnThongBao?.Invoke("Ngày 29 trôi qua... Sáng 30 Tết nhộn nhịp đã đến!");
+                                GameManager.Instance.OnNhiemVuThayDoi?.Invoke();
+                            });
+                        }
+                        else
+                        {
+                            // Chuyển sang Ngày 30
+                            GameManager.Instance.currentDay = GameManager.TetDay.Day30;
+                            GameManager.Instance.OnThongBao?.Invoke("Ngày 29 trôi qua... Sáng 30 Tết nhộn nhịp đã đến!");
+                            GameManager.Instance.OnNhiemVuThayDoi?.Invoke();
+                        }
                         // Ở đây có thể gọi FadeController để chuyển cảnh hoặc đổi visual
                     });
                 }

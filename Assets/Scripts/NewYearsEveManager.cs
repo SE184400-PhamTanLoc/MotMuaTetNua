@@ -48,6 +48,16 @@ public class NewYearsEveManager : MonoBehaviour
 
         yield return new WaitForSeconds(5f);
 
+        // 2.5 Video Pháo Hoa
+        if (CutsceneManager.Instance != null)
+        {
+            float holdTime = 0;
+            CutsceneManager.Instance.PlayCutscene("video_phao_hoa", () => {
+                holdTime = -1; // Flag complete
+            });
+            yield return new WaitUntil(() => holdTime < 0);
+        }
+
         // 3. Transition to Mùng 1
         GameManager.Instance.currentDay = GameManager.TetDay.Mung1;
         GameManager.Instance.HienThongBao("Sáng Mùng 1 Tết... Trời đất giao hòa.");
