@@ -143,8 +143,7 @@ public class CoGaiBanMai : NPCBase
             tenNguoiNoi = "Cô gái bán mai",
             noiDung = "Dạ, năm nay em bán giá cả phải chăng lắm anh ơi!\n\n" +
                       "Mai nhỏ: " + GameManager.FormatTien(giaMaiNho) + " — Xinh xắn, dễ thương!\n" +
-                      "Mai lớn: " + GameManager.FormatTien(giaMaiLon) + " — Sang trọng, quý phái!\n\n" +
-                      "Mai em toàn mai Bến Tre chính gốc, nụ nhiều hoa đẹp. Mẹ anh chắc chắn thích lắm á!",
+                      "Mai lớn: " + GameManager.FormatTien(giaMaiLon) + " — Sang trọng, quý phái!",
             danhSachLuaChon = new List<DialogueManager.DialogueChoice>
             {
                 new DialogueManager.DialogueChoice

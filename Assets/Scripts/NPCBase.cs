@@ -31,10 +31,10 @@ public abstract class NPCBase : MonoBehaviour
 
     // --- Cache: lưu rotation ban đầu ĐÚNG của root (X, Z) và children (local) ---
     // QUAN TRỌNG: Không được reset X, Z vì model có thể cần Z=90 để đứng thẳng
-    private float _rootInitialX;   // X của root khi scene load (giữ nguyên mãi)
-    private float _rootInitialZ;   // Z của root khi scene load (giữ nguyên mãi)
+    private Vector3 _initialLocalEuler;           // Local rotation ban đầu ĐÚNG
     private Quaternion[] _childOriginalLocalRots; // Local rotation của children
     private Transform[] _directChildren;          // Danh sách children trực tiếp
+    private bool _hasCachedRotation = false;      // Flag để đảm bảo chỉ cache 1 lần
 
     protected virtual void Awake()
     {
@@ -49,12 +49,8 @@ public abstract class NPCBase : MonoBehaviour
         foreach (var c in GetComponentsInChildren<CharacterController>(true))
             c.enabled = false;
 
-        // Bước 3: Cache FULL rotation của root AS-IS (KHÔNG THAY ĐỔI GÌ!)
-        // Model có thể cần Z=90 hoặc X=-90 để đứng thẳng - ta phải tôn trọng điều đó
-        Vector3 rootEuler = transform.eulerAngles;
-        _rootInitialX = rootEuler.x;
-        _rootInitialZ = rootEuler.z;
-        Debug.Log($"[NPCBase] {gameObject.name}: Cache root rotation X={_rootInitialX:F1}, Y={rootEuler.y:F1}, Z={_rootInitialZ:F1}");
+        // Cache sẽ được thực hiện ở Start để đảm bảo scene đã load xong hoàn toàn
+        // Tuy nhiên vẫn cần tắt Root Motion sớm
 
         // Bước 4: Cache local rotation của tất cả children trực tiếp AS-IS
         _directChildren = new Transform[transform.childCount];
@@ -88,6 +84,9 @@ public abstract class NPCBase : MonoBehaviour
 
     protected virtual void Start()
     {
+        // Cache rotation ở Start là an toàn nhất vì lúc này prefab/scene đã ổn định
+        CacheInitialRotation();
+
         var player = FindObjectOfType<StarterAssets.FirstPersonController>();
         if (player != null)
             _playerTransform = player.transform;
@@ -97,6 +96,30 @@ public abstract class NPCBase : MonoBehaviour
             if (playerOld != null)
                 _playerTransform = playerOld.transform;
         }
+    }
+
+    private void CacheInitialRotation()
+    {
+        if (_hasCachedRotation) return;
+
+        // Model có thể cần Z=90 hoặc X=-90 để đứng thẳng - ta phải tôn trọng điều đó
+        // Dùng local để không bị ảnh hưởng bởi parent (vd: Group Market bị xoay)
+        _initialLocalEuler = transform.localEulerAngles;
+        
+        Debug.Log($"[NPCBase] {gameObject.name}: Cached local rotation {_initialLocalEuler}");
+
+        // Cache local rotation của tất cả children trực tiếp AS-IS
+        _directChildren = new Transform[transform.childCount];
+        _childOriginalLocalRots = new Quaternion[transform.childCount];
+        int i = 0;
+        foreach (Transform child in transform)
+        {
+            _directChildren[i] = child;
+            _childOriginalLocalRots[i] = child.localRotation;
+            i++;
+        }
+
+        _hasCachedRotation = true;
     }
 
     protected virtual void Update()
@@ -124,14 +147,15 @@ public abstract class NPCBase : MonoBehaviour
     /// </summary>
     private void KhoaTrucThangDung()
     {
-        // Lấy Y hiện tại (hướng nhìn) để giữ lại
-        float currentY = transform.eulerAngles.y;
-        float targetX = forceFixedXRotation ? fixedXRotation : _rootInitialX;
-        float targetZ = forceFixedZRotation ? fixedZRotation : _rootInitialZ;
+        if (!_hasCachedRotation) return;
 
-        // Khôi phục X và Z từ cache (đây là pose đúng từ scene)
-        // Chỉ Y được phép thay đổi
-        transform.rotation = Quaternion.Euler(targetX, currentY, targetZ);
+        // Lấy Y hiện tại (hướng nhìn) để giữ lại
+        float currentY = transform.localEulerAngles.y;
+        float targetX = forceFixedXRotation ? fixedXRotation : _initialLocalEuler.x;
+        float targetZ = forceFixedZRotation ? fixedZRotation : _initialLocalEuler.z;
+
+        // Khôi phục X và Z (local)
+        transform.localRotation = Quaternion.Euler(targetX, currentY, targetZ);
 
         // Khôi phục local rotation của children trực tiếp
         if (_directChildren != null)
@@ -164,13 +188,23 @@ public abstract class NPCBase : MonoBehaviour
         huong.y = 0;if (huong.sqrMagnitude > 0.001f)
         {
             // Tính góc Y mục tiêu
-            float targetY = Quaternion.LookRotation(huong, Vector3.up).eulerAngles.y;
-            float smoothY = Mathf.LerpAngle(transform.eulerAngles.y, targetY, tocDoQuay * Time.deltaTime);
-            float targetX = forceFixedXRotation ? fixedXRotation : _rootInitialX;
-            float targetZ = forceFixedZRotation ? fixedZRotation : _rootInitialZ;
+            Quaternion targetRot = Quaternion.LookRotation(huong, Vector3.up);
+            float targetY = targetRot.eulerAngles.y;
+            
+            // Nếu có parent, ta cần chuyển world Y sang local Y
+            if (transform.parent != null)
+            {
+                // Cách đơn giản nhất: dùng Quaternion.RotateTowards hoặc Slerp trên localRotation
+                // Nhưng để giữ logic của người dùng, ta convert targetY về local
+                targetY -= transform.parent.eulerAngles.y;
+            }
 
-            // Áp dụng quay: giữ X và Z từ cache, chỉ đổi Y
-            transform.rotation = Quaternion.Euler(targetX, smoothY, targetZ);
+            float smoothY = Mathf.LerpAngle(transform.localEulerAngles.y, targetY, tocDoQuay * Time.deltaTime);
+            float targetX = forceFixedXRotation ? fixedXRotation : _initialLocalEuler.x;
+            float targetZ = forceFixedZRotation ? fixedZRotation : _initialLocalEuler.z;
+
+            // Áp dụng quay local
+            transform.localRotation = Quaternion.Euler(targetX, smoothY, targetZ);
         }
     }
 }

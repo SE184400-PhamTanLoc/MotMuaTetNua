@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Collections;
 using TMPro;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class FamilyPhotoMinigame : MonoBehaviour
 {
@@ -48,7 +49,12 @@ public class FamilyPhotoMinigame : MonoBehaviour
             yield return new WaitForSeconds(1f);
         }
 
-        if (countdownText != null) countdownText.text = "SMILE!";
+        if (countdownText != null) 
+        {
+            countdownText.text = "<color=#FFD700><size=150%><b>SMILE!</b></size></color>";
+            // Animation: Punch scale
+            StartCoroutine(SmilePunchEffect());
+        }
         yield return new WaitForSeconds(0.5f);
 
         // Flash
@@ -86,5 +92,38 @@ public class FamilyPhotoMinigame : MonoBehaviour
         
         // Ending logic
         GameManager.Instance.HienThongBao("Chúc mừng! Bạn đã hoàn thành một mùa Tết ý nghĩa bên gia đình.");
+        
+        // Chờ thêm 3 giây để người chơi đọc thông báo rồi chuyển cảnh Ending
+        yield return new WaitForSeconds(3.5f);
+        SceneManager.LoadScene("Ending");
+    }
+
+    private IEnumerator SmilePunchEffect()
+    {
+        if (countdownText == null) yield break;
+
+        Vector3 originalScale = Vector3.one; // Assuming base scale is 1
+        
+        // Punch up
+        float elapsed = 0;
+        float duration = 0.15f;
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float t = elapsed / duration;
+            countdownText.transform.localScale = originalScale * Mathf.Lerp(1f, 1.5f, t);
+            yield return null;
+        }
+
+        // Settle back slightly
+        elapsed = 0;
+        duration = 0.1f;
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float t = elapsed / duration;
+            countdownText.transform.localScale = originalScale * Mathf.Lerp(1.5f, 1.2f, t);
+            yield return null;
+        }
     }
 }

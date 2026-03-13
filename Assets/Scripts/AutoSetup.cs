@@ -1813,6 +1813,7 @@ public class AutoSetup : MonoBehaviour
         boxCol.size = new Vector3(1.0f, 2f, 1.0f);
         boxCol.isTrigger = false; // Đảm bảo là vật thể đặc để không đi xuyên qua
 
+        FreezeNPCPhysics(giengObj);
         SetLayerRecursive(giengObj, 6);
 
         // 3. TẠO UI CHO GIẾNG

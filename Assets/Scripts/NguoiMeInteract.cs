@@ -7,12 +7,32 @@ public class NguoiMeInteract : NPCBase
         // Đã có trong NPCBase
     }
 
+    private CharacterRotationController _rotController;
+
     protected override void Start()
     {
         base.Start();
         tenNPC = "Mẹ";
         hanhDongTuongTac = "nói chuyện";
         coTheTuongTac = true;
+        
+        // Tắt cơ chế xoay mặc định của NPCBase để dùng code mới
+        quayVePhiaPlayer = false;
+        
+        _rotController = GetComponent<CharacterRotationController>();
+        if (_rotController == null) _rotController = gameObject.AddComponent<CharacterRotationController>();
+    }
+
+    public new void BatDauTuongTac()
+    {
+        base.BatDauTuongTac();
+        if (_rotController != null) _rotController.SetRotationActive(true);
+    }
+
+    protected new void KetThucTuongTac()
+    {
+        base.KetThucTuongTac();
+        if (_rotController != null) _rotController.SetRotationActive(false);
     }
 
     // Awake và OnEnable đã có trong NPCBase gọi FreezeAllRigidbodies()

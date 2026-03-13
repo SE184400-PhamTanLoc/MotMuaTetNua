@@ -20,7 +20,7 @@ public class AlbumEndingCutscenePlayer : MonoBehaviour
     [Tooltip("Bật để tự chuyển scene khi video kết thúc.")]
     public bool loadSceneAfterCutscene = true;
     [Tooltip("Tên scene sẽ load sau cutscene.")]
-    public string nextSceneName = "RoomScene";
+    public string nextSceneName = "RoomVillage";
     [Tooltip("Nếu false thì giữ nguyên timeline playback speed.")]
     public bool forceNormalPlaybackSpeed = true;
     [Tooltip("Phát video từ đầu mỗi lần trigger.")]
@@ -105,11 +105,27 @@ public class AlbumEndingCutscenePlayer : MonoBehaviour
         void OnLoopPointReached(VideoPlayer _) => finished = true;
 
         videoPlayer.loopPointReached += OnLoopPointReached;
+        videoPlayer.errorReceived += (vp, msg) => {
+            Debug.LogError($"[AlbumEndingCutscenePlayer] Video error: {msg}");
+            finished = true;
+        };
         videoPlayer.Play();
 
-        while (!finished)
+        // Safety Timeout logic
+        float duration = (float)videoPlayer.length;
+        if (duration <= 0) duration = 30f; // Fallback 30s
+        float timeout = duration + 5f;
+        float elapsed = 0;
+
+        while (!finished && elapsed < timeout)
         {
+            elapsed += Time.unscaledDeltaTime;
             yield return null;
+        }
+
+        if (!finished)
+        {
+            Debug.LogWarning("[AlbumEndingCutscenePlayer] Safety Timeout triggered - forcing end flow.");
         }
 
         videoPlayer.loopPointReached -= OnLoopPointReached;

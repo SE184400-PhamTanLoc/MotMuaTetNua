@@ -3,11 +3,19 @@ using System.Collections.Generic;
 
 public class OngNoiInteract : NPCBase
 {
+    private CharacterRotationController _rotController;
+
     protected override void Start()
     {
         base.Start();
         tenNPC = "Ông Nội";
         hanhDongTuongTac = "tương tác";
+
+        // Tắt cơ chế xoay mặc định của NPCBase để dùng code mới
+        quayVePhiaPlayer = false;
+        
+        _rotController = GetComponent<CharacterRotationController>();
+        if (_rotController == null) _rotController = gameObject.AddComponent<CharacterRotationController>();
 
         // Ngày 30: Ông Nội chỉ xuất hiện thông qua minigame canh nồi bánh (dialogue kể chuyện trong UI minigame),
         // nên tạm tắt tương tác trực tiếp bằng phím E để không bị trùng với trigger nồi bánh.
@@ -15,6 +23,18 @@ public class OngNoiInteract : NPCBase
         {
             coTheTuongTac = false;
         }
+    }
+
+    public new void BatDauTuongTac()
+    {
+        base.BatDauTuongTac();
+        if (_rotController != null) _rotController.SetRotationActive(true);
+    }
+
+    protected new void KetThucTuongTac()
+    {
+        base.KetThucTuongTac();
+        if (_rotController != null) _rotController.SetRotationActive(false);
     }
 
     protected override void OnTuongTac()

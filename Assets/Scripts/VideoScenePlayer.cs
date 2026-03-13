@@ -24,7 +24,7 @@ public class VideoScenePlayer : MonoBehaviour
     public bool autoPlayOnStart = true;
     public bool restartFromBeginning = true;
     public bool loadSceneAfterVideo = false;
-    public string nextSceneName = "Main Menu";
+    public string nextSceneName = "RoomVillage";
     [Tooltip("Bắt đầu fade out trước khi video kết thúc.")]
     public bool fadeOutBeforeVideoEnds = true;
     [Tooltip("Số giây trước khi video kết thúc để bắt đầu fade out.")]

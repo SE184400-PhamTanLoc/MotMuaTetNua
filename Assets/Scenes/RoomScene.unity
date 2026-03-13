@@ -586,7 +586,7 @@ VideoPlayer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 83939955}
   m_Enabled: 1
-  m_VideoClip: {fileID: 32900000, guid: 64379f8a48555014091b1733fe6a41e3, type: 3}
+  m_VideoClip: {fileID: 32900000, guid: f47e0372ea9290a4a9fd94ce59592018, type: 3}
   m_TargetCameraAlpha: 1
   m_TargetCamera3DLayout: 0
   m_TargetCamera: {fileID: 0}
@@ -1172,18 +1172,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1919600550}
     m_Modifications:
-    - target: {fileID: 3429886250689474746, guid: 84ec177bc6599ae438ee9c03a98cad5c, type: 3}
-      propertyPath: m_CastShadows
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 3429886250689474746, guid: 84ec177bc6599ae438ee9c03a98cad5c, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
-      value: 
-      objectReference: {fileID: 2100000, guid: 37ce1489d9a1c974c9c6720714a66846, type: 2}
-    - target: {fileID: 4453171450006304526, guid: 84ec177bc6599ae438ee9c03a98cad5c, type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 4814140183114437194, guid: 7a760e87b6739d345b176e63d00e8155, type: 3}
       propertyPath: m_Name
       value: Chair
@@ -1247,6 +1235,18 @@ PrefabInstance:
     - target: {fileID: 6147826009795423660, guid: 7a760e87b6739d345b176e63d00e8155, type: 3}
       propertyPath: m_ConstrainProportionsScale
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3429886250689474746, guid: 84ec177bc6599ae438ee9c03a98cad5c, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3429886250689474746, guid: 84ec177bc6599ae438ee9c03a98cad5c, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 37ce1489d9a1c974c9c6720714a66846, type: 2}
+    - target: {fileID: 4453171450006304526, guid: 84ec177bc6599ae438ee9c03a98cad5c, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1700,6 +1700,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerInteractor
   rayDistance: 2.5
   interactKey: 101
+  enableNpcInteractionInFreeOnlyChairState: 0
 --- !u!114 &330585550
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5050,7 +5051,7 @@ MonoBehaviour:
   cutsceneRawImage: {fileID: 0}
   albumFocusController: {fileID: 0}
   loadSceneAfterCutscene: 1
-  nextSceneName: RoomScene
+  nextSceneName: RoomVillage
   forceNormalPlaybackSpeed: 1
   restartFromBeginning: 1
 --- !u!4 &1016324919
@@ -5076,30 +5077,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 138334238}
     m_Modifications:
-    - target: {fileID: 1435084195094438199, guid: 00e5c0945f7a8b0439135711f7f02840, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
-      value: 
-      objectReference: {fileID: 2100000, guid: eecaa3198cbebd74e8cd79d0f71765cc, type: 2}
-    - target: {fileID: 3566175244756908363, guid: 00e5c0945f7a8b0439135711f7f02840, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
-      value: 
-      objectReference: {fileID: 2100000, guid: eecaa3198cbebd74e8cd79d0f71765cc, type: 2}
-    - target: {fileID: 4902759199653994149, guid: 00e5c0945f7a8b0439135711f7f02840, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
-      value: 
-      objectReference: {fileID: 2100000, guid: eecaa3198cbebd74e8cd79d0f71765cc, type: 2}
-    - target: {fileID: 5162418300222627636, guid: 00e5c0945f7a8b0439135711f7f02840, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
-      value: 
-      objectReference: {fileID: 2100000, guid: eecaa3198cbebd74e8cd79d0f71765cc, type: 2}
-    - target: {fileID: 7988860104275405039, guid: 00e5c0945f7a8b0439135711f7f02840, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
-      value: 
-      objectReference: {fileID: 2100000, guid: eecaa3198cbebd74e8cd79d0f71765cc, type: 2}
-    - target: {fileID: 8521295026751324758, guid: 00e5c0945f7a8b0439135711f7f02840, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
-      value: 
-      objectReference: {fileID: 2100000, guid: eecaa3198cbebd74e8cd79d0f71765cc, type: 2}
     - target: {fileID: -1036644959745387582, guid: e1b7b2d7dcc375743888eed74a4ee544, type: 3}
       propertyPath: m_CastShadows
       value: 1
@@ -5168,6 +5145,30 @@ PrefabInstance:
       propertyPath: m_ConstrainProportionsScale
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 1435084195094438199, guid: 00e5c0945f7a8b0439135711f7f02840, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: eecaa3198cbebd74e8cd79d0f71765cc, type: 2}
+    - target: {fileID: 3566175244756908363, guid: 00e5c0945f7a8b0439135711f7f02840, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: eecaa3198cbebd74e8cd79d0f71765cc, type: 2}
+    - target: {fileID: 4902759199653994149, guid: 00e5c0945f7a8b0439135711f7f02840, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: eecaa3198cbebd74e8cd79d0f71765cc, type: 2}
+    - target: {fileID: 5162418300222627636, guid: 00e5c0945f7a8b0439135711f7f02840, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: eecaa3198cbebd74e8cd79d0f71765cc, type: 2}
+    - target: {fileID: 7988860104275405039, guid: 00e5c0945f7a8b0439135711f7f02840, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: eecaa3198cbebd74e8cd79d0f71765cc, type: 2}
+    - target: {fileID: 8521295026751324758, guid: 00e5c0945f7a8b0439135711f7f02840, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: eecaa3198cbebd74e8cd79d0f71765cc, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
