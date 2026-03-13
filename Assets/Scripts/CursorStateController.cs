@@ -74,18 +74,8 @@ public class CursorStateController : MonoBehaviour
         }
 
         // Nếu không có GameFlow (ví dụ scene Day_28 không dùng GameFlow)
-        // → Khóa cursor mặc định để FirstPersonController hoạt động
-        if (GameFlow.Instance == null)
-        {
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
-            return;
-        }
-        if (GameFlow.Instance == null) return;
-        GameState currentState = GameFlow.Instance.currentState;
-        
-        // 3. Logic cho máy tính (ComputerActive)
-        if (currentState == GameState.ComputerActive)
+        // → Mặc định coi như đang FreeRoam
+        if (GameFlow.Instance != null && GameFlow.Instance.currentState == GameState.ComputerActive)
         {
             ComputerUIManager uiManager = UnityEngine.Object.FindFirstObjectByType<ComputerUIManager>();
             if (uiManager != null && uiManager.IsNotificationState())
@@ -99,9 +89,9 @@ public class CursorStateController : MonoBehaviour
                 Cursor.visible = true;
             }
         }
-        // 4. Các trạng thái tự do (Free roam)
         else
         {
+            // Trạng thái tự do: Khóa cursor
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
         }

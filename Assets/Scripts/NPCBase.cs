@@ -15,6 +15,16 @@ public abstract class NPCBase : MonoBehaviour
     public bool quayVePhiaPlayer = true;
     public float tocDoQuay = 5f;
 
+    [Header("=== KHÓA TRỤC XOAY (TUỲ CHỌN) ===")]
+    [Tooltip("Bật để ép trục X về một góc cố định khi NPC quay theo player.")]
+    public bool forceFixedXRotation = false;
+    [Tooltip("Góc X cố định khi forceFixedXRotation bật.")]
+    public float fixedXRotation = 0f;
+    [Tooltip("Bật để ép trục Z về một góc cố định khi NPC quay theo player.")]
+    public bool forceFixedZRotation = false;
+    [Tooltip("Góc Z cố định khi forceFixedZRotation bật (thường dùng 0).")]
+    public float fixedZRotation = 0f;
+
     // --- Private ---
     protected Transform _playerTransform;
     private bool _dangTuongTac = false;
@@ -51,8 +61,7 @@ public abstract class NPCBase : MonoBehaviour
         _childOriginalLocalRots = new Quaternion[transform.childCount];
         int i = 0;
         foreach (Transform child in transform)
-        {
-            _directChildren[i] = child;
+        {_directChildren[i] = child;
             _childOriginalLocalRots[i] = child.localRotation; // Cache nguyên xi không sửa
             i++;
         }
@@ -117,10 +126,12 @@ public abstract class NPCBase : MonoBehaviour
     {
         // Lấy Y hiện tại (hướng nhìn) để giữ lại
         float currentY = transform.eulerAngles.y;
+        float targetX = forceFixedXRotation ? fixedXRotation : _rootInitialX;
+        float targetZ = forceFixedZRotation ? fixedZRotation : _rootInitialZ;
 
         // Khôi phục X và Z từ cache (đây là pose đúng từ scene)
         // Chỉ Y được phép thay đổi
-        transform.rotation = Quaternion.Euler(_rootInitialX, currentY, _rootInitialZ);
+        transform.rotation = Quaternion.Euler(targetX, currentY, targetZ);
 
         // Khôi phục local rotation của children trực tiếp
         if (_directChildren != null)
@@ -150,15 +161,16 @@ public abstract class NPCBase : MonoBehaviour
     private void QuayVePhiaPlayer()
     {
         Vector3 huong = _playerTransform.position - transform.position;
-        huong.y = 0;
-        if (huong.sqrMagnitude > 0.001f)
+        huong.y = 0;if (huong.sqrMagnitude > 0.001f)
         {
             // Tính góc Y mục tiêu
             float targetY = Quaternion.LookRotation(huong, Vector3.up).eulerAngles.y;
             float smoothY = Mathf.LerpAngle(transform.eulerAngles.y, targetY, tocDoQuay * Time.deltaTime);
+            float targetX = forceFixedXRotation ? fixedXRotation : _rootInitialX;
+            float targetZ = forceFixedZRotation ? fixedZRotation : _rootInitialZ;
 
             // Áp dụng quay: giữ X và Z từ cache, chỉ đổi Y
-            transform.rotation = Quaternion.Euler(_rootInitialX, smoothY, _rootInitialZ);
+            transform.rotation = Quaternion.Euler(targetX, smoothY, targetZ);
         }
     }
 }

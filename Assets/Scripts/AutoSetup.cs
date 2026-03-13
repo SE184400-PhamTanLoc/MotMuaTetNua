@@ -169,6 +169,9 @@ public class AutoSetup : MonoBehaviour
         _cutsceneManager.videoDisplay = ri;
         _cutsceneManager.videoPlayer = vp;
         _cutsceneManager.overlayCanvasGroup = cg;
+        
+        // Disable by default so it doesn't block raycasts
+        cutsceneOverlay.SetActive(false);
     }
 
     private static void TuDongSetup()

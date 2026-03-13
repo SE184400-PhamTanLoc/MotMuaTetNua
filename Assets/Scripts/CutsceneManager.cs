@@ -27,7 +27,12 @@ public class CutsceneManager : MonoBehaviour
         DontDestroyOnLoad(gameObject);
 
         if (cutsceneOverlay != null) cutsceneOverlay.SetActive(false);
-        if (overlayCanvasGroup != null) overlayCanvasGroup.alpha = 0;
+        if (overlayCanvasGroup != null) 
+        {
+            overlayCanvasGroup.alpha = 0;
+            overlayCanvasGroup.blocksRaycasts = false;
+            overlayCanvasGroup.interactable = false;
+        }
 
         if (videoPlayer == null) videoPlayer = GetComponent<VideoPlayer>();
         
@@ -57,6 +62,8 @@ public class CutsceneManager : MonoBehaviour
     private IEnumerator PlayRoutine()
     {
         cutsceneOverlay.SetActive(true);
+        overlayCanvasGroup.blocksRaycasts = true;
+        overlayCanvasGroup.interactable = true;
         
         // Fade in overlay
         float elapsed = 0;
@@ -95,6 +102,8 @@ public class CutsceneManager : MonoBehaviour
             yield return null;
         }
         overlayCanvasGroup.alpha = 0;
+        overlayCanvasGroup.blocksRaycasts = false;
+        overlayCanvasGroup.interactable = false;
         cutsceneOverlay.SetActive(false);
 
         onCompleteCallback?.Invoke();

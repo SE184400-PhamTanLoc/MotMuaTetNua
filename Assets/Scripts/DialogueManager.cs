@@ -72,6 +72,11 @@ public class DialogueManager : MonoBehaviour
         Instance = this;
     }
 
+    private void OnDestroy()
+    {
+        if (Instance == this) Instance = null;
+    }
+
     private void Start()
     {
         if (dialoguePanel != null)
@@ -344,6 +349,11 @@ public class DialogueManager : MonoBehaviour
         var playerMovement = FindObjectOfType<PlayerMovement>();
         if (playerMovement != null)
             playerMovement.enabled = !khoa;
+
+        // Thêm xử lý cho PT_MouseLook (Khu vực chợ Day 28)
+        var mouseLook = FindObjectOfType<PT_MouseLook>();
+        if (mouseLook != null)
+            mouseLook.enabled = !khoa;
 
         Cursor.lockState = khoa ? CursorLockMode.None : CursorLockMode.Locked;
         Cursor.visible = khoa;
