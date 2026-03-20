@@ -19,6 +19,25 @@ public class FamilyPhotoMinigame : MonoBehaviour
 
         if (panel != null) panel.SetActive(false);
         if (flashOverlay != null) flashOverlay.color = new Color(1, 1, 1, 0);
+        if (countdownText != null)
+        {
+            countdownText.enableWordWrapping = false;
+            countdownText.enableAutoSizing = true;
+            countdownText.fontSizeMin = 20;
+            countdownText.fontSizeMax = 200; 
+            countdownText.alignment = TextAlignmentOptions.Center;
+            countdownText.overflowMode = TextOverflowModes.Overflow;
+            
+            // Đảm bảo RectTransform phủ kín Panel để căn giữa chuẩn
+            RectTransform rt = countdownText.GetComponent<RectTransform>();
+            if (rt != null)
+            {
+                rt.anchorMin = Vector2.zero;
+                rt.anchorMax = Vector2.one;
+                rt.offsetMin = Vector2.zero;
+                rt.offsetMax = Vector2.zero;
+            }
+        }
     }
 
     private void OnDestroy()
@@ -51,7 +70,7 @@ public class FamilyPhotoMinigame : MonoBehaviour
 
         if (countdownText != null) 
         {
-            countdownText.text = "<color=#FFD700><size=150%><b>SMILE!</b></size></color>";
+            countdownText.text = "<color=#FFD700><b>SMILE!</b></color>";
             // Animation: Punch scale
             StartCoroutine(SmilePunchEffect());
         }

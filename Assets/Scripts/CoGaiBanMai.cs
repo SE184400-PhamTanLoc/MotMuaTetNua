@@ -96,48 +96,53 @@ public class CoGaiBanMai : NPCBase
                 new DialogueManager.DialogueChoice
                 {
                     noiDungLuaChon = "Mai ở đây đẹp lắm ha, giá cả sao cô?",
-                    nodeKeTiep = 2
+                    nodeKeTiep = 3
                 },
                 new DialogueManager.DialogueChoice
                 {
                     noiDungLuaChon = "Thôi, cảm ơn cô. Tôi đi xem thêm đã.",
-                    nodeKeTiep = 6
+                    nodeKeTiep = 8 // Chuyển sang NODE 8 (Từ chối ngay)
                 }
             }
         });
 
-        // ===== NODE 1: Giới thiệu mai =====
+        // ===== NODE 1: Giới thiệu mai (Phần 1) =====
         nodes.Add(new DialogueManager.DialogueNode
         {
             tenNguoiNoi = "Cô gái bán mai",
             noiDung = "Dạ, anh coi nè!\n\nEm có hai loại mai rất đẹp:\n\n" +
                       "Cây mai nhỏ xinh xắn — Nụ nhiều, hoa vàng rực rỡ, phù hợp để bàn hoặc bàn thờ. " +
-                      $"Giá chỉ <color=#FFD700><b>{GameManager.FormatTien(giaMaiNho)}</b></color> thôi á!\n\n" +
-                      "Cây mai lớn tuyệt đẹp — Dáng cổ thụ, tán rộng, hoa nở rộ, chưng phòng khách sang trọng lắm! " +
-                      $"Giá <color=#FFD700><b>{GameManager.FormatTien(giaMaiLon)}</b></color> nha anh!",
+                      $"Giá chỉ <color=#FFD700><b>{GameManager.FormatTien(giaMaiNho)}</b></color> thôi á!",
+            nodeKeTiep = 2 // Chuyển sang NODE 2 (Giới thiệu P2)
+        });
+
+        // ===== NODE 2: Giới thiệu mai (Phần 2 + Lựa chọn) =====
+        nodes.Add(new DialogueManager.DialogueNode
+        {
+            tenNguoiNoi = "Cô gái bán mai",
+            noiDung = "Cây mai lớn tuyệt đẹp — Dáng cổ thụ, tán rộng, hoa nở rộ, chưng phòng khách sang trọng lắm! " +
+                      $"Giá <color=#FFD700><b>{GameManager.FormatTien(giaMaiLon)}</b></color> nha anh!\n\nAnh thấy sao?",
             danhSachLuaChon = new List<DialogueManager.DialogueChoice>
             {
                 new DialogueManager.DialogueChoice
                 {
                     noiDungLuaChon = $"Mua cây mai nhỏ ({GameManager.FormatTien(giaMaiNho)})",
-                    nodeKeTiep = 3,
                     onChon = () => XuLyMuaMai("Cây mai nhỏ", giaMaiNho)
                 },
                 new DialogueManager.DialogueChoice
                 {
                     noiDungLuaChon = $"Mua cây mai lớn ({GameManager.FormatTien(giaMaiLon)})",
-                    nodeKeTiep = 3,
                     onChon = () => XuLyMuaMai("Cây mai lớn", giaMaiLon)
                 },
                 new DialogueManager.DialogueChoice
                 {
                     noiDungLuaChon = "Để tôi suy nghĩ thêm đã...",
-                    nodeKeTiep = 5
+                    nodeKeTiep = 7 // Chuyển sang NODE 7 (Suy nghĩ thêm)
                 }
             }
         });
 
-        // ===== NODE 2: Hỏi giá trước =====
+        // ===== NODE 3: Hỏi giá trước =====
         nodes.Add(new DialogueManager.DialogueNode
         {
             tenNguoiNoi = "Cô gái bán mai",
@@ -149,33 +154,30 @@ public class CoGaiBanMai : NPCBase
                 new DialogueManager.DialogueChoice
                 {
                     noiDungLuaChon = "Lấy cây mai nhỏ nha cô (" + GameManager.FormatTien(giaMaiNho) + ")",
-                    nodeKeTiep = 3,
                     onChon = () => XuLyMuaMai("Cây mai nhỏ", giaMaiNho)
                 },
                 new DialogueManager.DialogueChoice
                 {
                     noiDungLuaChon = "Cho tôi cây mai lớn luôn! (" + GameManager.FormatTien(giaMaiLon) + ")",
-                    nodeKeTiep = 3,
                     onChon = () => XuLyMuaMai("Cây mai lớn", giaMaiLon)
                 },
                 new DialogueManager.DialogueChoice
                 {
                     noiDungLuaChon = "Để tôi coi ví còn bao nhiêu đã...",
-                    nodeKeTiep = 5
+                    nodeKeTiep = 9 // Chuyển sang NODE 9 (Xem ví)
                 }
             }
         });
 
-        // ===== NODE 3: Kết quả mua (sẽ redirect trong XuLyMuaMai) =====
-        // Placeholder - sẽ được thay bằng node thành công hoặc thất bại
+        // ===== NODE 4: Kết quả mua (Placeholder) =====
         nodes.Add(new DialogueManager.DialogueNode
         {
             tenNguoiNoi = "Cô gái bán mai",
-            noiDung = "", // Sẽ được cập nhật trong XuLyMuaMai
+            noiDung = "", 
             nodeKeTiep = -1
         });
 
-        // ===== NODE 4: Không đủ tiền =====
+        // ===== NODE 5: Không đủ tiền =====
         nodes.Add(new DialogueManager.DialogueNode
         {
             tenNguoiNoi = "Cô gái bán mai",
@@ -193,7 +195,7 @@ public class CoGaiBanMai : NPCBase
             }
         });
 
-        // ===== NODE 5: Từ chối nhẹ nhàng =====
+        // ===== NODE 6: Từ chối nhẹ nhàng (Quay lại sau) =====
         nodes.Add(new DialogueManager.DialogueNode
         {
             tenNguoiNoi = "Cô gái bán mai",
@@ -210,7 +212,16 @@ public class CoGaiBanMai : NPCBase
             }
         });
 
-        // ===== NODE 6: Từ chối ngay =====
+        // ===== NODE 7: Suy nghĩ thêm =====
+        nodes.Add(new DialogueManager.DialogueNode
+        {
+            tenNguoiNoi = "Cô gái bán mai",
+            noiDung = "Dạ anh cứ thong thả suy nghĩ thêm nha!\n\nKhi nào quyết định được thì quay lại đây với em, " +
+                      "em luôn để dành cây mai tươi nhất cho anh đó!",
+            nodeKeTiep = -1
+        });
+
+        // ===== NODE 8: Từ chối ngay (Đi dạo vui vẻ) =====
         nodes.Add(new DialogueManager.DialogueNode
         {
             tenNguoiNoi = "Cô gái bán mai",
@@ -219,7 +230,65 @@ public class CoGaiBanMai : NPCBase
             nodeKeTiep = -1
         });
 
+        // ===== NODE 9: Xem ví =====
+        nodes.Add(new DialogueManager.DialogueNode
+        {
+            tenNguoiNoi = "Cô gái bán mai",
+            noiDung = "Dạ anh cứ xem đi ạ! Hiện tại túi tiền của anh đang có <color=#00FF00><b>" + 
+                      GameManager.FormatTien(GameManager.Instance.SoTien) + "</b></color> đó anh!\n\n" +
+                      "Anh cứ thong thả chọn nha, em lúc nào cũng sẵn sàng phục vụ ạ!",
+            danhSachLuaChon = new List<DialogueManager.DialogueChoice>
+            {
+                new DialogueManager.DialogueChoice
+                {
+                    noiDungLuaChon = "Cảm ơn cô, để tôi xem tiếp.",
+                    nodeKeTiep = 2 // Quay lại NODE 2 (Giới thiệu P2)
+                },
+                new DialogueManager.DialogueChoice
+                {
+                    noiDungLuaChon = "Ừ, để tôi xem thêm chỗ khác nữa.",
+                    nodeKeTiep = 8 // Chuyển sang NODE 8 (Từ chối ngay)
+                }
+            }
+        });
+
         // Bắt đầu hội thoại
+        DialogueManager.Instance.BatDauHoiThoai(nodes, () => KetThucTuongTac());
+    }
+
+    private void HienThongBaoKetQuaMua(bool thanhCong, string loaiMai, int giaTien)
+    {
+        var nodes = new List<DialogueManager.DialogueNode>();
+        
+        if (thanhCong)
+        {
+            nodes.Add(new DialogueManager.DialogueNode
+            {
+                tenNguoiNoi = "Cô gái bán mai",
+                noiDung = $"Tuyệt vời!\n\nDạ cảm ơn anh nhiều nha! Anh chọn <b>{loaiMai}</b> đúng rồi đó!\n\n" +
+                          $"<color=#FFD700>-{GameManager.FormatTien(giaTien)}</color>\n" +
+                          $"Tiền còn lại: <color=#00FF00>{GameManager.FormatTien(GameManager.Instance.SoTien)}</color>\n\n" +
+                          "Mai đẹp lắm, mẹ anh chắc chắn sẽ vui mừng lắm luôn á!\n" +
+                          "Chúc anh và gia đình năm mới AN KHANG THỊNH VƯỢNG, VẠN SỰ NHƯ Ý!",
+                nodeKeTiep = -1
+            });
+        }
+        else
+        {
+            int thieu = giaTien - GameManager.Instance.SoTien;
+            nodes.Add(new DialogueManager.DialogueNode
+            {
+                tenNguoiNoi = "Cô gái bán mai",
+                noiDung = $"Dạ... anh ơi\n\n" +
+                          $"<b>{loaiMai}</b> giá <color=#FFD700>{GameManager.FormatTien(giaTien)}</color>, " +
+                          $"mà anh chỉ còn <color=#FF6B6B>{GameManager.FormatTien(GameManager.Instance.SoTien)}</color> thôi.\n" +
+                          $"Còn thiếu <color=#FF0000>{GameManager.FormatTien(thieu)}</color> nữa ạ!\n\n" +
+                          "Không sao đâu anh! Anh đi dạo chợ kiếm thêm rồi quay lại nha. " +
+                          "Em giữ cây đẹp cho anh!",
+                nodeKeTiep = -1
+            });
+        }
+
         DialogueManager.Instance.BatDauHoiThoai(nodes, () => KetThucTuongTac());
     }
 
@@ -263,74 +332,18 @@ public class CoGaiBanMai : NPCBase
     /// </summary>
     private void XuLyMuaMai(string loaiMai, int giaTien)
     {
+        bool thanhCong = false;
         if (GameManager.Instance.CoĐuTien(giaTien))
         {
-            // Mua thành công!
-            _muaThanhCong = GameManager.Instance.MuaMai(loaiMai, giaTien);
-
-            if (_muaThanhCong)
+            thanhCong = GameManager.Instance.MuaMai(loaiMai, giaTien);
+            if (thanhCong)
             {
-                // Cập nhật node 3 thành thông báo thành công
-                CapNhatNodeThanhCong(loaiMai, giaTien);
-
-                // Hiệu ứng
                 PhatAmThanh(tiengThanhCong);
                 if (hieuUngMuaThanhCong != null)
                     hieuUngMuaThanhCong.Play();
             }
         }
-        else
-        {
-            _muaThanhCong = false;
-            // Không đủ tiền → redirect sang node 4
-            // Trick: thay đổi nodeKeTiep trong luaChon thành 4
-            // Nhưng vì nodeKeTiep đã được set, ta cần cập nhật node 3
-            CapNhatNodeKhongDuTien(loaiMai, giaTien);
-        }
-    }
-
-    private void CapNhatNodeThanhCong(string loaiMai, int giaTien)
-    {
-        // Node 3 sẽ hiển thị khi mua thành công
-        // Do hệ thống đã navigate tới node 3, ta cần hook vào onNodeShow
-        // Tuy nhiên vì text được set trước khi BatDauHoiThoai,
-        // ta cần sử dụng cách khác: đặt text trực tiếp
-
-        // Workaround: Dùng Invoke delay nhỏ để cập nhật text
-        StartCoroutine(CapNhatNodeSauDelay(
-            $"Tuyệt vời!\n\nDạ cảm ơn anh nhiều nha! Anh chọn <b>{loaiMai}</b> đúng rồi đó!\n\n" +
-            $"<color=#FFD700>-{GameManager.FormatTien(giaTien)}</color>\n" +
-            $"Tiền còn lại: <color=#00FF00>{GameManager.FormatTien(GameManager.Instance.SoTien)}</color>\n\n" +
-            "Mai đẹp lắm, mẹ anh chắc chắn sẽ vui mừng lắm luôn á!\n" +
-            "Chúc anh và gia đình năm mới AN KHANG THỊNH VƯỢNG, VẠN SỰ NHƯ Ý!"
-        ));
-    }
-
-    private void CapNhatNodeKhongDuTien(string loaiMai, int giaTien)
-    {
-        int thieu = giaTien - GameManager.Instance.SoTien;
-        StartCoroutine(CapNhatNodeSauDelay(
-            $"Dạ... anh ơi\n\n" +
-            $"<b>{loaiMai}</b> giá <color=#FFD700>{GameManager.FormatTien(giaTien)}</color>, " +
-            $"mà anh chỉ còn <color=#FF6B6B>{GameManager.FormatTien(GameManager.Instance.SoTien)}</color> thôi.\n" +
-            $"Còn thiếu <color=#FF0000>{GameManager.FormatTien(thieu)}</color> nữa ạ!\n\n" +
-            "Không sao đâu anh! Anh đi dạo chợ kiếm thêm rồi quay lại nha. " +
-            "Em giữ cây đẹp cho anh!"
-        ));
-    }
-
-    private System.Collections.IEnumerator CapNhatNodeSauDelay(string noiDungMoi)
-    {
-        yield return null; // Chờ 1 frame
-
-        // Cập nhật text hiển thị trực tiếp trên UI
-        if (DialogueManager.Instance != null)
-        {
-            var noiDungText = DialogueManager.Instance.noiDungText;
-            if (noiDungText != null)
-            {
-                noiDungText.text = noiDungMoi;
-            }
-        }
+        
+        HienThongBaoKetQuaMua(thanhCong, loaiMai, giaTien);
     }
 }

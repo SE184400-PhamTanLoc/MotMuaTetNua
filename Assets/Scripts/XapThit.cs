@@ -79,7 +79,10 @@ public class XapThit : NPCBase
                 new DialogueManager.DialogueChoice
                 {
                     noiDungLuaChon = "Dạ con lấy luôn!",
-                    onChon = () => GameManager.Instance.MuaNguyenLieu("thịt", giaThit)
+                    onChon = () => {
+                        GameManager.Instance.MuaNguyenLieu("thịt", giaThit);
+                        HienHoiThoaiKetQuaMuaTrucTiep("thịt", giaThit);
+                    }
                 },
                 new DialogueManager.DialogueChoice
                 {
@@ -94,6 +97,40 @@ public class XapThit : NPCBase
             }
         });
         DialogueManager.Instance.BatDauHoiThoai(nodes, () => KetThucTuongTac());
+    }
+
+    private void HienHoiThoaiKetQuaMuaTrucTiep(string tenItem, int giaTien)
+    {
+        var nodes = new List<DialogueManager.DialogueNode>();
+        nodes.Add(new DialogueManager.DialogueNode
+        {
+            tenNguoiNoi = "Chú Tư",
+            noiDung = $"Thịt ngon tươi rói đây con! Chú gói kỹ rồi nha, về làm món gì ngon ngon nhen!\n\n" +
+                      $"<color=#FFD700>-{GameManager.FormatTien(giaTien)}</color>",
+            nodeKeTiep = -1
+        });
+
+        DialogueManager.Instance.BatDauHoiThoai(nodes, () => HienHoiThoaiCauHoiMuaTiep());
+    }
+
+    private void HienHoiThoaiCauHoiMuaTiep()
+    {
+        // Hiện tại sạp thịt chỉ có 1 món, nên ta kiểm tra xem đã mua chưa
+        if (GameManager.Instance.coThit)
+        {
+            var nodes = new List<DialogueManager.DialogueNode>();
+            nodes.Add(new DialogueManager.DialogueNode
+            {
+                tenNguoiNoi = "Chú Tư",
+                noiDung = "Con mua đủ thịt rồi đó, về lo Tết với mẹ đi con!",
+                nodeKeTiep = -1
+            });
+            DialogueManager.Instance.BatDauHoiThoai(nodes, () => KetThucTuongTac());
+            return;
+        }
+
+        // Nếu chưa mua (trong trường hợp sau này có thêm món), ta hiện lại hội thoại chính
+        HienHoiThoaiChinh();
     }
 
     private void XuLyTraGia(int giaDeNghi)
@@ -124,7 +161,10 @@ public class XapThit : NPCBase
                     onNodeShow = () => GameManager.Instance.MuaNguyenLieu("thịt", giaDeNghi),
                     danhSachLuaChon = new List<DialogueManager.DialogueChoice>
                     {
-                        new DialogueManager.DialogueChoice { noiDungLuaChon = "Dạ con cảm ơn chú!", nodeKeTiep = -1 }
+                        new DialogueManager.DialogueChoice { 
+                            noiDungLuaChon = "Dạ con cảm ơn chú!", 
+                            onChon = () => HienHoiThoaiCauHoiMuaTiep() 
+                        }
                     }
                 });
             }

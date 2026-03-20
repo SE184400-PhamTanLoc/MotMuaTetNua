@@ -109,6 +109,10 @@ public class InGameSettingsPanelController : MonoBehaviour
         IsAnySettingsOpen = true;
         ApplyPauseState(true);
         SetGameplayScriptsEnabled(false);
+
+        // Mới: Ẩn bảng nhiệm vụ nếu tìm thấy
+        MissionUIController missionUI = Object.FindFirstObjectByType<MissionUIController>();
+        if (missionUI != null) missionUI.SetVisible(false);
     }
 
     public void CloseSettings()
@@ -122,6 +126,10 @@ public class InGameSettingsPanelController : MonoBehaviour
         IsAnySettingsOpen = false;
         ApplyPauseState(false);
         SetGameplayScriptsEnabled(true);
+
+        // Mới: Hiện lại bảng nhiệm vụ nếu tìm thấy
+        MissionUIController missionUI = Object.FindFirstObjectByType<MissionUIController>();
+        if (missionUI != null) missionUI.SetVisible(true);
     }
 
     public void RequestQuitToMenu()

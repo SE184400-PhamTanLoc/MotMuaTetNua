@@ -9,7 +9,7 @@ public class ChangeScene : MonoBehaviour
     {
         if (other.CompareTag("Player"))
         {
-            SceneManager.LoadScene(sceneName);
+            SceneTransitionManager.Instance.TransitionToScene(sceneName);
         }
     }
 }

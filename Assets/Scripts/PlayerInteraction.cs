@@ -116,6 +116,10 @@ public class PlayerInteraction : MonoBehaviour
                         // Dùng đúng câu chữ theo cấu hình tenNPC + hanhDongTuongTac
                         msg = $"Nhấn <color=yellow><b>E</b></color> để <b>{npcGanNhat.hanhDongTuongTac} {npcGanNhat.tenNPC}</b>";
                     }
+                    else if ((npcGanNhat is OngNoiInteract || npcGanNhat is NguoiBoInteract) && GameManager.Instance.currentDay == GameManager.TetDay.Mung1)
+                    {
+                         msg = $"Nhấn <color=yellow><b>E</b></color> để <b>{npcGanNhat.hanhDongTuongTac}</b> với <b>{npcGanNhat.tenNPC}</b>";
+                    }
 
                     if (!string.IsNullOrEmpty(msg))
                     {

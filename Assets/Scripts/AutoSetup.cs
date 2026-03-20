@@ -40,6 +40,7 @@ public class AutoSetup : MonoBehaviour
     private static TextMeshProUGUI _tienText;
     private static GameObject _nhiemVuPanel;
     private static TextMeshProUGUI _nhiemVuText;
+    private static TextMeshProUGUI _nhiemVuToggleHint;
     private static GameObject _thongBaoPanel;
     private static TextMeshProUGUI _thongBaoText;
     private static Image _crosshairImage;
@@ -116,6 +117,15 @@ public class AutoSetup : MonoBehaviour
             TextMeshProUGUI tmp = text.AddComponent<TextMeshProUGUI>();
             tmp.fontSize = 100;
             tmp.alignment = TextAlignmentOptions.Center;
+            tmp.enableWordWrapping = false;
+            tmp.overflowMode = TextOverflowModes.Overflow;
+            
+            RectTransform tRect = text.GetComponent<RectTransform>();
+            tRect.anchorMin = Vector2.zero;
+            tRect.anchorMax = Vector2.one;
+            tRect.offsetMin = Vector2.zero;
+            tRect.offsetMax = Vector2.zero;
+            
             photo.countdownText = tmp;
             
             panel.SetActive(false);
@@ -190,18 +200,18 @@ public class AutoSetup : MonoBehaviour
         Debug.Log("<color=yellow>[AutoSetup] 🏮 Bắt đầu tự động setup game (Scene: " + sceneName + ")...</color>");
         Debug.Log("<color=yellow>===================================</color>");
 
-        // Dọn dẹp object cũ
+        // Dọn dẹp object cũ - Dùng DestroyImmediate để đảm bảo sạch sẽ trước khi tạo mới
         var oldRunner = GameObject.Find("_AutoSetup_Runner");
-        if (oldRunner != null) Object.Destroy(oldRunner);
+        if (oldRunner != null) Object.DestroyImmediate(oldRunner);
         
         var oldPreview = GameObject.Find("FruitPreviewStage");
-        if (oldPreview != null) Object.Destroy(oldPreview);
+        if (oldPreview != null) Object.DestroyImmediate(oldPreview);
 
         var oldCanvas = GameObject.Find("GameplayCanvas");
-        if (oldCanvas != null) Object.Destroy(oldCanvas);
+        if (oldCanvas != null) Object.DestroyImmediate(oldCanvas);
 
         var oldDiemTra = GameObject.Find("DiemTraMai_NhaMe");
-        if (oldDiemTra != null) Object.Destroy(oldDiemTra);
+        if (oldDiemTra != null) Object.DestroyImmediate(oldDiemTra);
 
         // Reset static references
         _canvas = null;
@@ -264,7 +274,7 @@ public class AutoSetup : MonoBehaviour
             SetupVillageOutsideOnly();
             PlayVillageBgm(setupObj);
         }
-        else if (sceneName == "RoomVillage" || sceneName == "RoomScene")
+        else if (sceneName == "RoomVillage")
         {
             SetupVillageOnly();
             PlayVillageBgm(setupObj);
@@ -485,59 +495,57 @@ public class AutoSetup : MonoBehaviour
 
         // === Nhiệm vụ (Góc trên trái) ===
         _nhiemVuPanel = TaoPanel("NhiemVuPanel", _canvas.transform);
-        _nhiemVuPanel.GetComponent<Image>().color = mauNenGiay;
+        _nhiemVuPanel.GetComponent<Image>().color = Color.white;
+        _nhiemVuPanel.GetComponent<Image>().sprite = Resources.Load<Sprite>("BangNhiemVu");
+        
         RectTransform nvRect = _nhiemVuPanel.GetComponent<RectTransform>();
-        nvRect.anchorMin = new Vector2(0.01f, 0.55f); // Chỉnh lại ngắn hơn một chút (từ 0.45 lên 0.55)
-        nvRect.anchorMax = new Vector2(0.25f, 0.985f);
+        nvRect.anchorMin = new Vector2(0.01f, 0.45f); // Trả lại kích thước rộng hơn cho bảng mới
+        nvRect.anchorMax = new Vector2(0.35f, 0.985f);
         nvRect.offsetMin = Vector2.zero;
         nvRect.offsetMax = Vector2.zero;
 
-        // Thanh Header cho Nhiệm vụ
-        GameObject nvHeader = TaoPanel("NhiemVuHeader", _nhiemVuPanel.transform);
-        nvHeader.GetComponent<Image>().color = mauDoTuoi;
-        RectTransform nvhRect = nvHeader.GetComponent<RectTransform>();
-        nvhRect.anchorMin = new Vector2(0, 0.85f); // Header nhỏ lại một chút theo tỷ lệ mới
-        nvhRect.anchorMax = new Vector2(1, 1);
-        nvhRect.offsetMin = Vector2.zero;
-        nvhRect.offsetMax = Vector2.zero;
-
-        TextMeshProUGUI nvTitle = TaoText("NhiemVuTitle", nvHeader.transform, "NHIỆM VỤ", 18, TextAlignmentOptions.Center);
-        nvTitle.fontStyle = FontStyles.Bold;
-        nvTitle.color = mauVang;
-        RectTransform nvTitleRect = nvTitle.GetComponent<RectTransform>();
-        nvTitleRect.anchorMin = Vector2.zero;
-        nvTitleRect.anchorMax = Vector2.one;
-        nvTitleRect.offsetMin = Vector2.zero;
-        nvTitleRect.offsetMax = Vector2.zero;
-
-        _nhiemVuText = TaoText("NhiemVuText", _nhiemVuPanel.transform, "", 20, TextAlignmentOptions.TopLeft); // Giảm font size xuống 20
+        // BỎ CÁC HEADER VÀ TRANG TRÍ CŨ VÌ TRONG ẢNH ĐÃ CÓ SẴN
+        _nhiemVuText = TaoText("NhiemVuText", _nhiemVuPanel.transform, "", 22, TextAlignmentOptions.Left);
         _nhiemVuText.fontStyle = FontStyles.Bold;
-        _nhiemVuText.color = Color.black;
+        _nhiemVuText.color = mauVang;
         _nhiemVuText.outlineWidth = 0.2f;
-        _nhiemVuText.outlineColor = new Color(0, 0, 0, 0.5f); // Subtle outline for dark text on light bg
-        _nhiemVuText.lineSpacing = -5;
+        _nhiemVuText.outlineColor = Color.black;
+        _nhiemVuText.lineSpacing = 5; // Tăng dãn dòng một chút cho dễ đọc
         RectTransform nvTextRect = _nhiemVuText.GetComponent<RectTransform>();
-        nvTextRect.anchorMin = new Vector2(0.05f, 0.02f);
-        nvTextRect.anchorMax = new Vector2(0.95f, 0.82f); // Hạ thấp trần nội dung xuống để tránh bị đè (từ 0.88 xuống 0.82)
+        
+        // Căn chỉnh Text lọt thỏm vào vùng khung đen của ảnh BangNhiemVu
+        nvTextRect.anchorMin = new Vector2(0.15f, 0.12f);
+        nvTextRect.anchorMax = new Vector2(0.9f, 0.68f);
         nvTextRect.offsetMin = Vector2.zero;
         nvTextRect.offsetMax = Vector2.zero;
+        
+        _nhiemVuPanel.layer = 5; // Đảm bảo layer UI
 
-        // Vẽ thêm 2 cái nút trang trí ở đầu Scroll
-        GameObject decorLeft = TaoPanel("DecorL", _nhiemVuPanel.transform);
-        decorLeft.GetComponent<Image>().color = mauDoTuoi;
-        RectTransform dlRect = decorLeft.GetComponent<RectTransform>();
-        dlRect.anchorMin = new Vector2(-0.02f, 0.78f);
-        dlRect.anchorMax = new Vector2(0.02f, 1.02f);
-        dlRect.offsetMin = Vector2.zero;
-        dlRect.offsetMax = Vector2.zero;
+        // Gắn MissionUIController để quản lý thu gọn/mở rộng chuyên nghiệp
+        MissionUIController mui = _nhiemVuPanel.AddComponent<MissionUIController>();
+        
+        // Tạo container riêng cho nội dung để MissionUIController có thể ẩn/hiện/fade
+        GameObject contentObj = new GameObject("ContentContainer");
+        contentObj.transform.SetParent(_nhiemVuPanel.transform, false);
+        RectTransform contentRect = contentObj.AddComponent<RectTransform>();
+        contentRect.anchorMin = Vector2.zero;
+        contentRect.anchorMax = Vector2.one;
+        contentRect.offsetMin = Vector2.zero;
+        contentRect.offsetMax = Vector2.zero;
+        
+        mui.contentContainer = contentObj;
+        _nhiemVuText.transform.SetParent(contentObj.transform, false);
+        _nhiemVuText.gameObject.layer = 5;
 
-        GameObject decorRight = TaoPanel("DecorR", _nhiemVuPanel.transform);
-        decorRight.GetComponent<Image>().color = mauDoTuoi;
-        RectTransform drRect = decorRight.GetComponent<RectTransform>();
-        drRect.anchorMin = new Vector2(0.98f, 0.78f);
-        drRect.anchorMax = new Vector2(1.02f, 1.02f);
-        drRect.offsetMin = Vector2.zero;
-        drRect.offsetMax = Vector2.zero;
+        // Tạo Hint text cho phím H
+        _nhiemVuToggleHint = TaoText("NhiemVuToggleHint", _nhiemVuPanel.transform, "[H] Thu gọn", 14, TextAlignmentOptions.Center);
+        _nhiemVuToggleHint.color = new Color(mauVang.r, mauVang.g, mauVang.b, 0.7f);
+        RectTransform hintRect = _nhiemVuToggleHint.GetComponent<RectTransform>();
+        hintRect.anchorMin = new Vector2(0.3f, 0.02f);
+        hintRect.anchorMax = new Vector2(0.7f, 0.08f);
+        hintRect.offsetMin = Vector2.zero;
+        hintRect.offsetMax = Vector2.zero;
+        mui.hintText = _nhiemVuToggleHint;
 
         // === Thông báo ===
         _thongBaoPanel = TaoPanel("ThongBaoPanel", _canvas.transform);
@@ -651,7 +659,29 @@ public class AutoSetup : MonoBehaviour
         rect.anchorMax = Vector2.one;
         rect.offsetMin = Vector2.zero;
         rect.offsetMax = Vector2.zero;
-        _fruitFallingPanel.GetComponent<Image>().color = new Color(0,0,0,0.7f);
+        Image bgImage = _fruitFallingPanel.GetComponent<Image>();
+        Sprite bgSprite = Resources.Load<Sprite>("MinigameLuaMamNguQua/AnhChoTraiCay");
+        
+        if (bgSprite != null)
+        {
+            bgImage.sprite = bgSprite;
+            bgImage.color = Color.white;
+        }
+        else
+        {
+            Texture2D bgTex = Resources.Load<Texture2D>("MinigameLuaMamNguQua/AnhChoTraiCay");
+            if (bgTex != null)
+            {
+                UnityEngine.Object.DestroyImmediate(bgImage);
+                RawImage rawImage = _fruitFallingPanel.AddComponent<RawImage>();
+                rawImage.texture = bgTex;
+                rawImage.color = Color.white;
+            }
+            else
+            {
+                bgImage.color = new Color(0, 0, 0, 0.7f);
+            }
+        }
 
         // Title
         TextMeshProUGUI title = TaoText("Title", _fruitFallingPanel.transform, "HỨNG QUẢ NGŨ QUẢ", 40, TextAlignmentOptions.Center);
@@ -865,7 +895,9 @@ public class AutoSetup : MonoBehaviour
             fruit.transform.SetParent(this.transform, false);
             
             RectTransform rect = fruit.GetComponent<RectTransform>();
-            float startX = Random.Range(100f, Screen.width - 100f);
+            float minX = Screen.width * 0.25f;
+            float maxX = Screen.width * 0.75f;
+            float startX = Random.Range(minX, maxX);
             rect.position = new Vector3(startX, Screen.height + 50f, 0);
             rect.sizeDelta = new Vector2(200, 200);
 

@@ -9,7 +9,7 @@ public class OngNoiInteract : NPCBase
     {
         base.Start();
         tenNPC = "Ông Nội";
-        hanhDongTuongTac = "tương tác";
+        hanhDongTuongTac = "chúc Tết";
 
         // Tắt cơ chế xoay mặc định của NPCBase để dùng code mới
         quayVePhiaPlayer = false;

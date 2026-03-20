@@ -280,21 +280,22 @@ public class YardSweepingMinigame : MonoBehaviour
         var labelGO = CreateUIObject("Label", progressRoot);
         var labelRT = labelGO.GetComponent<RectTransform>();
         labelRT.anchorMin = new Vector2(0f, 0f);
-        labelRT.anchorMax = new Vector2(0.3f, 1f);
+        labelRT.anchorMax = new Vector2(0.35f, 1f);
         labelRT.offsetMin = Vector2.zero;
         labelRT.offsetMax = Vector2.zero;
         var labelText = labelGO.AddComponent<Text>();
         labelText.text = "🧹 Tiến độ quét sân:";
         labelText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-        labelText.fontSize = 20;
+        labelText.fontSize = 22;
         labelText.color = new Color(1f, 0.9f, 0.7f, 1f);
-        labelText.alignment = TextAnchor.MiddleRight;
+        labelText.alignment = TextAnchor.MiddleLeft;
+        labelText.horizontalOverflow = HorizontalWrapMode.Overflow;
 
         // Progress Slider
         var sliderGO = CreateUIObject("ProgressSlider", progressRoot);
         var sliderRT = sliderGO.GetComponent<RectTransform>();
-        sliderRT.anchorMin = new Vector2(0.28f, 0.1f);
-        sliderRT.anchorMax = new Vector2(0.88f, 0.9f);
+        sliderRT.anchorMin = new Vector2(0.36f, 0.2f);
+        sliderRT.anchorMax = new Vector2(0.86f, 0.8f);
         sliderRT.offsetMin = Vector2.zero;
         sliderRT.offsetMax = Vector2.zero;
         _progressSlider = sliderGO.AddComponent<Slider>();
@@ -307,6 +308,7 @@ public class YardSweepingMinigame : MonoBehaviour
         sliderBg.color = new Color(0.15f, 0.1f, 0.08f, 1f);
         FillParent(sliderBg.rectTransform);
         var fillArea = CreateUIObject("FillArea", sliderGO);
+        FillParent(fillArea.GetComponent<RectTransform>()); // FIX: Cần fill parent
         var fill = CreateUIObject("Fill", fillArea).AddComponent<Image>();
         fill.color = new Color(0.3f, 0.8f, 0.3f, 1f);
         FillParent(fill.rectTransform);
@@ -319,10 +321,11 @@ public class YardSweepingMinigame : MonoBehaviour
         _progressText.fontSize = 22;
         _progressText.color = new Color(1f, 0.9f, 0.6f, 1f);
         var textRT = textGO.GetComponent<RectTransform>();
-        textRT.anchorMin = new Vector2(0.88f, 0f);
+        textRT.anchorMin = new Vector2(0.87f, 0f);
         textRT.anchorMax = new Vector2(1f, 1f);
         textRT.offsetMin = Vector2.zero;
         textRT.offsetMax = Vector2.zero;
+        _progressText.horizontalOverflow = HorizontalWrapMode.Overflow;
 
         // Title
         var titleGO = CreateUIObject("Title", panel);

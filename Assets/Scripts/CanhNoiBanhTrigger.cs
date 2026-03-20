@@ -18,6 +18,13 @@ public class CanhNoiBanhTrigger : MonoBehaviour
     {
         if (_playerInZone && !_isInteracting)
         {
+            // CHỈ cho phép tương tác vào ngày 30
+            if (GameManager.Instance != null && GameManager.Instance.currentDay != GameManager.TetDay.Day30)
+            {
+                if (_interactionUI != null) _interactionUI.SetActive(false);
+                return;
+            }
+
             // NẾU đang trong nhiệm vụ quét sân mà chưa xong thì KHÔNG cho canh nồi bánh
             if (GameManager.Instance != null && GameManager.Instance.daNhanNhiemVuQuetSan && !GameManager.Instance.yardSwept)
             {

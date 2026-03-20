@@ -111,7 +111,10 @@ public class XapGao : NPCBase
                 new DialogueManager.DialogueChoice
                 {
                     noiDungLuaChon = $"Dạ con lấy luôn ({GameManager.FormatTien(giaGoc)})",
-                    onChon = () => GameManager.Instance.MuaNguyenLieu(tenItem, giaGoc)
+                    onChon = () => {
+                        GameManager.Instance.MuaNguyenLieu(tenItem, giaGoc);
+                        HienHoiThoaiKetQuaMuaTrucTiep(tenItem, giaGoc);
+                    }
                 },
                 new DialogueManager.DialogueChoice
                 {
@@ -161,7 +164,10 @@ public class XapGao : NPCBase
                     onNodeShow = () => GameManager.Instance.MuaNguyenLieu(tenItem, giaDeNghi),
                     danhSachLuaChon = new List<DialogueManager.DialogueChoice>
                     {
-                        new DialogueManager.DialogueChoice { noiDungLuaChon = "Dạ con cảm ơn bà!", nodeKeTiep = -1 }
+                        new DialogueManager.DialogueChoice { 
+                            noiDungLuaChon = "Dạ con cảm ơn bà!", 
+                            onChon = () => HienHoiThoaiCauHoiMuaTiep() 
+                        }
                     }
                 });
             }
@@ -178,6 +184,43 @@ public class XapGao : NPCBase
                 });
             }
         }
+
+        DialogueManager.Instance.BatDauHoiThoai(nodes, () => KetThucTuongTac());
+    }
+
+    private void HienHoiThoaiKetQuaMuaTrucTiep(string tenItem, int giaTien)
+    {
+        var nodes = new List<DialogueManager.DialogueNode>();
+        nodes.Add(new DialogueManager.DialogueNode
+        {
+            tenNguoiNoi = "Bà Sáu",
+            noiDung = $"Của con đây! Bà gói ghém cẩn thận rồi đó. Con mua {tenItem} là đúng bài luôn!\n\n" +
+                      $"<color=#FFD700>-{GameManager.FormatTien(giaTien)}</color>",
+            nodeKeTiep = -1
+        });
+
+        DialogueManager.Instance.BatDauHoiThoai(nodes, () => HienHoiThoaiCauHoiMuaTiep());
+    }
+
+    private void HienHoiThoaiCauHoiMuaTiep()
+    {
+        var choices = GetChoicesHienTai();
+        // Nếu đã mua hết rồi thì thôi
+        if (choices.Count <= 1) // Chỉ còn mỗi nút "Thôi con xem tí đã"
+        {
+            DialogueManager.Instance.BatDauHoiThoai(new List<DialogueManager.DialogueNode> {
+                new DialogueManager.DialogueNode { tenNguoiNoi = "Bà Sáu", noiDung = "Con mua đủ đồ rồi đó, về gói bánh cho ngon nhen!" }
+            }, () => KetThucTuongTac());
+            return;
+        }
+
+        var nodes = new List<DialogueManager.DialogueNode>();
+        nodes.Add(new DialogueManager.DialogueNode
+        {
+            tenNguoiNoi = "Bà Sáu",
+            noiDung = "Con có muốn mua thêm gì nữa không? Bà còn nhiều đồ ngon lắm!",
+            danhSachLuaChon = choices
+        });
 
         DialogueManager.Instance.BatDauHoiThoai(nodes, () => KetThucTuongTac());
     }

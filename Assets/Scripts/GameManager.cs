@@ -328,43 +328,43 @@ public class GameManager : MonoBehaviour
 
         if (currentDay == TetDay.Day29)
         {
-            currentTask += "<color=#FFD700><b>[ NGÀY 29 TẾT - CHUẨN BỊ NHÀ CỬA ]</b></color>\n";
+            // currentTask += "<color=yellow><b>[ NGÀY 29 TẾT - CHUẨN BỊ NHÀ CỬA ]</b></color>\n\n";
 
             if (sceneName == "Day_28_Scene")
             {
                 // Ở chợ trong ngày 29: nhiệm vụ chính là mua cây mai (đồ ăn uống sẽ được tính cho ngày 30)
-                currentTask += (daMuaMai ? " <color=green>[x]</color> " : " <color=red>[ ]</color> ")
+                currentTask += (daMuaMai ? " <color=green>[x]</color> " : " <color=white>[ ]</color> ")
                                + "Mua cây mai chưng Tết\n";
             }
             else if (sceneName == "RoomVillage" || sceneName == "RoomScene" || sceneName == "VillageScene")
             {
                 // Ở nhà trong ngày 29: dọn dẹp + mang mai về
-                currentTask += (altarCleaned ? " <color=green>[x]</color> " : " <color=red>[ ]</color> ") + "Lau bàn thờ\n";
-                currentTask += (yardSwept ? " <color=green>[x]</color> " : " <color=red>[ ]</color> ") + "Quét sân\n";
-                currentTask += (daMangMaiVeMe ? " <color=green>[x]</color> " : " <color=red>[ ]</color> ") + "Mang hoa mai về nhà\n";
+                currentTask += (altarCleaned ? " <color=green>[x]</color> " : " <color=white>[ ]</color> ") + "Lau bàn thờ\n" +
+                               (yardSwept ? " <color=green>[x]</color> " : " <color=white>[ ]</color> ") + "Quét sân\n" +
+                               (daMangMaiVeMe ? " <color=green>[x]</color> " : " <color=white>[ ]</color> ") + "Mang hoa mai về nhà\n";
             }
         }
         else if (currentDay == TetDay.Day30)
         {
-            currentTask += "<color=#FFD700><b>[ NGÀY 30 TẾT - ĐOÀN TỤ ]</b></color>\n";
+            // currentTask += "<color=yellow><b>[ NGÀY 30 TẾT - ĐOÀN TỤ ]</b></color>\n\n";
 
             // Nhiệm vụ đồ ăn thức uống và nghi lễ của ngày 30
-            currentTask += (DaThuThapDuNguyenLieu() ? " <color=green>[x]</color> " : " <color=red>[ ]</color> ")
+            currentTask += (DaThuThapDuNguyenLieu() ? " <color=green>[x]</color> " : " <color=white>[ ]</color> ")
                            + "Chuẩn bị đủ nguyên liệu gói bánh\n";
-            currentTask += (daGoiBanhTet ? " <color=green>[x]</color> " : " <color=red>[ ]</color> ")
+            currentTask += (daGoiBanhTet ? " <color=green>[x]</color> " : " <color=white>[ ]</color> ")
                            + "Gói bánh Tét\n";
-            currentTask += (daCanhNoiBanh ? " <color=green>[x]</color> " : " <color=red>[ ]</color> ")
+            currentTask += (daCanhNoiBanh ? " <color=green>[x]</color> " : " <color=white>[ ]</color> ")
                            + "Canh nồi bánh\n";
-            currentTask += (DaThuThapDuNguQua() ? " <color=green>[x]</color> " : " <color=red>[ ]</color> ")
+            currentTask += (DaThuThapDuNguQua() ? " <color=green>[x]</color> " : " <color=white>[ ]</color> ")
                            + "Thu thập đủ 4 loại trái cây mâm Ngũ Quả\n";
         }
         else if (currentDay == TetDay.Mung1)
         {
-            currentTask += "<color=#FFD700><b>[ MÙNG 1 TẾT - KHỞI ĐẦU ]</b></color>\n";
-            currentTask += (hasGreetedMe                        ? " <color=green>[x]</color> " : " <color=red>[ ]</color> ") + "Chúc Tết Mẹ\n";
-            currentTask += (hasGreetedBo && hasGreetedOngNoi   ? " <color=green>[x]</color> " : " <color=red>[ ]</color> ") + "Chúc Tết Bố và Ông Nội\n";
-            currentTask += (daNhanLiXi                          ? " <color=green>[x]</color> " : " <color=red>[ ]</color> ") + "Nhận lì xì\n";
-            currentTask += (daChupAnhGiaDinh                    ? " <color=green>[x]</color> " : " <color=red>[ ]</color> ") + "Chụp ảnh gia đình\n";
+            // currentTask += "<color=yellow><b>[ MÙNG 1 TẾT - KHỞI ĐẦU ]</b></color>\n\n";
+            currentTask += (hasGreetedMe                        ? " <color=green>[x]</color> " : " <color=white>[ ]</color> ") + "Chúc Tết Mẹ\n";
+            currentTask += (hasGreetedBo && hasGreetedOngNoi   ? " <color=green>[x]</color> " : " <color=white>[ ]</color> ") + "Chúc Tết Bố và Ông Nội\n";
+            currentTask += (daNhanLiXi                          ? " <color=green>[x]</color> " : " <color=white>[ ]</color> ") + "Nhận lì xì\n";
+            currentTask += (daChupAnhGiaDinh                    ? " <color=green>[x]</color> " : " <color=white>[ ]</color> ") + "Chụp ảnh gia đình\n";
         }
 
         if (string.IsNullOrEmpty(currentTask)) return "- Hãy tìm gặp Mẹ để nhận việc.";

@@ -228,10 +228,16 @@ public class Outline : MonoBehaviour {
 
       // Retrieve or generate smooth normals
       var index = bakeKeys.IndexOf(meshFilter.sharedMesh);
-      var smoothNormals = (index >= 0) ? bakeValues[index].data : SmoothNormals(meshFilter.sharedMesh);
+      
+      // FIX: Kiểm tra if mesh is readable trước khi tính toán smooth normals
+      if (meshFilter.sharedMesh.isReadable) {
+        var smoothNormals = (index >= 0) ? bakeValues[index].data : SmoothNormals(meshFilter.sharedMesh);
 
-      // Store smooth normals in UV3
-      meshFilter.sharedMesh.SetUVs(3, smoothNormals);
+        // Store smooth normals in UV3
+        meshFilter.sharedMesh.SetUVs(3, smoothNormals);
+      } else {
+        Debug.LogWarning($"[Outline] Mesh '{meshFilter.sharedMesh.name}' is not readable. Skipping smooth normals generation.");
+      }
 
       // Combine submeshes
       var renderer = meshFilter.GetComponent<Renderer>();
@@ -249,11 +255,14 @@ public class Outline : MonoBehaviour {
         continue;
       }
 
-      // Clear UV3
-      skinnedMeshRenderer.sharedMesh.uv4 = new Vector2[skinnedMeshRenderer.sharedMesh.vertexCount];
+      // FIX: Kiểm tra isReadable cho SkinnedMeshRenderer
+      if (skinnedMeshRenderer.sharedMesh.isReadable) {
+        // Clear UV3
+        skinnedMeshRenderer.sharedMesh.uv4 = new Vector2[skinnedMeshRenderer.sharedMesh.vertexCount];
 
-      // Combine submeshes
-      CombineSubmeshes(skinnedMeshRenderer.sharedMesh, skinnedMeshRenderer.sharedMaterials);
+        // Combine submeshes
+        CombineSubmeshes(skinnedMeshRenderer.sharedMesh, skinnedMeshRenderer.sharedMaterials);
+      }
     }
   }
 

@@ -75,7 +75,7 @@ public class DoorEnter : NPCBase
         Debug.Log($"[DoorEnter] Đang chuyển sang scene: {sceneName}");
         if (!string.IsNullOrEmpty(sceneName))
         {
-            UnityEngine.SceneManagement.SceneManager.LoadScene(sceneName);
+            SceneTransitionManager.Instance.TransitionToScene(sceneName);
         }
         KetThucTuongTac();
     }

@@ -35,6 +35,19 @@ public class GameHUD : MonoBehaviour
     private Coroutine _coroutineThongBao;
     private bool _daKetNoi = false;
 
+    [Header("=== NHIỆM VỤ: THU GỌN/MỞ RỘNG ===")]
+    public KeyCode toggleNhiemVuKey = KeyCode.H;
+    private bool _nhiemVuCollapsed = false;
+    private Sprite _taskSpriteExpanded;
+    private Sprite _taskSpriteCollapsed;
+    private RectTransform _nhiemVuRect;
+    private RectTransform _nhiemVuTextBgRect;
+    private GameObject _nhiemVuTextBgGO;
+    private Image _nhiemVuImage;
+    private TMP_Text _toggleHintTMP;
+    private Vector2 _expandedAnchorMin, _expandedAnchorMax;
+    private Vector2 _expandedOffsetMin, _expandedOffsetMax;
+
     private void Start()
     {
         // Delay kết nối để đợi GameManager khởi tạo xong
@@ -72,10 +85,9 @@ public class GameHUD : MonoBehaviour
         CapNhatTien(GameManager.Instance.SoTien);
         CapNhatNhiemVu();
 
-        // Mới: Ẩn tiền nếu chưa nhận từ mẹ
         if (tienText != null && tienText.transform.parent != null)
         {
-            tienText.transform.parent.gameObject.SetActive(GameManager.Instance.daNhanTienTuMe);
+            tienText.transform.parent.gameObject.SetActive(true);
         }
 
         if (thongBaoPanel != null) thongBaoPanel.SetActive(false);
@@ -85,6 +97,103 @@ public class GameHUD : MonoBehaviour
         if (batDauPanel != null) batDauPanel.SetActive(false);
 
         Debug.Log("[GameHUD] ✅ Kết nối events và hiện Intro thành công");
+        
+        // Nếu bảng nhiệm vụ có MissionUIController thì để controller đó quản lý thu gọn/mở rộng,
+        // tránh bị trùng logic với GameHUD.
+        if (nhiemVuPanel == null || nhiemVuPanel.GetComponent<MissionUIController>() != null)
+        {
+            return;
+        }
+
+        CacheTaskPanelParts();
+        ApplyTaskPanelCollapsedState(force: true);
+    }
+
+    private void CacheTaskPanelParts()
+    {
+        if (nhiemVuPanel == null) return;
+
+        _nhiemVuRect = nhiemVuPanel.GetComponent<RectTransform>();
+        _nhiemVuImage = nhiemVuPanel.GetComponent<Image>();
+
+        if (_nhiemVuRect != null)
+        {
+            _expandedAnchorMin = _nhiemVuRect.anchorMin;
+            _expandedAnchorMax = _nhiemVuRect.anchorMax;
+            _expandedOffsetMin = _nhiemVuRect.offsetMin;
+            _expandedOffsetMax = _nhiemVuRect.offsetMax;
+        }
+
+        // Find text bg created by AutoSetup
+        Transform bgT = nhiemVuPanel.transform.Find("NhiemVuTextBg");
+        if (bgT != null)
+        {
+            _nhiemVuTextBgGO = bgT.gameObject;
+            _nhiemVuTextBgRect = bgT.GetComponent<RectTransform>();
+        }
+
+        Transform hintT = nhiemVuPanel.transform.Find("NhiemVuToggleHint");
+        if (hintT != null) _toggleHintTMP = hintT.GetComponent<TMP_Text>();
+
+        _taskSpriteExpanded = Resources.Load<Sprite>("BangNhiemVu");
+        _taskSpriteCollapsed = Resources.Load<Sprite>("BangNhiemVuThuGon");
+        if (_taskSpriteExpanded == null)
+        {
+            Texture2D t = Resources.Load<Texture2D>("BangNhiemVu");
+            if (t != null) _taskSpriteExpanded = Sprite.Create(t, new Rect(0, 0, t.width, t.height), new Vector2(0.5f, 0.5f));
+        }
+        if (_taskSpriteCollapsed == null)
+        {
+            Texture2D t = Resources.Load<Texture2D>("BangNhiemVuThuGon");
+            if (t != null) _taskSpriteCollapsed = Sprite.Create(t, new Rect(0, 0, t.width, t.height), new Vector2(0.5f, 0.5f));
+        }
+    }
+
+    private void ApplyTaskPanelCollapsedState(bool force = false)
+    {
+        if (_nhiemVuRect == null || _nhiemVuImage == null) return;
+
+        if (_nhiemVuCollapsed)
+        {
+            // Small header strip (giống ảnh BangNhiemVuThuGon)
+            // Tăng kích thước thu gọn to rõ hơn theo yêu cầu (Gốc: 0.90f)
+            _nhiemVuRect.anchorMin = new Vector2(0.01f, 0.65f);
+            _nhiemVuRect.anchorMax = new Vector2(0.35f, 0.985f);
+            _nhiemVuRect.offsetMin = Vector2.zero;
+            _nhiemVuRect.offsetMax = Vector2.zero;
+
+            if (_taskSpriteCollapsed != null)
+            {
+                _nhiemVuImage.sprite = _taskSpriteCollapsed;
+                _nhiemVuImage.color = Color.white;
+                _nhiemVuImage.type = Image.Type.Simple;
+                _nhiemVuImage.preserveAspect = true;
+            }
+
+            if (_nhiemVuTextBgGO != null) _nhiemVuTextBgGO.SetActive(false);
+            if (nhiemVuText != null) nhiemVuText.gameObject.SetActive(false);
+            if (_toggleHintTMP != null) { _toggleHintTMP.text = "[H] Mở rộng"; _toggleHintTMP.gameObject.SetActive(true); }
+        }
+        else
+        {
+            // Back to expanded layout (AutoSetup)
+            _nhiemVuRect.anchorMin = _expandedAnchorMin;
+            _nhiemVuRect.anchorMax = _expandedAnchorMax;
+            _nhiemVuRect.offsetMin = _expandedOffsetMin;
+            _nhiemVuRect.offsetMax = _expandedOffsetMax;
+
+            if (_taskSpriteExpanded != null)
+            {
+                _nhiemVuImage.sprite = _taskSpriteExpanded;
+                _nhiemVuImage.color = Color.white;
+                _nhiemVuImage.type = Image.Type.Simple;
+                _nhiemVuImage.preserveAspect = true;
+            }
+
+            if (_nhiemVuTextBgGO != null) _nhiemVuTextBgGO.SetActive(true);
+            if (nhiemVuText != null) nhiemVuText.gameObject.SetActive(true);
+            if (_toggleHintTMP != null) { _toggleHintTMP.text = "[H] Thu gọn"; _toggleHintTMP.gameObject.SetActive(true); }
+        }
     }
 
     public void DongBatDauPanel()
@@ -102,13 +211,9 @@ public class GameHUD : MonoBehaviour
         {
             tienText.text = $"[Tiền] {GameManager.FormatTien(soTien)}";
             
-            // Hiện tiền nếu đã nhận từ mẹ
-            if (GameManager.Instance != null && GameManager.Instance.daNhanTienTuMe)
+            if (tienText.transform.parent != null && !tienText.transform.parent.gameObject.activeSelf)
             {
-                if (tienText.transform.parent != null && !tienText.transform.parent.gameObject.activeSelf)
-                {
-                    tienText.transform.parent.gameObject.SetActive(true);
-                }
+                tienText.transform.parent.gameObject.SetActive(true);
             }
         }
     }
@@ -125,10 +230,9 @@ public class GameHUD : MonoBehaviour
                 nhiemVuPanel.SetActive(!string.IsNullOrEmpty(taskText));
             }
 
-            // Đảm bảo Tiền hiện lên nếu flag đã bật (đề phòng event CapNhatTien bị kẹt)
             if (tienText != null && tienText.transform.parent != null)
             {
-                if (GameManager.Instance.daNhanTienTuMe && !tienText.transform.parent.gameObject.activeSelf)
+                if (!tienText.transform.parent.gameObject.activeSelf)
                 {
                     tienText.transform.parent.gameObject.SetActive(true);
                 }
@@ -212,6 +316,18 @@ public class GameHUD : MonoBehaviour
 
     private void Update()
     {
+        // Toggle bảng nhiệm vụ bằng H (chỉ khi KHÔNG có MissionUIController)
+        if (nhiemVuPanel != null && nhiemVuPanel.GetComponent<MissionUIController>() == null)
+        {
+            bool togglePressed = (Keyboard.current != null && Keyboard.current.hKey.wasPressedThisFrame) ||
+                                 Input.GetKeyDown(toggleNhiemVuKey);
+            if (togglePressed && nhiemVuPanel.activeSelf)
+            {
+                _nhiemVuCollapsed = !_nhiemVuCollapsed;
+                ApplyTaskPanelCollapsedState();
+            }
+        }
+
         if (batDauPanel != null && batDauPanel.activeSelf)
         {
             batDauPanel.SetActive(false);

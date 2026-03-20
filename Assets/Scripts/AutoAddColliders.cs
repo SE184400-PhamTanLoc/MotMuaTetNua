@@ -53,6 +53,7 @@ public class AutoAddColliders : MonoBehaviour
         }
     }
 
+#if UNITY_EDITOR
     // Static method để gọi từ menu Editor
     [UnityEditor.MenuItem("Tools/Thêm Collider cho vật phẩm trong Scene")]
     static void AddCollidersToSceneObjects()
@@ -87,4 +88,5 @@ public class AutoAddColliders : MonoBehaviour
 
         Debug.Log($"Đã thêm Box Collider cho {count} vật phẩm trong scene!");
     }
+#endif
 }

@@ -49,7 +49,7 @@ public class VillageMarketTransition : MonoBehaviour
         if (GameManager.Instance == null)
         {
             Debug.LogError("GameManager.Instance is null! Loading scene directly as fallback.");
-            SceneManager.LoadScene(sceneNameToLoad);
+            SceneTransitionManager.Instance.TransitionToScene(sceneNameToLoad);
             return;
         }
 
@@ -64,7 +64,7 @@ public class VillageMarketTransition : MonoBehaviour
             else
             {
                 // Chưa đi hoặc đi chưa xong, cho qua
-                SceneManager.LoadScene(sceneNameToLoad);
+                SceneTransitionManager.Instance.TransitionToScene(sceneNameToLoad);
             }
         }
         else if (portalType == PortalType.ToVillage)
@@ -74,7 +74,7 @@ public class VillageMarketTransition : MonoBehaviour
             {
                 // Hoàn thành hết nhiệm vụ ở chợ -> Đánh dấu kết thúc việc đi chợ -> Cho về Làng
                 GameManager.Instance.daKetThucDiCho = true;
-                SceneManager.LoadScene(sceneNameToLoad);
+                SceneTransitionManager.Instance.TransitionToScene(sceneNameToLoad);
             }
             else
             {

@@ -72,7 +72,7 @@ public class MouseLook : MonoBehaviour
         // nên cho phép xoay như FPS bình thường để tránh cảm giác "giật/khóa" camera.
         string sceneName = SceneManager.GetActiveScene().name;
         bool allowFreeLookInScene =
-            sceneName == "VillageScene" || sceneName == "RoomVillage" || sceneName == "RoomScene" || sceneName == "Day_28_Scene";
+            sceneName == "VillageScene" || sceneName == "RoomVillage" || sceneName == "Day_28_Scene";
 
         if (!allowFreeLookInScene &&
             GameFlow.Instance != null &&

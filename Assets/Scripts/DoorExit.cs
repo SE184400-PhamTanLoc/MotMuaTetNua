@@ -70,7 +70,7 @@ public class DoorExit : NPCBase
         Debug.Log($"[DoorExit] Đang chuyển sang scene: {sceneName}");
         if (!string.IsNullOrEmpty(sceneName))
         {
-            UnityEngine.SceneManagement.SceneManager.LoadScene(sceneName);
+            SceneTransitionManager.Instance.TransitionToScene(sceneName);
         }
         KetThucTuongTac();
     }

@@ -65,6 +65,14 @@ public class CursorStateController : MonoBehaviour
             return;
         }
 
+        // 2.8.5 Kiểm tra Minigame Quét Sân
+        if (YardSweepingMinigame.Instance != null && YardSweepingMinigame.Instance.IsOpen)
+        {
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = false;
+            return;
+        }
+
         // 2.9 Kiểm tra Panel Hoàn Thành
         if (hud != null && hud.hoanThanhPanel != null && hud.hoanThanhPanel.activeSelf)
         {
